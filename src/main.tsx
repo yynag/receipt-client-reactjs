@@ -1,10 +1,13 @@
-import { StrictMode } from "react";
+import { lazy, StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "./index.css";
 import { createBrowserRouter } from "react-router";
 import { RouterProvider } from "react-router/dom";
-import AdminEntry from "./admin";
-import GuideEntry from "./guide";
+import { LazyLoad } from "./components/LazyLoad";
+
+import "./main.css";
+
+const AdminEntry = lazy(() => import("./domains/admin"));
+const HomeEntry = lazy(() => import("./domains/home"));
 
 const router = createBrowserRouter([
   {
@@ -16,17 +19,17 @@ const router = createBrowserRouter([
     )
   },
   {
-    path: "/guide",
-    element: <GuideEntry />
+    path: "/home",
+    element: LazyLoad(HomeEntry)
   },
   {
     path: "/admin",
-    element: <AdminEntry />
+    element: LazyLoad(AdminEntry)
   }
 ]);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <RouterProvider router={router} />,
+    <RouterProvider router={router} />
   </StrictMode>
 );
