@@ -8,9 +8,9 @@ import { cdkApi, type FilterOptions } from "../../api/cdk";
 export const DashboardPage = () => {
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({
     used: [],
-    appIds: [],
-    productIds: [],
-    userIds: []
+    app_ids: [],
+    product_ids: [],
+    user_ids: []
   });
   const [loading, setLoading] = useState(true);
 
@@ -56,7 +56,7 @@ export const DashboardPage = () => {
   }
 
   return (
-    <div style={{ padding: "24px" }}>
+    <div>
       <Card title="数据仪表盘" bordered={false}>
         <Tabs defaultActiveKey="trend" items={tabItems} />
       </Card>

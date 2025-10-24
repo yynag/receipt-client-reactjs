@@ -33,7 +33,7 @@ prompt/redeem.html 是一份HTML实现的代码，我很满意，视觉设计和
      ```json
      Request: { "token": "user_token_string" }
      Response: { 
-       "id": "user-id", 
+       "ID": "user-id", 
        "username": "username", 
        "global_name": "global name",
        "locale": "en", 

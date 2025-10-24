@@ -1,24 +1,27 @@
 import { useState, useEffect, useRef } from "react";
 import { Button, message, Popconfirm, Tag, notification } from "antd";
+import { PlusOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import {
-  PlusOutlined,
-  DeleteOutlined,
-  EditOutlined
-} from "@ant-design/icons";
-import { ProTable, type ProColumns, type ActionType, ModalForm, ProFormSelect, ProFormText } from "@ant-design/pro-components";
-import { type AdminUser, type UserFilterOptions, userApi } from "../../api/user";
+  ProTable,
+  type ProColumns,
+  type ActionType,
+  ModalForm,
+  ProFormSelect,
+  ProFormText
+} from "@ant-design/pro-components";
+import { type ListUser, type UserFilterOptions, userApi } from "../../api/user";
 import "./styles.css";
 
 export const UserPage = () => {
-  const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
-  const [allUsers, setAllUsers] = useState<AdminUser[]>([]);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<number[]>([]);
+  const [allUsers, setAllUsers] = useState<ListUser[]>([]);
   const [filterOptions, setFilterOptions] = useState<UserFilterOptions>({
     roles: []
   });
   const actionRef = useRef<ActionType>(null);
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
-  const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
+  const [editingUser, setEditingUser] = useState<ListUser | null>(null);
 
   useEffect(() => {
     fetchFilterOptions();
@@ -34,20 +37,21 @@ export const UserPage = () => {
     }
   };
 
-  const columns: ProColumns<AdminUser>[] = [
+  const columns: ProColumns<ListUser>[] = [
     {
-      title: "ID",
+      title: "id",
       dataIndex: "id",
       key: "id",
       width: 100,
       ellipsis: true,
       copyable: true,
-      search: false
+      search: false,
+      hidden: true
     },
     {
       title: "创建时间",
-      dataIndex: "createdAt",
-      key: "createdAt",
+      dataIndex: "created_at",
+      key: "created_at",
       width: 160,
       valueType: "dateTime",
       search: false,
@@ -61,9 +65,7 @@ export const UserPage = () => {
       ellipsis: true,
       copyable: true,
       search: true,
-      render: (text) => (
-        <span className="user-id-cell">{text}</span>
-      )
+      render: (text) => <span className="user-id-cell">{text}</span>
     },
     {
       title: "角色",
@@ -72,14 +74,12 @@ export const UserPage = () => {
       width: 120,
       valueType: "select",
       valueEnum: {
-        admin: { text: '管理员', status: 'Processing' },
-        stock: { text: '库存管理', status: 'Default' }
+        admin: { text: "管理员", status: "Processing" },
+        stock: { text: "库存管理", status: "Default" }
       },
       request: async () => filterOptions.roles,
-      render: (_, record: AdminUser) => (
-        <Tag color={record.role === "admin" ? "blue" : "green"}>
-          {record.role === "admin" ? "管理员" : "库存管理"}
-        </Tag>
+      render: (_, record: ListUser) => (
+        <Tag color={record.role === "admin" ? "blue" : "green"}>{record.role === "admin" ? "管理员" : "库存管理"}</Tag>
       )
     },
     {
@@ -88,20 +88,14 @@ export const UserPage = () => {
       width: 120,
       fixed: "right",
       search: false,
-      render: (_, record: AdminUser) => [
-        <Button
-          key="edit"
-          type="link"
-          size="small"
-          icon={<EditOutlined />}
-          onClick={() => handleEdit(record)}
-        >
+      render: (_, record: ListUser) => [
+        <Button key="edit" type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)}>
           编辑
         </Button>,
         <Popconfirm
           key="delete"
           title="确定删除这个用户吗？"
-          onConfirm={() => handleDelete(record.id)}
+          onConfirm={() => handleDelete(record.ID)}
           okText="确定"
           cancelText="取消"
         >
@@ -113,14 +107,14 @@ export const UserPage = () => {
     }
   ];
 
-  const handleEdit = (user: AdminUser) => {
+  const handleEdit = (user: ListUser) => {
     setEditingUser(user);
     setEditModalVisible(true);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     try {
-      await userApi.delete(id);
+      await userApi.batchDelete([id]);
       message.success("删除成功");
       actionRef.current?.reload();
     } catch {
@@ -151,29 +145,31 @@ export const UserPage = () => {
     }
 
     try {
-      const selectedUsers = allUsers.filter(item => selectedRowKeys.includes(item.id));
-      
+      const selectedUsers = allUsers.filter((item) => selectedRowKeys.includes(item.ID));
+
       if (selectedUsers.length === 0) {
         message.error("未找到选中的用户数据");
         return;
       }
-      
-      const copyText = selectedUsers.map(user => `${user.user_id} (${user.role === "admin" ? "管理员" : "库存管理"})`).join('\n');
-      
+
+      const copyText = selectedUsers
+        .map((user) => `${user.user_id} (${user.role === "admin" ? "管理员" : "库存管理"})`)
+        .join("\n");
+
       await navigator.clipboard.writeText(copyText);
-      
+
       notification.success({
-        message: '复制成功',
+        message: "复制成功",
         description: `已复制 ${selectedRowKeys.length} 个用户信息到剪切板`,
-        placement: 'topRight',
+        placement: "topRight",
         duration: 3
       });
     } catch (error) {
       console.error("复制失败:", error);
       notification.error({
-        message: '复制失败',
-        description: '请重试',
-        placement: 'topRight',
+        message: "复制失败",
+        description: "请重试",
+        placement: "topRight",
         duration: 3
       });
     }
@@ -181,17 +177,17 @@ export const UserPage = () => {
 
   return (
     <div className="user-management-page">
-      <ProTable<AdminUser>
+      <ProTable<ListUser>
         columns={columns}
         actionRef={actionRef}
-        rowKey="id"
+        rowKey="ID"
         request={async (params, sort, filter) => {
           console.log("请求参数:", params, sort, filter);
-          
+
           const response = await userApi.getList({
             current: params.current || 1,
-            pageSize: params.pageSize || 20,
-            search: params.search,
+            page_size: params.pageSize || 20,
+            keywords: params.user_id,
             role: params.role as "admin" | "stock"
           });
 
@@ -200,12 +196,12 @@ export const UserPage = () => {
           return {
             data: response.items,
             success: true,
-            total: response.total,
+            total: response.total
           };
         }}
         rowSelection={{
           selectedRowKeys,
-          onChange: (keys) => setSelectedRowKeys(keys as string[]),
+          onChange: (keys) => setSelectedRowKeys(keys as number[])
         }}
         tableAlertRender={({ selectedRowKeys, onCleanSelected }) => (
           <span>
@@ -224,25 +220,20 @@ export const UserPage = () => {
           </>
         )}
         columnsState={{
-          persistenceKey: 'pro-table-user-list',
-          persistenceType: 'localStorage',
+          persistenceKey: "pro-table-user-list",
+          persistenceType: "localStorage"
         }}
         toolBarRender={() => [
-          <Button
-            key="add"
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setCreateModalVisible(true)}
-          >
+          <Button key="add" type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalVisible(true)}>
             新建
-          </Button>,
+          </Button>
         ]}
         pagination={{
           defaultPageSize: 20,
           showSizeChanger: true,
-          pageSizeOptions: ['10', '20', '50', '100'],
+          pageSizeOptions: ["10", "20", "50", "100"]
         }}
-        scroll={{ x: 'max-content' }}
+        scroll={{ x: "max-content" }}
         headerTitle="用户列表"
       />
 
@@ -266,7 +257,7 @@ export const UserPage = () => {
           }
         }}
         modalProps={{
-          destroyOnClose: true,
+          destroyOnClose: true
         }}
       >
         <ProFormText
@@ -275,9 +266,9 @@ export const UserPage = () => {
           placeholder="请输入用户ID（邮箱或手机号）"
           rules={[
             { required: true, message: "请输入用户ID" },
-            { 
-              pattern: /^[a-zA-Z0-9@._-]+$/, 
-              message: "用户ID只能包含字母、数字、@、.、_、-" 
+            {
+              pattern: /^[a-zA-Z0-9@._-]+$/,
+              message: "用户ID只能包含字母、数字、@、.、_、-"
             }
           ]}
         />
@@ -295,15 +286,19 @@ export const UserPage = () => {
         width="500px"
         open={editModalVisible}
         onOpenChange={setEditModalVisible}
-        initialValues={editingUser ? {
-          user_id: editingUser.user_id,
-          role: editingUser.role
-        } : undefined}
+        initialValues={
+          editingUser
+            ? {
+                user_id: editingUser.user_id,
+                role: editingUser.role
+              }
+            : undefined
+        }
         onFinish={async (values) => {
           if (!editingUser) return false;
-          
+
           try {
-            await userApi.update(editingUser.id, {
+            await userApi.update(editingUser.ID, {
               user_id: values.user_id,
               role: values.role
             });
@@ -318,7 +313,7 @@ export const UserPage = () => {
           }
         }}
         modalProps={{
-          destroyOnClose: true,
+          destroyOnClose: true
         }}
       >
         <ProFormText
@@ -327,9 +322,9 @@ export const UserPage = () => {
           placeholder="请输入用户ID（邮箱或手机号）"
           rules={[
             { required: true, message: "请输入用户ID" },
-            { 
-              pattern: /^[a-zA-Z0-9@._-]+$/, 
-              message: "用户ID只能包含字母、数字、@、.、_、-" 
+            {
+              pattern: /^[a-zA-Z0-9@._-]+$/,
+              message: "用户ID只能包含字母、数字、@、.、_、-"
             }
           ]}
         />

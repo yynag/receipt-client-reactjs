@@ -12,7 +12,7 @@ import {
 import { type CDK, cdkApi, type FilterOptions } from "../../api/cdk";
 
 export const CDKPage = () => {
-  const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<number[]>([]);
   const [allCDKs, setAllCDKs] = useState<CDK[]>([]);
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({
     used: [],
@@ -40,17 +40,18 @@ export const CDKPage = () => {
   const columns: ProColumns<CDK>[] = [
     {
       title: "ID",
-      dataIndex: "id",
-      key: "id",
+      dataIndex: "ID",
+      key: "ID",
       width: 100,
       ellipsis: true,
       copyable: true,
-      search: false
+      search: false,
+      hidden: true
     },
     {
       title: "创建时间",
-      dataIndex: "createdAt",
-      key: "createdAt",
+      dataIndex: "CreatedAt",
+      key: "CreatedAt",
       width: 160,
       valueType: "dateTime",
       search: false,
@@ -75,46 +76,44 @@ export const CDKPage = () => {
         true: { text: "已使用", status: "Success" },
         false: { text: "未使用", status: "Warning" }
       },
-      render: (_, record: CDK) => (
-        <Tag color={record.used ? "green" : "orange"}>{record.used ? "已使用" : "未使用"}</Tag>
-      )
+      render: (_, record: CDK) => <Tag color={record.used ? "green" : "blue"}>{record.used ? "已使用" : "未使用"}</Tag>
     },
     {
       title: "使用用户",
-      dataIndex: "usedUser",
-      key: "usedUser",
-      width: 120,
+      dataIndex: "used_user",
+      key: "used_user",
       search: false,
-      ellipsis: true
+      ellipsis: true,
+      width: 150
     },
     {
       title: "库存ID",
-      dataIndex: "stockId",
-      key: "stockId",
+      dataIndex: "stock_id",
+      key: "stock_id",
       width: 120,
       search: false,
       ellipsis: true
     },
     {
       title: "创建人",
-      dataIndex: "uploaderId",
-      key: "uploaderId",
+      dataIndex: "user_id",
+      key: "user_id",
       width: 120,
       valueType: "select",
       request: async () => filterOptions.user_ids
     },
     {
       title: "App ID",
-      dataIndex: "appId",
-      key: "appId",
+      dataIndex: "app_id",
+      key: "app_id",
       width: 120,
       valueType: "select",
       request: async () => filterOptions.app_ids
     },
     {
       title: "App产品ID",
-      dataIndex: "appProductId",
-      key: "appProductId",
+      dataIndex: "app_product_id",
+      key: "app_product_id",
       width: 140,
       valueType: "select",
       request: async () => filterOptions.product_ids
@@ -168,7 +167,7 @@ export const CDKPage = () => {
 
     try {
       // 使用已存储的数据
-      const selectedCDKs = allCDKs.filter((item) => selectedRowKeys.includes(item.id));
+      const selectedCDKs = allCDKs.filter((item) => selectedRowKeys.includes(item.ID));
 
       if (selectedCDKs.length === 0) {
         message.error("未找到选中的CDK数据");
@@ -205,7 +204,7 @@ export const CDKPage = () => {
       return;
     }
 
-    const codes = allCDKs.filter((item) => selectedRowKeys.includes(item.id)).map((cdk) => cdk.code);
+    const codes = allCDKs.filter((item) => selectedRowKeys.includes(item.ID)).map((cdk) => cdk.code);
 
     try {
       await cdkApi.batchDelete(codes);
@@ -222,7 +221,7 @@ export const CDKPage = () => {
       <ProTable<CDK>
         columns={columns}
         actionRef={actionRef}
-        rowKey="id"
+        rowKey="ID"
         request={async (params, sort, filter) => {
           console.log("请求参数:", params, sort, filter);
 
@@ -230,9 +229,9 @@ export const CDKPage = () => {
             page: params.current || 1,
             page_size: params.pageSize || 20,
             used: params.used !== undefined ? params.used === "true" : undefined,
-            app_id: params.appId,
-            app_product_id: params.appProductId,
-            user_id: params.uploaderId
+            app_id: params.app_id,
+            app_product_id: params.app_product_id,
+            user_id: params.user_id
           });
 
           // 存储数据供复制功能使用
@@ -246,7 +245,7 @@ export const CDKPage = () => {
         }}
         rowSelection={{
           selectedRowKeys,
-          onChange: (keys) => setSelectedRowKeys(keys as string[])
+          onChange: (keys) => setSelectedRowKeys(keys as number[])
         }}
         tableAlertRender={({ selectedRowKeys, onCleanSelected }) => (
           <span>
@@ -278,7 +277,7 @@ export const CDKPage = () => {
           showSizeChanger: true,
           pageSizeOptions: ["10", "20", "50", "100"]
         }}
-        scroll={{ x: "max-content" }}
+        scroll={{ x: 1200 }}
         headerTitle="CDK 列表"
       />
 

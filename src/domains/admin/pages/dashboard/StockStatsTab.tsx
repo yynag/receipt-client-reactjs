@@ -1,11 +1,13 @@
-import { useState, useEffect, useCallback } from "react";
-import { Card, Row, Col, Select, Button, Statistic, Space } from "antd";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
+import { Card, Row, Col, Select, Button, Statistic, Space, Spin } from "antd";
 import { ReloadOutlined } from "@ant-design/icons";
-import ReactECharts from "echarts-for-react";
 import { type FilterOptions } from "../../api/cdk";
 import { stockApi, type StockStatResponse } from "../../api/stock";
 
 const { Option } = Select;
+
+// Lazy load ECharts component
+const ReactECharts = lazy(() => import('echarts-for-react').then(module => ({ default: module.default })));
 
 interface StockStatsTabProps {
   filterOptions: FilterOptions;
@@ -21,7 +23,7 @@ export const StockStatsTab = ({ filterOptions }: StockStatsTabProps) => {
   const fetchStatsData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await stockApi.getStockStatsMock(selectedApp || undefined, selectedProduct || undefined);
+      const response = await stockApi.getStockStats(selectedApp || undefined, selectedProduct || undefined);
       setStatsData(response);
     } catch (error) {
       console.error("获取库存统计数据失败:", error);
@@ -187,7 +189,9 @@ export const StockStatsTab = ({ filterOptions }: StockStatsTabProps) => {
       )}
 
       <Card>
-        <ReactECharts option={getPieChartOption()} style={{ height: 400 }} notMerge={true} lazyUpdate={true} />
+        <Suspense fallback={<Spin size="large" style={{ display: 'block', textAlign: 'center', padding: '100px 0' }} />}>
+          <ReactECharts option={getPieChartOption()} style={{ height: 400 }} notMerge={true} lazyUpdate={true} />
+        </Suspense>
       </Card>
     </div>
   );

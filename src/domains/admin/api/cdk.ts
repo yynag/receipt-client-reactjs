@@ -7,8 +7,8 @@ export interface FilterOptionResponse {
 }
 
 export interface CDK {
-  id: string;
-  createdAt: string;
+  ID: number;
+  CreatedAt: string;
   code: string;
   used: boolean;
   used_user?: string;
@@ -124,7 +124,7 @@ export const cdkApi = {
     appId?: string,
     productId?: string
   ): Promise<number[]> => {
-    let url = `${baseUrl}/cdks/stats/trend?a=b`;
+    let url = `${baseUrl}/cdks/stats/amount?a=b`;
     if (dimension) {
       url += `&view=${encodeURIComponent(dimension)}`;
     }
@@ -184,7 +184,7 @@ export const cdkApi = {
   },
 
   getCDKStats: async (appId?: string, productId?: string, userId?: string): Promise<CDKStatResponse> => {
-    let url = `${baseUrl}/cdks/stats/amount?a=b`;
+    let url = `${baseUrl}/cdks/stats/total?a=b`;
     if (appId) {
       url += `&app_id=${encodeURIComponent(appId)}`;
     }
@@ -221,7 +221,7 @@ export const cdkApi = {
 
   getList: async (params: CDKListParams): Promise<CDKListResponse> => {
     let url = `${baseUrl}/cdks?page=${params.page}&page_size=${params.page_size}`;
-    if (params.used) {
+    if (params.used !== undefined) {
       url += `&used=${params.used}`;
     }
     if (params.app_id) {
@@ -244,8 +244,8 @@ export const cdkApi = {
 
   getListMock: async (params: CDKListParams): Promise<CDKListResponse> => {
     const mockData: CDK[] = Array.from({ length: 100 }, (_, i) => ({
-      id: `cdk_${i + 1}`,
-      createdAt: new Date(Date.now() - i * 3600000).toISOString(),
+      ID: i,
+      CreatedAt: new Date(Date.now() - i * 3600000).toISOString(),
       code: `CDK-${Math.random().toString(36).substr(2, 16).toUpperCase()}`,
       used: Math.random() > 0.7,
       used_user: Math.random() > 0.7 ? `user_${Math.floor(Math.random() * 1000)}` : undefined,

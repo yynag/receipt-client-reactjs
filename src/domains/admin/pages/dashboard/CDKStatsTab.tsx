@@ -1,10 +1,12 @@
-import { useState, useEffect, useCallback } from "react";
-import { Card, Row, Col, Select, Button, Statistic, Space } from "antd";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
+import { Card, Row, Col, Select, Button, Statistic, Space, Spin } from "antd";
 import { ReloadOutlined } from "@ant-design/icons";
-import ReactECharts from "echarts-for-react";
 import { cdkApi, type FilterOptions, type CDKStatResponse } from "../../api/cdk";
 
 const { Option } = Select;
+
+// Lazy load ECharts component
+const ReactECharts = lazy(() => import('echarts-for-react').then(module => ({ default: module.default })));
 
 interface CDKStatsTabProps {
   filterOptions: FilterOptions;
@@ -20,7 +22,8 @@ export const CDKStatsTab = ({ filterOptions }: CDKStatsTabProps) => {
   const fetchStatsData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await cdkApi.getCDKStatsMock(
+      console.log(111111);
+      const response = await cdkApi.getCDKStats(
         selectedApp || undefined,
         selectedProduct || undefined,
         selectedUploader || undefined
@@ -119,7 +122,7 @@ export const CDKStatsTab = ({ filterOptions }: CDKStatsTabProps) => {
               placeholder="全部应用"
               allowClear
             >
-              {filterOptions.appIds.map((app) => (
+              {filterOptions.app_ids.map((app) => (
                 <Option key={app.value} value={app.value}>
                   {app.label}
                 </Option>
@@ -135,7 +138,7 @@ export const CDKStatsTab = ({ filterOptions }: CDKStatsTabProps) => {
               placeholder="全部产品"
               allowClear
             >
-              {filterOptions.productIds.map((product) => (
+              {filterOptions.product_ids.map((product) => (
                 <Option key={product.value} value={product.value}>
                   {product.label}
                 </Option>
@@ -151,7 +154,7 @@ export const CDKStatsTab = ({ filterOptions }: CDKStatsTabProps) => {
               placeholder="全部归属人"
               allowClear
             >
-              {filterOptions.userIds.map((uploader) => (
+              {filterOptions.user_ids.map((uploader) => (
                 <Option key={uploader.value} value={uploader.value}>
                   {uploader.label}
                 </Option>
@@ -190,7 +193,9 @@ export const CDKStatsTab = ({ filterOptions }: CDKStatsTabProps) => {
       )}
 
       <Card>
-        <ReactECharts option={getPieChartOption()} style={{ height: 400 }} notMerge={true} lazyUpdate={true} />
+        <Suspense fallback={<Spin size="large" style={{ display: 'block', textAlign: 'center', padding: '100px 0' }} />}>
+          <ReactECharts option={getPieChartOption()} style={{ height: 400 }} notMerge={true} lazyUpdate={true} />
+        </Suspense>
       </Card>
     </div>
   );

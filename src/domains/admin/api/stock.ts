@@ -1,8 +1,8 @@
 import { baseUrl, buildFilterOptions, request } from "./shared";
 
 export interface ListStock {
-  id: number;
-  createdAt: string;
+  ID: number;
+  CreatedAt: string;
   updatedAt: string;
   app_id: string;
   device_id: string;
@@ -12,8 +12,8 @@ export interface ListStock {
 }
 
 export interface Stock {
-  id: number;
-  createdAt: string;
+  ID: number;
+  CreatedAt: string;
   updatedAt: string;
   app_id: string;
   device_id: string;
@@ -149,8 +149,8 @@ export const stockApi = {
 
   getListMock: async (params: StockListParams): Promise<StockListResponse> => {
     const mockData: ListStock[] = Array.from({ length: 1000 }, (_, i) => ({
-      id: i,
-      createdAt: new Date(Date.now() - i * 3600000).toISOString(),
+      ID: i,
+      CreatedAt: new Date(Date.now() - i * 3600000).toISOString(),
       updatedAt: new Date(Date.now() - i * 1800000).toISOString(),
       app_id: `app_${Math.floor(Math.random() * 10)}`,
       device_id: `device_${Math.floor(Math.random() * 20)}`,
@@ -163,12 +163,12 @@ export const stockApi = {
 
     if (params.start_date) {
       const startTime = new Date(params.start_date).getTime();
-      filteredData = filteredData.filter((item) => new Date(item.createdAt).getTime() >= startTime);
+      filteredData = filteredData.filter((item) => new Date(item.CreatedAt).getTime() >= startTime);
     }
 
     if (params.end_date) {
       const endTime = new Date(params.end_date).getTime();
-      filteredData = filteredData.filter((item) => new Date(item.createdAt).getTime() <= endTime);
+      filteredData = filteredData.filter((item) => new Date(item.CreatedAt).getTime() <= endTime);
     }
 
     if (params.used !== undefined) {
@@ -198,13 +198,13 @@ export const stockApi = {
   getStockStats: async (app_id?: string, product_id?: string, user_id?: string): Promise<StockStatResponse> => {
     let url = `${baseUrl}/stocks/stats/total?a=b`;
     if (app_id) {
-      url += `&appId=${encodeURIComponent(app_id)}`;
+      url += `&app_id=${encodeURIComponent(app_id)}`;
     }
     if (product_id) {
-      url += `&productId=${encodeURIComponent(product_id)}`;
+      url += `&product_id=${encodeURIComponent(product_id)}`;
     }
     if (user_id) {
-      url += `&userId=${encodeURIComponent(user_id)}`;
+      url += `&user_id=${encodeURIComponent(user_id)}`;
     }
     const response = await request(url, {
       method: "GET"

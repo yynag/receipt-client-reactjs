@@ -30,7 +30,7 @@ export default function HistoryModal({ open, onClose, records, title, emptyText,
             </span>
             <span className="text-xs text-slate-500 dark:text-slate-400 truncate">{value}</span>
           </div>
-        ),
+        )
       },
       {
         title: columnLabels.cdk,
@@ -41,18 +41,16 @@ export default function HistoryModal({ open, onClose, records, title, emptyText,
             <span className="font-mono text-sm text-slate-700 dark:text-slate-200">{value}</span>
             <span className="text-xs text-slate-500 dark:text-slate-400">{record.appId}</span>
           </div>
-        ),
+        )
       },
       {
         title: columnLabels.time,
         dataIndex: "redeemedAt",
         key: "redeemedAt",
         render: (value: string) => (
-          <span className="text-sm text-slate-600 dark:text-slate-300">
-            {new Date(value).toLocaleString()}
-          </span>
-        ),
-      },
+          <span className="text-sm text-slate-600 dark:text-slate-300">{new Date(value).toLocaleString()}</span>
+        )
+      }
     ],
     [columnLabels]
   );
@@ -68,7 +66,7 @@ export default function HistoryModal({ open, onClose, records, title, emptyText,
       className="redeem-history-modal"
     >
       <Table
-        rowKey="id"
+        rowKey="ID"
         dataSource={records}
         columns={columns}
         pagination={false}

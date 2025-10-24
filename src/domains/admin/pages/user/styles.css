@@ -1,39 +1,17 @@
-/* 用户管理页面特定样式 */
-.user-management-page {
-  .ant-pro-table {
-    .ant-pro-table-list-toolbar {
-      .ant-pro-table-list-toolbar-title {
-        font-weight: 600;
-      }
-    }
-  }
-
-  .ant-tag {
-    margin: 0;
-  }
-
-  .user-id-cell {
-    font-family: 'Courier New', monospace;
-    font-size: 13px;
-  }
-
-  .action-buttons {
-    .ant-btn {
-      padding: 0 4px;
-      height: 24px;
-      line-height: 22px;
-    }
-  }
+/* 用户管理页面样式 - 简化版 */
+.user-id-cell {
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
 }
 
-/* 响应式调整 */
+.action-buttons .ant-btn {
+  padding: 0 4px;
+  height: 24px;
+}
+
 @media (max-width: 768px) {
-  .user-management-page {
-    .ant-pro-table {
-      .ant-table-thead > tr > th,
-      .ant-table-tbody > tr > td {
-        padding: 8px 4px;
-      }
-    }
+  .ant-table-thead > tr > th,
+  .ant-table-tbody > tr > td {
+    padding: 8px 4px;
   }
 }

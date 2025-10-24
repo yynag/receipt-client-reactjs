@@ -15,20 +15,20 @@ const router = createBrowserRouter([
     path: "/",
     element: (
       <div>
-        <div>Hello World</div>
+        <div>Hello, World!</div>
       </div>
     )
   },
   {
-    path: "/home",
+    path: "/home-8j0vm",
     element: LazyLoad(HomeEntry)
   },
   {
-    path: "/admin",
+    path: "/admin-snu79",
     element: LazyLoad(AdminEntry)
   },
   {
-    path: "/redeem",
+    path: "/redeem-discord",
     element: LazyLoad(RedeemEntry)
   }
 ]);

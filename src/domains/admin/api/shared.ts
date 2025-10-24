@@ -1,4 +1,4 @@
-export const baseUrl = "https://api.themoviedb.org/3";
+export const baseUrl = import.meta.env.DEV ? "http://localhost:3000" : "https://receipt-api.nitro.xin";
 
 export const sleep = (ms: number) => {
   return new Promise<void>((resolve) => {

@@ -8,8 +8,8 @@ interface User {
 }
 
 export interface ListUser {
-  id: number;
-  createdAt: string;
+  ID: number;
+  CreatedAt: string;
   user_id: string;
   role: "admin" | "stock";
   login_at: string;
@@ -88,6 +88,9 @@ export const userApi = {
     if (params.keywords) {
       url += `&keywords=${encodeURIComponent(params.keywords)}`;
     }
+    if (params.role) {
+      url += `&role=${params.role}`;
+    }
     const response = await request(url, {
       method: "GET"
     });
@@ -99,8 +102,8 @@ export const userApi = {
 
   getListMock: async (params: UserListParams): Promise<UserListResponse> => {
     const mockData: ListUser[] = Array.from({ length: 100 }, (_, i) => ({
-      id: i,
-      createdAt: new Date(Date.now() - i * 3600000).toISOString(),
+      ID: i,
+      CreatedAt: new Date(Date.now() - i * 3600000).toISOString(),
       user_id:
         i % 3 === 0
           ? `admin${Math.floor(Math.random() * 100)}@example.com`
@@ -172,7 +175,7 @@ export const userApi = {
     });
   },
 
-  update: async (id: string, data: Partial<CreateUserRequest>): Promise<void> => {
+  update: async (id: number, data: Partial<CreateUserRequest>): Promise<void> => {
     const response = await request(`${baseUrl}/users/${id}`, {
       method: "PUT",
       headers: {

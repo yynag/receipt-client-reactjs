@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from "react";
-import { Button, message, Popconfirm, Tag, notification, Upload, Modal, Drawer, Descriptions } from "antd";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
+import { Button, message, Popconfirm, Tag, notification, Upload, Modal, Drawer, Descriptions, Spin } from "antd";
 import {
   DeleteOutlined,
   ExportOutlined,
@@ -8,11 +8,19 @@ import {
   DownloadOutlined,
   UploadOutlined
 } from "@ant-design/icons";
-import { ProTable, type ProColumns, type ActionType } from "@ant-design/pro-components";
+import type { UploadFile } from "antd/es/upload/interface";
 import { type ListStock, stockApi, type FilterOptions, type Stock } from "../../api/stock";
+
+// Lazy load ProTable component only
+const ProTable = lazy(() => import('@ant-design/pro-components').then(module => ({ 
+  default: module.ProTable 
+})));
+
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
-import type { UploadFile } from "antd/es/upload/interface";
+
+type ProColumns = any;
+type ActionType = any;
 
 export const StockPage = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<number[]>([]);
@@ -45,21 +53,22 @@ export const StockPage = () => {
     }
   };
 
-  const columns: ProColumns<ListStock>[] = [
+  const columns: ProColumns[] = [
     {
       title: "ID",
-      dataIndex: "id",
-      key: "id",
+      dataIndex: "ID",
+      key: "ID",
       width: 120,
       ellipsis: true,
       copyable: true,
-      search: false
+      search: false,
+      hidden: true
     },
     {
       title: "创建日期时间",
-      dataIndex: "createdAt",
-      key: "createdAt",
-      width: 160,
+      dataIndex: "CreatedAt",
+      key: "CreatedAt",
+      width: 140,
       valueType: "dateTime",
       search: false,
       sorter: true
@@ -81,17 +90,17 @@ export const StockPage = () => {
     },
     {
       title: "App ID",
-      dataIndex: "appId",
-      key: "appId",
-      width: 120,
+      dataIndex: "app_id",
+      key: "app_id",
+      width: 100,
       valueType: "select",
       request: async () => filterOptions.app_ids
     },
     {
       title: "产品ID",
-      dataIndex: "productId",
-      key: "productId",
-      width: 140,
+      dataIndex: "product_id",
+      key: "product_id",
+      width: 100,
       valueType: "select",
       request: async () => filterOptions.product_ids
     },
@@ -99,7 +108,7 @@ export const StockPage = () => {
       title: "使用状态",
       dataIndex: "used",
       key: "used",
-      width: 120,
+      width: 100,
       valueType: "select",
       valueEnum: {
         true: { text: "已使用", status: "Success" },
@@ -111,9 +120,9 @@ export const StockPage = () => {
     },
     {
       title: "用户ID",
-      dataIndex: "userId",
-      key: "userId",
-      width: 120,
+      dataIndex: "user_id",
+      key: "user_id",
+      width: 100,
       search: false,
       ellipsis: true,
       render: (_, record: ListStock) => record.user_id || "-"
@@ -121,7 +130,7 @@ export const StockPage = () => {
     {
       title: "操作",
       key: "action",
-      width: 200,
+      width: 180,
       fixed: "right",
       search: false,
       render: (_, record: ListStock) => [
@@ -140,7 +149,7 @@ export const StockPage = () => {
         <Popconfirm
           key="delete"
           title="确定删除这个库存项吗？"
-          onConfirm={() => handleDelete(record.id)}
+          onConfirm={() => handleDelete(record.ID)}
           okText="确定"
           cancelText="取消"
         >
@@ -165,13 +174,13 @@ export const StockPage = () => {
   const handleSingleExport = async (stock: ListStock) => {
     try {
       const zip = new JSZip();
-      const fileName = `stock_${stock.id}_${Date.now()}.json`;
+      const fileName = `stock_${stock.ID}_${Date.now()}.json`;
       const jsonContent = JSON.stringify(stock, null, 2);
 
       zip.file(fileName, jsonContent);
 
       const content = await zip.generateAsync({ type: "blob" });
-      saveAs(content, `stock_export_${stock.id}.zip`);
+      saveAs(content, `stock_export_${stock.ID}.zip`);
 
       message.success("导出成功");
     } catch (error) {
@@ -188,10 +197,10 @@ export const StockPage = () => {
 
     try {
       const zip = new JSZip();
-      const selectedStocks = allStocks.filter((item) => selectedRowKeys.includes(item.id));
+      const selectedStocks = allStocks.filter((item) => selectedRowKeys.includes(item.ID));
 
       selectedStocks.forEach((stock) => {
-        const fileName = `stock_${stock.id}.json`;
+        const fileName = `stock_${stock.ID}.json`;
         const jsonContent = JSON.stringify(stock, null, 2);
         zip.file(fileName, jsonContent);
       });
@@ -232,7 +241,7 @@ export const StockPage = () => {
     setDetailLoading(true);
 
     try {
-      const detailData = await stockApi.getStockDetail(stock.id);
+      const detailData = await stockApi.getStockDetail(stock.ID);
       setStockDetail(detailData);
       setDetailLoading(false);
     } catch (error) {
@@ -279,22 +288,23 @@ export const StockPage = () => {
   };
 
   return (
-    <div>
-      <ProTable<ListStock>
+    <Suspense fallback={<Spin size="large" style={{ display: 'block', textAlign: 'center', padding: '100px 0' }} />}>
+      <div>
+        <ProTable
         columns={columns}
         actionRef={actionRef}
-        rowKey="id"
+        rowKey="ID"
         request={async (params, sort, filter) => {
           console.log("请求参数:", params, sort, filter);
 
-          const response = await stockApi.getListMock({
+          const response = await stockApi.getList({
             page: params.current || 1,
             page_size: params.pageSize || 20,
             start_date: params.startTime,
             end_date: params.endTime,
             used: params.used !== undefined ? params.used === "true" : undefined,
-            app_id: params.appId,
-            product_id: params.productId
+            app_id: params.app_id,
+            product_id: params.product_id
           });
 
           // 存储数据供批量操作使用
@@ -350,9 +360,16 @@ export const StockPage = () => {
         }}
         scroll={{ x: "max-content" }}
         headerTitle="库存列表"
-      />
+        size="small"
+        options={{
+          density: true,
+          fullScreen: true,
+          reload: true,
+          setting: true
+        }}
+        />
 
-      <Modal
+        <Modal
         title="导入JSON文件"
         open={importModalVisible}
         onCancel={() => {
@@ -387,8 +404,8 @@ export const StockPage = () => {
       >
         {stockDetail && (
           <Descriptions column={1} bordered>
-            <Descriptions.Item label="ID">{stockDetail.id}</Descriptions.Item>
-            <Descriptions.Item label="创建时间">{stockDetail.createdAt}</Descriptions.Item>
+            <Descriptions.Item label="ID">{stockDetail.ID}</Descriptions.Item>
+            <Descriptions.Item label="创建时间">{stockDetail.CreatedAt}</Descriptions.Item>
             <Descriptions.Item label="更新时间">{stockDetail.updatedAt}</Descriptions.Item>
             <Descriptions.Item label="App ID">{stockDetail.app_id}</Descriptions.Item>
             <Descriptions.Item label="设备ID">{stockDetail.device_id}</Descriptions.Item>
@@ -399,23 +416,26 @@ export const StockPage = () => {
             <Descriptions.Item label="用户ID">{stockDetail.user_id || "-"}</Descriptions.Item>
             {stockDetail.raw_data && (
               <Descriptions.Item label="原始数据">
-                <pre
+                <div
                   style={{
                     background: "#f5f5f5",
                     padding: "10px",
                     borderRadius: "4px",
                     fontSize: "12px",
-                    maxHeight: "300px",
-                    overflow: "auto"
+                    maxHeight: "200px",
+                    overflow: "auto",
+                    whiteSpace: "pre-wrap",
+                    wordBreak: "break-all"
                   }}
                 >
                   {JSON.stringify(stockDetail.raw_data, null, 2)}
-                </pre>
+                </div>
               </Descriptions.Item>
             )}
           </Descriptions>
         )}
       </Drawer>
-    </div>
+      </div>
+    </Suspense>
   );
 };
