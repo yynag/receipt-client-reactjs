@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, Row, Col, Select, Button, Statistic, Space } from "antd";
 import { ReloadOutlined } from "@ant-design/icons";
 import ReactECharts from "echarts-for-react";
-import { cdkApi, type FilterOptions, type StockStatResponse } from "../../api/cdk";
+import { type FilterOptions } from "../../api/cdk";
+import { stockApi, type StockStatResponse } from "../../api/stock";
 
 const { Option } = Select;
 
@@ -12,17 +13,15 @@ interface StockStatsTabProps {
 
 export const StockStatsTab = ({ filterOptions }: StockStatsTabProps) => {
   const [statsData, setStatsData] = useState<StockStatResponse | null>(null);
-  const [selectedApp, setSelectedApp] = useState<string>('');
-  const [selectedProduct, setSelectedProduct] = useState<string>('');
+  const [selectedApp, setSelectedApp] = useState<string>("");
+  const [selectedProduct, setSelectedProduct] = useState<string>("");
+  const [selectedUser, setSelectedUser] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
   const fetchStatsData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await cdkApi.getStockStats(
-        selectedApp || undefined,
-        selectedProduct || undefined
-      );
+      const response = await stockApi.getStockStatsMock(selectedApp || undefined, selectedProduct || undefined);
       setStatsData(response);
     } catch (error) {
       console.error("获取库存统计数据失败:", error);
@@ -40,64 +39,74 @@ export const StockStatsTab = ({ filterOptions }: StockStatsTabProps) => {
 
     return {
       title: {
-        text: '库存状态分布',
-        left: 'center'
+        text: "库存状态分布",
+        left: "center"
       },
       tooltip: {
-        trigger: 'item',
-        formatter: '{a} <br/>{b}: {c} ({d}%)'
+        trigger: "item",
+        formatter: "{a} <br/>{b}: {c} ({d}%)"
       },
       legend: {
-        orient: 'vertical',
-        left: 'left'
+        orient: "vertical",
+        left: "left"
       },
       series: [
         {
-          name: '库存状态',
-          type: 'pie',
-          radius: ['40%', '70%'],
-          center: ['60%', '50%'],
+          name: "库存状态",
+          type: "pie",
+          radius: ["40%", "70%"],
+          center: ["60%", "50%"],
           avoidLabelOverlap: false,
           itemStyle: {
             borderRadius: 10,
-            borderColor: '#fff',
+            borderColor: "#fff",
             borderWidth: 2
           },
           label: {
             show: false,
-            position: 'center'
+            position: "center"
           },
           emphasis: {
             label: {
               show: true,
-              fontSize: '20',
-              fontWeight: 'bold'
+              fontSize: "20",
+              fontWeight: "bold"
             }
           },
           labelLine: {
             show: false
           },
-          data: statsData.details.map((item, index) => ({
-            value: item.value,
-            name: item.name,
-            itemStyle: {
-              color: index === 0 ? '#ff4d4f' : '#1890ff'
+          data: [
+            {
+              value: 335,
+              name: "已售罄",
+              itemStyle: {
+                color: "#ff4d4f"
+              }
+            },
+            {
+              value: 310,
+              name: "有库存",
+              itemStyle: {
+                color: "#1890ff"
+              }
             }
-          }))
+          ]
         }
       ]
     };
   };
 
   const handleReset = () => {
-    setSelectedApp('');
-    setSelectedProduct('');
+    setSelectedApp("");
+    setSelectedProduct("");
+    setSelectedUser("");
   };
 
   return (
     <div>
       <Card size="small" style={{ marginBottom: 16 }}>
-        <Row gutter={16} align="middle">
+        <Row gutter={[16, 16]} align="middle">
           <Col>
             <span>应用筛选：</span>
             <Select
@@ -107,7 +116,7 @@ export const StockStatsTab = ({ filterOptions }: StockStatsTabProps) => {
               placeholder="全部应用"
               allowClear
             >
-              {filterOptions.appIds.map(app => (
+              {filterOptions.app_ids.map((app) => (
                 <Option key={app.value} value={app.value}>
                   {app.label}
                 </Option>
@@ -123,7 +132,7 @@ export const StockStatsTab = ({ filterOptions }: StockStatsTabProps) => {
               placeholder="全部产品"
               allowClear
             >
-              {filterOptions.productIds.map(product => (
+              {filterOptions.product_ids.map((product) => (
                 <Option key={product.value} value={product.value}>
                   {product.label}
                 </Option>
@@ -131,14 +140,25 @@ export const StockStatsTab = ({ filterOptions }: StockStatsTabProps) => {
             </Select>
           </Col>
           <Col>
+            <span>用户筛选：</span>
+            <Select
+              value={selectedUser}
+              onChange={setSelectedUser}
+              style={{ width: 150, marginLeft: 8 }}
+              placeholder="全部用户"
+              allowClear
+            >
+              {filterOptions.user_ids.map((user) => (
+                <Option key={user.value} value={user.value}>
+                  {user.label}
+                </Option>
+              ))}
+            </Select>
+          </Col>
+          <Col>
             <Space>
               <Button onClick={handleReset}>重置</Button>
-              <Button
-                type="primary"
-                icon={<ReloadOutlined />}
-                onClick={fetchStatsData}
-                loading={loading}
-              >
+              <Button type="primary" icon={<ReloadOutlined />} onClick={fetchStatsData} loading={loading}>
                 刷新数据
               </Button>
             </Space>
@@ -150,41 +170,24 @@ export const StockStatsTab = ({ filterOptions }: StockStatsTabProps) => {
         <Row gutter={16} style={{ marginBottom: 16 }}>
           <Col span={8}>
             <Card>
-              <Statistic
-                title="库存总量"
-                value={statsData.total}
-                valueStyle={{ color: '#1890ff' }}
-              />
+              <Statistic title="库存总量" value={statsData.unused + statsData.used} valueStyle={{ color: "#1890ff" }} />
             </Card>
           </Col>
           <Col span={8}>
             <Card>
-              <Statistic
-                title="已出库"
-                value={statsData.shipped}
-                valueStyle={{ color: '#ff4d4f' }}
-              />
+              <Statistic title="已出库" value={statsData.used} valueStyle={{ color: "#ff4d4f" }} />
             </Card>
           </Col>
           <Col span={8}>
             <Card>
-              <Statistic
-                title="库存中"
-                value={statsData.inStock}
-                valueStyle={{ color: '#52c41a' }}
-              />
+              <Statistic title="库存中" value={statsData.unused} valueStyle={{ color: "#52c41a" }} />
             </Card>
           </Col>
         </Row>
       )}
-      
+
       <Card>
-        <ReactECharts
-          option={getPieChartOption()}
-          style={{ height: 400 }}
-          notMerge={true}
-          lazyUpdate={true}
-        />
+        <ReactECharts option={getPieChartOption()} style={{ height: 400 }} notMerge={true} lazyUpdate={true} />
       </Card>
     </div>
   );

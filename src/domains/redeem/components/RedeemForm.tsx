@@ -45,8 +45,6 @@ export default function RedeemForm({ translation, onNotify, onAddHistory, onOpen
     setCdkStatus(null);
   };
 
-  const isMock = () => tokenInput.trim() === "mock" || cdkInput.trim() === "mock";
-
   const handleTokenValidation = useCallback(
     async (options: ValidateOptions = {}) => {
       const rawToken = tokenInput.trim();
@@ -227,7 +225,8 @@ export default function RedeemForm({ translation, onNotify, onAddHistory, onOpen
         message: "兑换成功！",
         okText: translation.result.again,
         onOk: () => {
-          if (!isMock()) {
+          const isMock = tokenInput.trim().includes("mock") || cdkInput.trim().includes("mock");
+          if (!isMock) {
             setTokenInput("");
             setCdkInput("");
           }
@@ -250,7 +249,7 @@ export default function RedeemForm({ translation, onNotify, onAddHistory, onOpen
     } finally {
       setRedeeming(false);
     }
-  }, [tokenInput, cdkInput, verifiedUser, verifiedCdk, translation, onNotify, onAddHistory, isMock]);
+  }, [tokenInput, cdkInput, verifiedUser, verifiedCdk, translation, onNotify, onAddHistory]);
 
   const handleTokenKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {

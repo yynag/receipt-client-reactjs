@@ -54,32 +54,20 @@ export default function RedeemPage() {
   const [history, setHistory] = useState<HistoryRecord[]>(() => readStoredHistory());
   const [confirmPayload, setConfirmPayload] = useState<ConfirmPayload | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [hasManualTheme, setHasManualTheme] = useState<boolean>(() => {
-    if (!isBrowser) {
-      return false;
-    }
-    return Boolean(window.localStorage.getItem(THEME_STORAGE_KEY));
-  });
+  const [hasManualTheme, setHasManualTheme] = useState<boolean>(false);
   const [theme, setTheme] = useState<ThemePreference>(() => {
-    if (!isBrowser) {
-      return "light";
-    }
-    const stored = window.localStorage.getItem(THEME_STORAGE_KEY) as ThemePreference | null;
-    if (stored === "light" || stored === "dark") {
-      return stored;
-    }
     return getDeviceTheme();
   });
 
   const translation = useMemo(() => getTranslation(language), [language]);
 
   useEffect(() => {
-    if (!isBrowser || hasManualTheme) {
+    if (!isBrowser) {
       return;
     }
     const deviceTheme = getDeviceTheme();
     setTheme(deviceTheme);
-  }, [hasManualTheme]);
+  }, []);
 
   useEffect(() => {
     if (!isBrowser) {
@@ -87,13 +75,11 @@ export default function RedeemPage() {
     }
     const media = window.matchMedia("(prefers-color-scheme: dark)");
     const syncTheme = (event: MediaQueryListEvent) => {
-      if (!hasManualTheme) {
-        setTheme(event.matches ? "dark" : "light");
-      }
+      setTheme(event.matches ? "dark" : "light");
     };
     media.addEventListener("change", syncTheme);
     return () => media.removeEventListener("change", syncTheme);
-  }, [hasManualTheme]);
+  }, []);
 
   useEffect(() => {
     if (!isBrowser) {
@@ -113,10 +99,12 @@ export default function RedeemPage() {
     if (!isBrowser) {
       return;
     }
-    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+    if (hasManualTheme) {
+      window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+    }
     document.body.classList.remove("light", "dark");
     document.body.classList.add(theme);
-  }, [theme]);
+  }, [theme, hasManualTheme]);
 
   const handleToggleLanguage = () => {
     setLanguage((prev) => (prev === "zh" ? "en" : "zh"));

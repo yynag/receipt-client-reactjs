@@ -16,11 +16,6 @@ function HomeEntry() {
       name: "后台管理入口",
       description: "凭证系统的后台管理页面",
       url: "/admin"
-    },
-    {
-      name: "工具集入口",
-      description: "包含实用工具",
-      url: "/admin"
     }
   ];
 

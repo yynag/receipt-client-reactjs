@@ -1,36 +1,43 @@
+import { baseUrl, buildFilterOptions, request } from "./shared";
+
+export interface FilterOptionResponse {
+  users: string[];
+  app_ids: string[];
+  product_ids: string[];
+}
+
 export interface CDK {
   id: string;
   createdAt: string;
   code: string;
   used: boolean;
-  usedUser?: string;
-  stockId?: string;
-  uploaderId: string;
-  appId: string;
-  appProductId: string;
+  used_user?: string;
+  stock_id?: string;
+  user_id: string;
+  app_id: string;
+  app_product_id: string;
 }
 
 export interface CreateCDKRequest {
-  appId: string;
-  productId: string;
-  quantity: number;
+  app_id: string;
+  product_id: string;
+  amount: number;
 }
 
 export interface CDKListResponse {
   items: CDK[];
   total: number;
   current: number;
-  pageSize: number;
+  page_size: number;
 }
 
 export interface CDKListParams {
-  current: number;
-  pageSize: number;
-  search?: string;
+  page: number;
+  page_size: number;
   used?: boolean;
-  appId?: string;
-  appProductId?: string;
-  uploaderId?: string;
+  user_id?: string;
+  app_id?: string;
+  app_product_id?: string;
 }
 
 export interface FilterOption {
@@ -40,20 +47,14 @@ export interface FilterOption {
 
 export interface FilterOptions {
   used: FilterOption[];
-  appIds: FilterOption[];
-  productIds: FilterOption[];
-  uploaderIds: FilterOption[];
+  app_ids: FilterOption[];
+  product_ids: FilterOption[];
+  user_ids: FilterOption[];
 }
 
 export interface TrendData {
   date: string;
   count: number;
-}
-
-export interface TrendResponse {
-  monthly: TrendData[];
-  weekly: TrendData[];
-  daily: TrendData[];
 }
 
 export interface StatData {
@@ -62,37 +63,53 @@ export interface StatData {
 }
 
 export interface CDKStatResponse {
-  total: number;
   used: number;
   unused: number;
-  details: StatData[];
 }
 
-export interface StockStatResponse {
-  total: number;
-  shipped: number;
-  inStock: number;
-  details: StatData[];
+export interface FilterOptionResponse {
+  users: string[];
+  app_ids: string[];
+  product_ids: string[];
 }
 
 export const cdkApi = {
   getFilterOptions: async (): Promise<FilterOptions> => {
-    return new Promise(resolve => {
+    const response = await request(`${baseUrl}/cdks/ui/table-filter-data`, {
+      method: "GET"
+    });
+    const data: FilterOptionResponse = await response.json();
+    if (!response.ok) {
+      throw new Error(`Failed to request filter options: ${await response.text()}`);
+    }
+    return {
+      used: [
+        { value: "true", label: "已使用" },
+        { value: "false", label: "未使用" }
+      ],
+      app_ids: buildFilterOptions(data.app_ids),
+      product_ids: buildFilterOptions(data.product_ids),
+      user_ids: buildFilterOptions(data.users)
+    };
+  },
+
+  getFilterOptionsMock: async (): Promise<FilterOptions> => {
+    return new Promise((resolve) => {
       setTimeout(() => {
         resolve({
           used: [
-            { value: 'true', label: '已使用' },
-            { value: 'false', label: '未使用' }
+            { value: "true", label: "已使用" },
+            { value: "false", label: "未使用" }
           ],
-          appIds: Array.from({ length: 10 }, (_, i) => ({
+          app_ids: Array.from({ length: 10 }, (_, i) => ({
             value: `app_${i}`,
             label: `App ${i}`
           })),
-          productIds: Array.from({ length: 50 }, (_, i) => ({
+          product_ids: Array.from({ length: 50 }, (_, i) => ({
             value: `product_${i}`,
             label: `Product ${i}`
           })),
-          uploaderIds: Array.from({ length: 10 }, (_, i) => ({
+          user_ids: Array.from({ length: 10 }, (_, i) => ({
             value: `admin_${i}`,
             label: `Admin ${i}`
           }))
@@ -101,150 +118,215 @@ export const cdkApi = {
     });
   },
 
-  getTrendData: async (userId?: string, dimension?: 'monthly' | 'weekly' | 'daily'): Promise<TrendResponse> => {
-    console.log('Fetching trend data for user:', userId, 'dimension:', dimension);
-    return new Promise(resolve => {
-      setTimeout(() => {
-        const generateTrendData = (days: number): TrendData[] => {
-          return Array.from({ length: days }, (_, i) => {
-            const date = new Date();
-            date.setDate(date.getDate() - (days - 1 - i));
-            return {
-              date: dimension === 'monthly' ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}` :
-                   dimension === 'weekly' ? `第${Math.ceil(i / 7)}周` :
-                   `${date.getMonth() + 1}-${date.getDate()}`,
-              count: Math.floor(Math.random() * 50) + 10
-            };
-          });
-        };
+  getTrendData: async (
+    dimension: "year" | "month" | "today",
+    userId?: string,
+    appId?: string,
+    productId?: string
+  ): Promise<number[]> => {
+    let url = `${baseUrl}/cdks/stats/trend?a=b`;
+    if (dimension) {
+      url += `&view=${encodeURIComponent(dimension)}`;
+    }
+    if (userId) {
+      url += `&user_id=${encodeURIComponent(userId)}`;
+    }
+    if (appId) {
+      url += `&app_id=${encodeURIComponent(appId)}`;
+    }
+    if (productId) {
+      url += `&product_id=${encodeURIComponent(productId)}`;
+    }
+    const response = await request(url, {
+      method: "GET"
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to request trend data: ${await response.text()}`);
+    }
+    return await response.json();
+  },
 
-        resolve({
-          monthly: generateTrendData(12),
-          weekly: generateTrendData(12),
-          daily: generateTrendData(30)
-        });
+  getTrendDataMock: async (
+    dimension?: "year" | "month" | "today",
+    userId?: string,
+    appId?: string,
+    productId?: string
+  ): Promise<number[]> => {
+    console.log(
+      "requesting trend data for user:",
+      userId,
+      "appId:",
+      appId,
+      "productId:",
+      productId,
+      "dimension:",
+      dimension
+    );
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        let count = 0;
+        switch (dimension) {
+          case "month":
+            count = 30;
+            break;
+          case "today":
+            count = 24;
+            break;
+          case "year":
+            count = 12;
+            break;
+          default:
+            break;
+        }
+        resolve(Array.from({ length: count }, () => Math.floor(Math.random() * 100) + 10));
       }, 300);
     });
   },
 
-  getCDKStats: async (appId?: string, productId?: string, uploaderId?: string): Promise<CDKStatResponse> => {
-    console.log('Fetching CDK stats for app:', appId, 'product:', productId, 'uploader:', uploaderId);
-    return new Promise(resolve => {
+  getCDKStats: async (appId?: string, productId?: string, userId?: string): Promise<CDKStatResponse> => {
+    let url = `${baseUrl}/cdks/stats/amount?a=b`;
+    if (appId) {
+      url += `&app_id=${encodeURIComponent(appId)}`;
+    }
+    if (productId) {
+      url += `&product_id=${encodeURIComponent(productId)}`;
+    }
+    if (userId) {
+      url += `&user_id=${encodeURIComponent(userId)}`;
+    }
+    const response = await request(url, {
+      method: "GET"
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to request CDK stats: ${await response.text()}`);
+    }
+    return await response.json();
+  },
+
+  getCDKStatsMock: async (appId?: string, productId?: string, userId?: string): Promise<CDKStatResponse> => {
+    console.log("requesting CDK stats for app:", appId, "product:", productId, "uploader:", userId);
+    return new Promise((resolve) => {
       setTimeout(() => {
         const total = Math.floor(Math.random() * 1000) + 500;
         const used = Math.floor(total * (Math.random() * 0.5 + 0.3));
         const unused = total - used;
-        
-        resolve({
-          total,
-          used,
-          unused,
-          details: [
-            { name: '已使用', value: used },
-            { name: '未使用', value: unused }
-          ]
-        });
-      }, 300);
-    });
-  },
 
-  getStockStats: async (appId?: string, productId?: string): Promise<StockStatResponse> => {
-    console.log('Fetching stock stats for app:', appId, 'product:', productId);
-    return new Promise(resolve => {
-      setTimeout(() => {
-        const total = Math.floor(Math.random() * 2000) + 1000;
-        const shipped = Math.floor(total * (Math.random() * 0.6 + 0.2));
-        const inStock = total - shipped;
-        
         resolve({
-          total,
-          shipped,
-          inStock,
-          details: [
-            { name: '已出库', value: shipped },
-            { name: '库存中', value: inStock }
-          ]
+          used,
+          unused
         });
       }, 300);
     });
   },
 
   getList: async (params: CDKListParams): Promise<CDKListResponse> => {
+    let url = `${baseUrl}/cdks?page=${params.page}&page_size=${params.page_size}`;
+    if (params.used) {
+      url += `&used=${params.used}`;
+    }
+    if (params.app_id) {
+      url += `&app_id=${encodeURIComponent(params.app_id)}`;
+    }
+    if (params.app_product_id) {
+      url += `&product_id=${encodeURIComponent(params.app_product_id)}`;
+    }
+    if (params.user_id) {
+      url += `&user_id=${encodeURIComponent(params.user_id)}`;
+    }
+    const response = await request(url, {
+      method: "GET"
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to request CDK list: ${await response.text()}`);
+    }
+    return await response.json();
+  },
+
+  getListMock: async (params: CDKListParams): Promise<CDKListResponse> => {
     const mockData: CDK[] = Array.from({ length: 100 }, (_, i) => ({
       id: `cdk_${i + 1}`,
       createdAt: new Date(Date.now() - i * 3600000).toISOString(),
       code: `CDK-${Math.random().toString(36).substr(2, 16).toUpperCase()}`,
       used: Math.random() > 0.7,
-      usedUser: Math.random() > 0.7 ? `user_${Math.floor(Math.random() * 1000)}` : undefined,
-      stockId: Math.random() > 0.7 ? `stock_${Math.floor(Math.random() * 100)}` : undefined,
-      uploaderId: `admin_${Math.floor(Math.random() * 10)}`,
-      appId: `app_${Math.floor(Math.random() * 10)}`,
-      appProductId: `product_${Math.floor(Math.random() * 50)}`
+      used_user: Math.random() > 0.7 ? `user_${Math.floor(Math.random() * 1000)}` : undefined,
+      stock_id: Math.random() > 0.7 ? `stock_${Math.floor(Math.random() * 100)}` : undefined,
+      user_id: `admin_${Math.floor(Math.random() * 10)}`,
+      app_id: `app_${Math.floor(Math.random() * 10)}`,
+      app_product_id: `product_${Math.floor(Math.random() * 50)}`
     }));
 
     let filteredData = mockData;
-    
-    if (params.search) {
-      filteredData = filteredData.filter(
-        item =>
-          item.code.toLowerCase().includes(params.search!.toLowerCase()) ||
-          item.appId.toLowerCase().includes(params.search!.toLowerCase()) ||
-          item.appProductId.toLowerCase().includes(params.search!.toLowerCase())
-      );
-    }
 
     if (params.used !== undefined) {
-      filteredData = filteredData.filter(item => item.used === params.used);
+      filteredData = filteredData.filter((item) => item.used === params.used);
     }
 
-    if (params.appId) {
-      filteredData = filteredData.filter(item => item.appId === params.appId);
+    if (params.app_id) {
+      filteredData = filteredData.filter((item) => item.app_id === params.app_id);
     }
 
-    if (params.appProductId) {
-      filteredData = filteredData.filter(item => item.appProductId === params.appProductId);
+    if (params.app_product_id) {
+      filteredData = filteredData.filter((item) => item.app_product_id === params.app_product_id);
     }
 
-    if (params.uploaderId) {
-      filteredData = filteredData.filter(item => item.uploaderId === params.uploaderId);
+    if (params.user_id) {
+      filteredData = filteredData.filter((item) => item.user_id === params.user_id);
     }
 
-    const startIndex = (params.current - 1) * params.pageSize;
-    const endIndex = startIndex + params.pageSize;
+    const startIndex = (params.page - 1) * params.page_size;
+    const endIndex = startIndex + params.page_size;
     const paginatedData = filteredData.slice(startIndex, endIndex);
 
     return {
       items: paginatedData,
       total: filteredData.length,
-      current: params.current,
-      pageSize: params.pageSize
+      current: params.page,
+      page_size: params.page_size
     };
   },
 
-  create: async (data: CreateCDKRequest): Promise<CDK[]> => {
-    const newCDKs: CDK[] = Array.from({ length: data.quantity }, (_, i) => ({
-      id: `cdk_${Date.now()}_${i}`,
-      createdAt: new Date().toISOString(),
-      code: `CDK-${Math.random().toString(36).substr(2, 16).toUpperCase()}`,
-      used: false,
-      uploaderId: "current_admin",
-      appId: data.appId,
-      appProductId: data.productId
-    }));
+  create: async (data: CreateCDKRequest): Promise<string[]> => {
+    const response = await request(`${baseUrl}/cdks`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to create CDK: ${await response.text()}`);
+    }
+    return await response.json();
+  },
 
-    return new Promise(resolve => {
+  createMock: async (data: CreateCDKRequest): Promise<string[]> => {
+    const newCDKs: string[] = Array.from(
+      { length: data.amount },
+      () => `CDK-${Math.random().toString(36).substr(2, 16).toUpperCase()}`
+    );
+
+    return new Promise((resolve) => {
       setTimeout(() => resolve(newCDKs), 500);
     });
   },
 
-  delete: async (): Promise<void> => {
-    return new Promise(resolve => {
-      setTimeout(() => resolve(), 300);
+  batchDelete: async (codes: string[]): Promise<void> => {
+    const response = await request(`${baseUrl}/cdks`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ codes })
     });
+    if (!response.ok) {
+      throw new Error(`Failed to delete CDKs: ${await response.text()}`);
+    }
+    return;
   },
 
-  batchDelete: async (): Promise<void> => {
-    return new Promise(resolve => {
+  batchDeleteMock: async (codes: string[]): Promise<void> => {
+    console.log("Deleting CDKs:", codes);
+    return new Promise((resolve) => {
       setTimeout(() => resolve(), 500);
     });
   }

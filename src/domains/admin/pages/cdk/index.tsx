@@ -1,11 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { Button, message, Popconfirm, Tag, notification } from "antd";
+import { PlusOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import {
-  PlusOutlined,
-  DeleteOutlined,
-  EditOutlined
-} from "@ant-design/icons";
-import { ProTable, type ProColumns, type ActionType, ModalForm, ProFormSelect, ProFormText } from "@ant-design/pro-components";
+  ProTable,
+  type ProColumns,
+  type ActionType,
+  ModalForm,
+  ProFormSelect,
+  ProFormText
+} from "@ant-design/pro-components";
 import { type CDK, cdkApi, type FilterOptions } from "../../api/cdk";
 
 export const CDKPage = () => {
@@ -13,9 +16,9 @@ export const CDKPage = () => {
   const [allCDKs, setAllCDKs] = useState<CDK[]>([]);
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({
     used: [],
-    appIds: [],
-    productIds: [],
-    uploaderIds: []
+    app_ids: [],
+    product_ids: [],
+    user_ids: []
   });
   const actionRef = useRef<ActionType>(null);
   const [createModalVisible, setCreateModalVisible] = useState(false);
@@ -69,13 +72,11 @@ export const CDKPage = () => {
       width: 120,
       valueType: "select",
       valueEnum: {
-        true: { text: '已使用', status: 'Success' },
-        false: { text: '未使用', status: 'Warning' }
+        true: { text: "已使用", status: "Success" },
+        false: { text: "未使用", status: "Warning" }
       },
       render: (_, record: CDK) => (
-        <Tag color={record.used ? "green" : "orange"}>
-          {record.used ? "已使用" : "未使用"}
-        </Tag>
+        <Tag color={record.used ? "green" : "orange"}>{record.used ? "已使用" : "未使用"}</Tag>
       )
     },
     {
@@ -100,7 +101,7 @@ export const CDKPage = () => {
       key: "uploaderId",
       width: 120,
       valueType: "select",
-      request: async () => filterOptions.uploaderIds
+      request: async () => filterOptions.user_ids
     },
     {
       title: "App ID",
@@ -108,7 +109,7 @@ export const CDKPage = () => {
       key: "appId",
       width: 120,
       valueType: "select",
-      request: async () => filterOptions.appIds
+      request: async () => filterOptions.app_ids
     },
     {
       title: "App产品ID",
@@ -116,7 +117,7 @@ export const CDKPage = () => {
       key: "appProductId",
       width: 140,
       valueType: "select",
-      request: async () => filterOptions.productIds
+      request: async () => filterOptions.product_ids
     },
     {
       title: "操作",
@@ -124,7 +125,7 @@ export const CDKPage = () => {
       width: 120,
       fixed: "right",
       search: false,
-      render: () => [
+      render: (_, record) => [
         <Button
           key="edit"
           type="link"
@@ -137,7 +138,7 @@ export const CDKPage = () => {
         <Popconfirm
           key="delete"
           title="确定删除这个CDK吗？"
-          onConfirm={() => handleDelete()}
+          onConfirm={() => handleDelete(record.code)}
           okText="确定"
           cancelText="取消"
         >
@@ -149,9 +150,9 @@ export const CDKPage = () => {
     }
   ];
 
-  const handleDelete = async () => {
+  const handleDelete = async (code: string) => {
     try {
-      await cdkApi.delete();
+      await cdkApi.batchDelete([code]);
       message.success("删除成功");
       actionRef.current?.reload();
     } catch {
@@ -167,32 +168,32 @@ export const CDKPage = () => {
 
     try {
       // 使用已存储的数据
-      const selectedCDKs = allCDKs.filter(item => selectedRowKeys.includes(item.id));
-      
+      const selectedCDKs = allCDKs.filter((item) => selectedRowKeys.includes(item.id));
+
       if (selectedCDKs.length === 0) {
         message.error("未找到选中的CDK数据");
         return;
       }
-      
+
       // 生成复制内容（每行一个CDK Code）
-      const copyText = selectedCDKs.map(cdk => cdk.code).join('\n');
-      
+      const copyText = selectedCDKs.map((cdk) => cdk.code).join("\n");
+
       // 复制到剪切板
       await navigator.clipboard.writeText(copyText);
-      
+
       // 使用 antd 通知组件
       notification.success({
-        message: '复制成功',
+        message: "复制成功",
         description: `已复制 ${selectedRowKeys.length} 个CDK到剪切板`,
-        placement: 'topRight',
+        placement: "topRight",
         duration: 3
       });
     } catch (error) {
       console.error("复制失败:", error);
       notification.error({
-        message: '复制失败',
-        description: '请重试',
-        placement: 'topRight',
+        message: "复制失败",
+        description: "请重试",
+        placement: "topRight",
         duration: 3
       });
     }
@@ -204,8 +205,10 @@ export const CDKPage = () => {
       return;
     }
 
+    const codes = allCDKs.filter((item) => selectedRowKeys.includes(item.id)).map((cdk) => cdk.code);
+
     try {
-      await cdkApi.batchDelete();
+      await cdkApi.batchDelete(codes);
       message.success(`成功删除 ${selectedRowKeys.length} 个CDK`);
       setSelectedRowKeys([]);
       actionRef.current?.reload();
@@ -222,14 +225,14 @@ export const CDKPage = () => {
         rowKey="id"
         request={async (params, sort, filter) => {
           console.log("请求参数:", params, sort, filter);
-          
+
           const response = await cdkApi.getList({
-            current: params.current || 1,
-            pageSize: params.pageSize || 20,
-            used: params.used !== undefined ? params.used === 'true' : undefined,
-            appId: params.appId,
-            appProductId: params.appProductId,
-            uploaderId: params.uploaderId
+            page: params.current || 1,
+            page_size: params.pageSize || 20,
+            used: params.used !== undefined ? params.used === "true" : undefined,
+            app_id: params.appId,
+            app_product_id: params.appProductId,
+            user_id: params.uploaderId
           });
 
           // 存储数据供复制功能使用
@@ -238,12 +241,12 @@ export const CDKPage = () => {
           return {
             data: response.items,
             success: true,
-            total: response.total,
+            total: response.total
           };
         }}
         rowSelection={{
           selectedRowKeys,
-          onChange: (keys) => setSelectedRowKeys(keys as string[]),
+          onChange: (keys) => setSelectedRowKeys(keys as string[])
         }}
         tableAlertRender={({ selectedRowKeys, onCleanSelected }) => (
           <span>
@@ -262,25 +265,20 @@ export const CDKPage = () => {
           </>
         )}
         columnsState={{
-          persistenceKey: 'pro-table-cdk-list',
-          persistenceType: 'localStorage',
+          persistenceKey: "pro-table-cdk-list",
+          persistenceType: "localStorage"
         }}
         toolBarRender={() => [
-          <Button
-            key="add"
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setCreateModalVisible(true)}
-          >
+          <Button key="add" type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalVisible(true)}>
             新建
-          </Button>,
+          </Button>
         ]}
         pagination={{
           defaultPageSize: 20,
           showSizeChanger: true,
-          pageSizeOptions: ['10', '20', '50', '100'],
+          pageSizeOptions: ["10", "20", "50", "100"]
         }}
-        scroll={{ x: 'max-content' }}
+        scroll={{ x: "max-content" }}
         headerTitle="CDK 列表"
       />
 
@@ -292,9 +290,9 @@ export const CDKPage = () => {
         onFinish={async (values) => {
           try {
             await cdkApi.create({
-              appId: values.appId,
-              productId: values.productId,
-              quantity: values.quantity
+              app_id: values.appId,
+              product_id: values.productId,
+              amount: values.quantity
             });
             message.success(`成功创建 ${values.quantity} 个CDK`);
             actionRef.current?.reload();
@@ -305,21 +303,21 @@ export const CDKPage = () => {
           }
         }}
         modalProps={{
-          destroyOnClose: true,
+          destroyOnClose: true
         }}
       >
         <ProFormSelect
           name="appId"
           label="App ID"
           placeholder="请选择App ID"
-          options={filterOptions.appIds}
+          options={filterOptions.app_ids}
           rules={[{ required: true, message: "请选择App ID" }]}
         />
         <ProFormSelect
           name="productId"
           label="产品ID"
           placeholder="请选择产品ID"
-          options={filterOptions.productIds.map(item => ({ ...item, value: item.value.replace('product_', '') }))}
+          options={filterOptions.product_ids.map((item) => ({ ...item, value: item.value.replace("product_", "") }))}
           rules={[{ required: true, message: "请选择产品ID" }]}
         />
         <ProFormText
@@ -333,7 +331,7 @@ export const CDKPage = () => {
           }}
           rules={[
             { required: true, message: "请输入添加数量" },
-            { type: 'number', min: 1, max: 1000, message: "数量必须在1-1000之间" }
+            { type: "number", min: 1, max: 1000, message: "数量必须在1-1000之间" }
           ]}
         />
       </ModalForm>

@@ -1,5 +1,5 @@
 import { Button, notification, Form, Input, type FormProps } from "antd";
-import { UserApiMock } from "./api/user";
+import { userApi } from "./api/user";
 import { useStore } from "./store/hook";
 
 const LoginPage: React.FC = () => {
@@ -12,7 +12,8 @@ const LoginPage: React.FC = () => {
   };
 
   const onFinish: FormProps<FieldType>["onFinish"] = (values) => {
-    UserApiMock.login(values.username!.trim(), values.password!.trim())
+    userApi
+      .login(values.username!.trim(), values.password!.trim())
       .then((user) => {
         setUser(user);
       })

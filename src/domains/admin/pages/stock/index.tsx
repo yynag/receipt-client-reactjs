@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Button, message, Popconfirm, Tag, notification, Upload, Modal, Drawer, Descriptions } from "antd";
 import {
-  PlusOutlined,
   DeleteOutlined,
   ExportOutlined,
   ImportOutlined,
@@ -9,26 +8,26 @@ import {
   DownloadOutlined,
   UploadOutlined
 } from "@ant-design/icons";
-import { ProTable, type ProColumns, type ActionType, ModalForm, ProFormSelect } from "@ant-design/pro-components";
-import { type Stock, stockApi, type FilterOptions } from "../../api/stock";
+import { ProTable, type ProColumns, type ActionType } from "@ant-design/pro-components";
+import { type ListStock, stockApi, type FilterOptions, type Stock } from "../../api/stock";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import type { UploadFile } from "antd/es/upload/interface";
 
 export const StockPage = () => {
-  const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
-  const [allStocks, setAllStocks] = useState<Stock[]>([]);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<number[]>([]);
+  const [allStocks, setAllStocks] = useState<ListStock[]>([]);
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({
     used: [],
-    appIds: [],
-    productIds: [],
-    deviceIds: []
+    app_ids: [],
+    product_ids: [],
+    user_ids: []
   });
   const actionRef = useRef<ActionType>(null);
-  const [createModalVisible, setCreateModalVisible] = useState(false);
   const [importModalVisible, setImportModalVisible] = useState(false);
   const [detailDrawerVisible, setDetailDrawerVisible] = useState(false);
-  const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
+  const [stockDetail, setStockDetail] = useState<Stock | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [uploadFileList, setUploadFileList] = useState<UploadFile[]>([]);
   const [importing, setImporting] = useState(false);
 
@@ -46,7 +45,7 @@ export const StockPage = () => {
     }
   };
 
-  const columns: ProColumns<Stock>[] = [
+  const columns: ProColumns<ListStock>[] = [
     {
       title: "ID",
       dataIndex: "id",
@@ -66,7 +65,7 @@ export const StockPage = () => {
       sorter: true
     },
     {
-      title: "创建时间范围",
+      title: "日期范围",
       dataIndex: "dateRange",
       key: "dateRange",
       hideInTable: true,
@@ -75,9 +74,9 @@ export const StockPage = () => {
         transform: (value) => {
           return {
             startTime: value?.[0],
-            endTime: value?.[1],
+            endTime: value?.[1]
           };
-        },
+        }
       }
     },
     {
@@ -86,15 +85,7 @@ export const StockPage = () => {
       key: "appId",
       width: 120,
       valueType: "select",
-      request: async () => filterOptions.appIds
-    },
-    {
-      title: "设备ID",
-      dataIndex: "deviceId",
-      key: "deviceId",
-      width: 120,
-      valueType: "select",
-      request: async () => filterOptions.deviceIds
+      request: async () => filterOptions.app_ids
     },
     {
       title: "产品ID",
@@ -102,7 +93,7 @@ export const StockPage = () => {
       key: "productId",
       width: 140,
       valueType: "select",
-      request: async () => filterOptions.productIds
+      request: async () => filterOptions.product_ids
     },
     {
       title: "使用状态",
@@ -111,13 +102,11 @@ export const StockPage = () => {
       width: 120,
       valueType: "select",
       valueEnum: {
-        true: { text: '已使用', status: 'Success' },
-        false: { text: '未使用', status: 'Warning' }
+        true: { text: "已使用", status: "Success" },
+        false: { text: "未使用", status: "Warning" }
       },
-      render: (_, record: Stock) => (
-        <Tag color={record.used ? "green" : "orange"}>
-          {record.used ? "已使用" : "未使用"}
-        </Tag>
+      render: (_, record: ListStock) => (
+        <Tag color={record.used ? "green" : "orange"}>{record.used ? "已使用" : "未使用"}</Tag>
       )
     },
     {
@@ -127,7 +116,7 @@ export const StockPage = () => {
       width: 120,
       search: false,
       ellipsis: true,
-      render: (_, record: Stock) => record.userId || '-'
+      render: (_, record: ListStock) => record.user_id || "-"
     },
     {
       title: "操作",
@@ -135,7 +124,7 @@ export const StockPage = () => {
       width: 200,
       fixed: "right",
       search: false,
-      render: (_, record: Stock) => [
+      render: (_, record: ListStock) => [
         <Button
           key="export"
           type="link"
@@ -145,19 +134,13 @@ export const StockPage = () => {
         >
           导出JSON
         </Button>,
-        <Button
-          key="detail"
-          type="link"
-          size="small"
-          icon={<EyeOutlined />}
-          onClick={() => handleShowDetail(record)}
-        >
+        <Button key="detail" type="link" size="small" icon={<EyeOutlined />} onClick={() => handleShowDetail(record)}>
           详情
         </Button>,
         <Popconfirm
           key="delete"
           title="确定删除这个库存项吗？"
-          onConfirm={() => handleDelete()}
+          onConfirm={() => handleDelete(record.id)}
           okText="确定"
           cancelText="取消"
         >
@@ -169,9 +152,9 @@ export const StockPage = () => {
     }
   ];
 
-  const handleDelete = async () => {
+  const handleDelete = async (id: number) => {
     try {
-      await stockApi.delete();
+      await stockApi.batchDelete([id]);
       message.success("删除成功");
       actionRef.current?.reload();
     } catch {
@@ -179,17 +162,17 @@ export const StockPage = () => {
     }
   };
 
-  const handleSingleExport = async (stock: Stock) => {
+  const handleSingleExport = async (stock: ListStock) => {
     try {
       const zip = new JSZip();
       const fileName = `stock_${stock.id}_${Date.now()}.json`;
       const jsonContent = JSON.stringify(stock, null, 2);
-      
+
       zip.file(fileName, jsonContent);
-      
+
       const content = await zip.generateAsync({ type: "blob" });
       saveAs(content, `stock_export_${stock.id}.zip`);
-      
+
       message.success("导出成功");
     } catch (error) {
       console.error("导出失败:", error);
@@ -205,21 +188,21 @@ export const StockPage = () => {
 
     try {
       const zip = new JSZip();
-      const selectedStocks = allStocks.filter(item => selectedRowKeys.includes(item.id));
-      
-      selectedStocks.forEach(stock => {
+      const selectedStocks = allStocks.filter((item) => selectedRowKeys.includes(item.id));
+
+      selectedStocks.forEach((stock) => {
         const fileName = `stock_${stock.id}.json`;
         const jsonContent = JSON.stringify(stock, null, 2);
         zip.file(fileName, jsonContent);
       });
-      
+
       const content = await zip.generateAsync({ type: "blob" });
       saveAs(content, `stock_batch_export_${Date.now()}.zip`);
-      
+
       notification.success({
-        message: '批量导出成功',
+        message: "批量导出成功",
         description: `已导出 ${selectedRowKeys.length} 个库存项`,
-        placement: 'topRight',
+        placement: "topRight",
         duration: 3
       });
     } catch (error) {
@@ -235,7 +218,7 @@ export const StockPage = () => {
     }
 
     try {
-      await stockApi.batchDelete();
+      await stockApi.batchDelete(selectedRowKeys);
       message.success(`成功删除 ${selectedRowKeys.length} 个库存项`);
       setSelectedRowKeys([]);
       actionRef.current?.reload();
@@ -244,27 +227,34 @@ export const StockPage = () => {
     }
   };
 
-  const handleShowDetail = (stock: Stock) => {
-    setSelectedStock(stock);
+  const handleShowDetail = async (stock: ListStock) => {
     setDetailDrawerVisible(true);
+    setDetailLoading(true);
+
+    try {
+      const detailData = await stockApi.getStockDetail(stock.id);
+      setStockDetail(detailData);
+      setDetailLoading(false);
+    } catch (error) {
+      console.error("获取库存详情失败:", error);
+      message.error("获取库存详情失败");
+      setDetailLoading(false);
+    }
   };
 
   const handleImport = async (file: File) => {
     try {
       setImporting(true);
       const text = await file.text();
-      const jsonData = JSON.parse(text);
-      
-      const items = Array.isArray(jsonData) ? jsonData : [jsonData];
-      const result = await stockApi.importFromJson(items);
-      
+      await stockApi.importFromLiNiuJson(text);
+
       notification.success({
-        message: '导入成功',
-        description: `成功导入 ${result.success} 条数据`,
-        placement: 'topRight',
+        message: "导入成功",
+        description: `成功导入数据`,
+        placement: "topRight",
         duration: 3
       });
-      
+
       setImportModalVisible(false);
       setUploadFileList([]);
       actionRef.current?.reload();
@@ -280,7 +270,7 @@ export const StockPage = () => {
     accept: ".json",
     beforeUpload: (file: File) => {
       handleImport(file);
-      return false; // 阻止自动上传
+      return false;
     },
     fileList: uploadFileList,
     onRemove: () => {
@@ -290,22 +280,21 @@ export const StockPage = () => {
 
   return (
     <div>
-      <ProTable<Stock>
+      <ProTable<ListStock>
         columns={columns}
         actionRef={actionRef}
         rowKey="id"
         request={async (params, sort, filter) => {
           console.log("请求参数:", params, sort, filter);
-          
-          const response = await stockApi.getList({
-            current: params.current || 1,
-            pageSize: params.pageSize || 20,
-            search: params.search,
-            startTime: params.startTime,
-            endTime: params.endTime,
-            used: params.used !== undefined ? params.used === 'true' : undefined,
-            appId: params.appId,
-            productId: params.productId
+
+          const response = await stockApi.getListMock({
+            page: params.current || 1,
+            page_size: params.pageSize || 20,
+            start_date: params.startTime,
+            end_date: params.endTime,
+            used: params.used !== undefined ? params.used === "true" : undefined,
+            app_id: params.appId,
+            product_id: params.productId
           });
 
           // 存储数据供批量操作使用
@@ -314,12 +303,12 @@ export const StockPage = () => {
           return {
             data: response.items,
             success: true,
-            total: response.total,
+            total: response.total
           };
         }}
         rowSelection={{
           selectedRowKeys,
-          onChange: (keys) => setSelectedRowKeys(keys as string[]),
+          onChange: (keys) => setSelectedRowKeys(keys as number[])
         }}
         tableAlertRender={({ selectedRowKeys, onCleanSelected }) => (
           <span>
@@ -338,15 +327,11 @@ export const StockPage = () => {
           </>
         )}
         columnsState={{
-          persistenceKey: 'pro-table-stock-list',
-          persistenceType: 'localStorage',
+          persistenceKey: "pro-table-stock-list",
+          persistenceType: "localStorage"
         }}
         toolBarRender={() => [
-          <Button
-            key="import"
-            icon={<ImportOutlined />}
-            onClick={() => setImportModalVisible(true)}
-          >
+          <Button key="import" icon={<ImportOutlined />} onClick={() => setImportModalVisible(true)}>
             导入JSON
           </Button>,
           <Button
@@ -356,72 +341,16 @@ export const StockPage = () => {
             disabled={selectedRowKeys.length === 0}
           >
             批量导出
-          </Button>,
-          <Button
-            key="add"
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setCreateModalVisible(true)}
-          >
-            新建
-          </Button>,
+          </Button>
         ]}
         pagination={{
           defaultPageSize: 20,
           showSizeChanger: true,
-          pageSizeOptions: ['10', '20', '50', '100'],
+          pageSizeOptions: ["10", "20", "50", "100"]
         }}
-        scroll={{ x: 'max-content' }}
+        scroll={{ x: "max-content" }}
         headerTitle="库存列表"
       />
-
-      <ModalForm
-        title="新建库存"
-        width="600px"
-        open={createModalVisible}
-        onOpenChange={setCreateModalVisible}
-        onFinish={async (values) => {
-          try {
-            await stockApi.create({
-              appId: values.appId,
-              deviceId: values.deviceId,
-              productId: values.productId,
-              rawData: {}
-            });
-            message.success("创建成功");
-            actionRef.current?.reload();
-            return true;
-          } catch {
-            message.error("创建失败");
-            return false;
-          }
-        }}
-        modalProps={{
-          destroyOnClose: true,
-        }}
-      >
-        <ProFormSelect
-          name="appId"
-          label="App ID"
-          placeholder="请选择App ID"
-          options={filterOptions.appIds}
-          rules={[{ required: true, message: "请选择App ID" }]}
-        />
-        <ProFormSelect
-          name="deviceId"
-          label="设备ID"
-          placeholder="请选择设备ID"
-          options={filterOptions.deviceIds}
-          rules={[{ required: true, message: "请选择设备ID" }]}
-        />
-        <ProFormSelect
-          name="productId"
-          label="产品ID"
-          placeholder="请选择产品ID"
-          options={filterOptions.productIds}
-          rules={[{ required: true, message: "请选择产品ID" }]}
-        />
-      </ModalForm>
 
       <Modal
         title="导入JSON文件"
@@ -440,7 +369,7 @@ export const StockPage = () => {
               <UploadOutlined />
             </p>
             <p className="ant-upload-text">点击或拖拽文件到此区域上传</p>
-            <p className="ant-upload-hint">仅支持JSON格式文件</p>
+            <p className="ant-upload-hint">仅支持犁牛插件序列化的JSON格式文件</p>
           </Upload.Dragger>
         </div>
       </Modal>
@@ -450,29 +379,40 @@ export const StockPage = () => {
         placement="right"
         width={600}
         open={detailDrawerVisible}
-        onClose={() => setDetailDrawerVisible(false)}
+        onClose={() => {
+          setDetailDrawerVisible(false);
+          setStockDetail(null);
+        }}
+        loading={detailLoading}
       >
-        {selectedStock && (
+        {stockDetail && (
           <Descriptions column={1} bordered>
-            <Descriptions.Item label="ID">{selectedStock.id}</Descriptions.Item>
-            <Descriptions.Item label="创建时间">{selectedStock.createdAt}</Descriptions.Item>
-            <Descriptions.Item label="更新时间">{selectedStock.updatedAt}</Descriptions.Item>
-            <Descriptions.Item label="App ID">{selectedStock.appId}</Descriptions.Item>
-            <Descriptions.Item label="设备ID">{selectedStock.deviceId}</Descriptions.Item>
-            <Descriptions.Item label="产品ID">{selectedStock.productId}</Descriptions.Item>
+            <Descriptions.Item label="ID">{stockDetail.id}</Descriptions.Item>
+            <Descriptions.Item label="创建时间">{stockDetail.createdAt}</Descriptions.Item>
+            <Descriptions.Item label="更新时间">{stockDetail.updatedAt}</Descriptions.Item>
+            <Descriptions.Item label="App ID">{stockDetail.app_id}</Descriptions.Item>
+            <Descriptions.Item label="设备ID">{stockDetail.device_id}</Descriptions.Item>
+            <Descriptions.Item label="产品ID">{stockDetail.product_id}</Descriptions.Item>
             <Descriptions.Item label="使用状态">
-              <Tag color={selectedStock.used ? "green" : "orange"}>
-                {selectedStock.used ? "已使用" : "未使用"}
-              </Tag>
+              <Tag color={stockDetail.used ? "green" : "orange"}>{stockDetail.used ? "已使用" : "未使用"}</Tag>
             </Descriptions.Item>
-            <Descriptions.Item label="用户ID">
-              {selectedStock.userId || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="原始数据">
-              <pre style={{ background: '#f5f5f5', padding: '10px', borderRadius: '4px', fontSize: '12px' }}>
-                {JSON.stringify(selectedStock.rawData, null, 2)}
-              </pre>
-            </Descriptions.Item>
+            <Descriptions.Item label="用户ID">{stockDetail.user_id || "-"}</Descriptions.Item>
+            {stockDetail.raw_data && (
+              <Descriptions.Item label="原始数据">
+                <pre
+                  style={{
+                    background: "#f5f5f5",
+                    padding: "10px",
+                    borderRadius: "4px",
+                    fontSize: "12px",
+                    maxHeight: "300px",
+                    overflow: "auto"
+                  }}
+                >
+                  {JSON.stringify(stockDetail.raw_data, null, 2)}
+                </pre>
+              </Descriptions.Item>
+            )}
           </Descriptions>
         )}
       </Drawer>

@@ -10,7 +10,7 @@ export const DashboardPage = () => {
     used: [],
     appIds: [],
     productIds: [],
-    uploaderIds: []
+    userIds: []
   });
   const [loading, setLoading] = useState(true);
 

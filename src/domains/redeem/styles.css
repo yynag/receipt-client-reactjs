@@ -25,10 +25,19 @@
   --error: #ef4444;
 }
 
+/* Ensure body and html use theme background */
+body.dark,
+html.dark {
+  background-color: var(--bg-primary);
+}
+
+body.light,
+html.light {
+  background-color: var(--bg-primary);
+}
+
 /* Page Layout */
 .redeem-page {
-  background: radial-gradient(circle at top left, rgba(59, 130, 246, 0.08), transparent 40%),
-    radial-gradient(circle at bottom right, rgba(99, 102, 241, 0.08), transparent 35%), var(--bg-primary);
   color: var(--text-primary);
   transition: background 0.3s ease, color 0.3s ease;
   padding-bottom: 24px;
@@ -154,6 +163,32 @@
   color: white;
   border-color: transparent;
   box-shadow: 0 10px 24px rgba(59, 130, 246, 0.35);
+}
+
+/* Token Display */
+.token-display {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-primary);
+  word-break: break-all;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.token-display code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
 }
 
 /* Step Indicator */

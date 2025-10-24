@@ -1,4 +1,4 @@
-const BASE_URL = "https://receipt-api.nitro.xin";
+const BASE_URL = import.meta.env.DEV ? "http://localhost:3000" : "https://receipt-api.nitro.xin";
 
 export interface DiscordUser {
   id: string;
@@ -24,6 +24,8 @@ type RequestOptions = {
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = "GET", body } = options;
+
+  console.log(`==>1 [API] ${method} ${BASE_URL}${path}`, body);
 
   // Handle mock test accounts
   if (method === "POST" && path === "/external/public/discord-user") {
@@ -66,10 +68,8 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
         return true as T;
       } else {
         // Second attempt - fail
-        throw new Error("该测试账号已兑换，无法重复兑换");
+        throw new Error("兑换失败：自定义错误信息");
       }
-    } else if (payload.cdk === "mock_fail" || payload.user === "mock_fail") {
-      throw new Error("兑换失败：自定义错误信息");
     }
   }
 

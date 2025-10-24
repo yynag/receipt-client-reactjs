@@ -1,7 +1,8 @@
 import { createContext, useReducer, useCallback, type ReactNode } from "react";
+import { setUserToken } from "../api/shared";
 
 type Theme = "light" | "dark";
-type User = { id: string; name: string; role: string };
+type User = { id: string; user_id: string; role: string; token: string };
 
 interface State {
   theme: Theme;
@@ -18,6 +19,7 @@ const Reducer: Reducer = (state, action) => {
       return { ...state, theme: state.theme === "light" ? "dark" : "light" };
     case "t_set_user":
       localStorage.setItem("user", JSON.stringify(action.payload));
+      setUserToken(action.payload.token);
       return { ...state, user: action.payload };
     case "t_logout":
       localStorage.removeItem("user");
@@ -37,10 +39,13 @@ const StoreContext = createContext<StoreContextType | null>(null);
 
 const StoreProvider = ({ children }: { children: ReactNode }) => {
   const rawUser = localStorage.getItem("user");
+  const user = rawUser ? JSON.parse(rawUser!) : null;
   const [state, dispatch] = useReducer(Reducer, {
     theme: "light",
     user: rawUser ? JSON.parse(rawUser!) : null
   });
+
+  setUserToken(user?.token);
 
   const toggleTheme = useCallback(() => {
     dispatch({ type: "t_toggle_theme" });

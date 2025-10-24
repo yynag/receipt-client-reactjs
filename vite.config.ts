@@ -6,15 +6,19 @@ import { visualizer } from "rollup-plugin-visualizer";
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const basePlugins = [react(), tailwindcss()];
-  
-  const plugins = mode === 'analyze' 
-    ? [...basePlugins, visualizer({
-        filename: 'dist/stats.html',
-        open: true,
-        gzipSize: true,
-        brotliSize: true
-      })]
-    : basePlugins;
+
+  const plugins =
+    mode === "analyze"
+      ? [
+          ...basePlugins,
+          visualizer({
+            filename: "dist/stats.html",
+            open: true,
+            gzipSize: true,
+            brotliSize: true
+          })
+        ]
+      : basePlugins;
 
   return {
     plugins,
@@ -22,9 +26,9 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         output: {
           manualChunks: {
-            vendor: ['react', 'react-dom'],
-            antd: ['antd', '@ant-design/icons', '@ant-design/pro-components'],
-            charts: ['echarts', 'echarts-for-react']
+            vendor: ["react", "react-dom"],
+            antd: ["antd", "@ant-design/icons", "@ant-design/pro-components"],
+            charts: ["echarts", "echarts-for-react"]
           }
         }
       }
