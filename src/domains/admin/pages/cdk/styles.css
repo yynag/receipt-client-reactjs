@@ -1,0 +1,65 @@
+.ant-table.dark-table .ant-table-thead > tr > th {
+  background-color: #1f2937;
+  color: #f3f4f6;
+  border-color: #374151;
+}
+
+.ant-table.dark-table .ant-table-tbody > tr > td {
+  background-color: #111827;
+  color: #f3f4f6;
+  border-color: #374151;
+}
+
+.ant-table.dark-table .ant-table-tbody > tr:hover > td {
+  background-color: #1f2937;
+}
+
+.ant-table.dark-table .ant-table-pagination.ant-pagination {
+  color: #f3f4f6;
+}
+
+.ant-table.dark-table .ant-pagination-item {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+
+.ant-table.dark-table .ant-pagination-item a {
+  color: #f3f4f6;
+}
+
+.ant-table.dark-table .ant-pagination-item-active {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.ant-table.dark-table .ant-pagination-item-active a {
+  color: white;
+}
+
+.ant-table.dark-table .ant-pagination-prev,
+.ant-table.dark-table .ant-pagination-next {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+
+.ant-table.dark-table .ant-pagination-prev .ant-pagination-item-link,
+.ant-table.dark-table .ant-pagination-next .ant-pagination-item-link {
+  color: #f3f4f6;
+  background-color: transparent;
+  border-color: #374151;
+}
+
+/* ProTable 紧凑样式 */
+.ant-pro-table {
+  font-size: 12px;
+}
+
+.ant-pro-table .ant-pro-table-list-toolbar-title {
+  font-size: 14px;
+}
+
+.ant-pro-table .ant-btn-sm {
+  padding: 0px 4px;
+  height: 20px;
+  font-size: 12px;
+}

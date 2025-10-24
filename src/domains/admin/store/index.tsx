@@ -1,14 +1,14 @@
 import { createContext, useReducer, useCallback, type ReactNode } from "react";
 
 type Theme = "light" | "dark";
-type User = { name: string; role: string };
+type User = { id: string; name: string; role: string };
 
 interface State {
   theme: Theme;
   user: User | null;
 }
 
-type Action = { type: "t_toggle_theme" } | { type: "t_set_user"; payload: User };
+type Action = { type: "t_toggle_theme" } | { type: "t_set_user"; payload: User } | { type: "t_logout" };
 
 type Reducer = (state: State, action: Action) => State;
 
@@ -19,6 +19,9 @@ const Reducer: Reducer = (state, action) => {
     case "t_set_user":
       localStorage.setItem("user", JSON.stringify(action.payload));
       return { ...state, user: action.payload };
+    case "t_logout":
+      localStorage.removeItem("user");
+      return { ...state, user: null };
   }
 };
 
@@ -27,6 +30,7 @@ interface StoreContextType {
   user: User | null;
   toggleTheme: () => void;
   setUser: (user: User) => void;
+  logout: () => void;
 }
 
 const StoreContext = createContext<StoreContextType | null>(null);
@@ -46,11 +50,16 @@ const StoreProvider = ({ children }: { children: ReactNode }) => {
     dispatch({ type: "t_set_user", payload: user });
   }, []);
 
+  const logout = useCallback(() => {
+    dispatch({ type: "t_logout" });
+  }, []);
+
   const contextValue: StoreContextType = {
     theme: state.theme,
     user: state.user,
     toggleTheme,
-    setUser
+    setUser,
+    logout
   };
 
   return <StoreContext.Provider value={contextValue}>{children}</StoreContext.Provider>;
