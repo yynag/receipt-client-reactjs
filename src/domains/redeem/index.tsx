@@ -65,6 +65,49 @@ export default function RedeemPage() {
     if (!isBrowser) {
       return;
     }
+
+    const htmlElement = document.documentElement;
+    const bodyElement = document.body;
+    const rootElement = document.getElementById("root") as HTMLElement | null;
+
+    const previousHtmlOverflowY = htmlElement.style.overflowY;
+    const previousBodyOverflowY = bodyElement.style.overflowY;
+    const previousRootOverflowY = rootElement?.style.overflowY ?? "";
+    const previousHtmlHeight = htmlElement.style.height;
+    const previousBodyHeight = bodyElement.style.height;
+    const previousRootHeight = rootElement?.style.height ?? "";
+
+    htmlElement.style.overflowY = "auto";
+    bodyElement.style.overflowY = "auto";
+    if (rootElement) {
+      rootElement.style.overflowY = "auto";
+    }
+
+    htmlElement.style.height = "auto";
+    bodyElement.style.height = "auto";
+    if (rootElement) {
+      rootElement.style.height = "auto";
+    }
+
+    return () => {
+      htmlElement.style.overflowY = previousHtmlOverflowY;
+      bodyElement.style.overflowY = previousBodyOverflowY;
+      if (rootElement) {
+        rootElement.style.overflowY = previousRootOverflowY;
+      }
+
+      htmlElement.style.height = previousHtmlHeight;
+      bodyElement.style.height = previousBodyHeight;
+      if (rootElement) {
+        rootElement.style.height = previousRootHeight;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isBrowser) {
+      return;
+    }
     const deviceTheme = getDeviceTheme();
     setTheme(deviceTheme);
   }, []);
