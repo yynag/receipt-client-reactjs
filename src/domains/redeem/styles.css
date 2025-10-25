@@ -1,76 +1,44 @@
-/* CSS Variables for Theme */
-.dark {
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
-  --bg-tertiary: #334155;
-  --text-primary: #f1f5f9;
-  --text-secondary: #cbd5e1;
-  --border-color: #475569;
-  --accent: #3b82f6;
-  --accent-hover: #2563eb;
-  --success: #10b981;
-  --error: #ef4444;
-}
+/* Redeem domain styles leverage central design tokens from src/styles/tokens.css */
 
-.light {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8fafc;
-  --bg-tertiary: #f1f5f9;
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --border-color: #e2e8f0;
-  --accent: #3b82f6;
-  --accent-hover: #2563eb;
-  --success: #10b981;
-  --error: #ef4444;
-}
-
-/* Ensure body and html use theme background */
-body.dark,
-html.dark {
-  background-color: var(--bg-primary);
-}
-
-body.light,
-html.light {
-  background-color: var(--bg-primary);
-}
-
-/* Page Layout */
 .redeem-page {
-  color: var(--text-primary);
-  transition: background 0.3s ease, color 0.3s ease;
+  background: var(--redeem-surface-primary);
+  color: var(--redeem-text-primary);
+  transition:
+    background var(--motion-duration-base) var(--motion-timing-standard),
+    color var(--motion-duration-base) var(--motion-timing-standard);
   padding-bottom: 24px;
   min-height: 100vh;
   width: 100%;
 }
 
-/* Glass Card Effect */
 .glass-card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
+  background: var(--redeem-surface-secondary);
+  border: 1px solid var(--redeem-border-color);
+  border-radius: var(--radius-lg);
   backdrop-filter: blur(10px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
+  box-shadow: var(--shadow-card);
+  transition:
+    box-shadow var(--motion-duration-base) var(--motion-timing-standard),
+    transform var(--motion-duration-base) var(--motion-timing-standard);
 }
 
 .glass-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-card-hover);
 }
 
-/* Buttons */
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+  background: linear-gradient(135deg, var(--redeem-accent), var(--redeem-accent-hover));
   color: #ffffff;
   padding: 12px 24px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   border: none;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.35);
+  transition:
+    transform var(--motion-duration-base) var(--motion-timing-standard),
+    box-shadow var(--motion-duration-base) var(--motion-timing-standard);
+  box-shadow: var(--shadow-elevated);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -79,7 +47,7 @@ html.light {
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 14px 32px rgba(59, 130, 246, 0.45);
+  box-shadow: var(--shadow-elevated-hover);
 }
 
 .btn-primary:disabled {
@@ -90,8 +58,8 @@ html.light {
 }
 
 .btn-outline {
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
+  border: 1px solid var(--redeem-border-color);
+  color: var(--redeem-text-primary);
   background: transparent;
   padding: 8px 16px;
   border-radius: 10px;
@@ -99,59 +67,65 @@ html.light {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  transition: all 0.2s ease;
+  transition:
+    border-color var(--motion-duration-fast) var(--motion-timing-standard),
+    color var(--motion-duration-fast) var(--motion-timing-standard),
+    background-color var(--motion-duration-fast) var(--motion-timing-standard);
 }
 
 .btn-outline:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+  border-color: var(--redeem-accent);
+  color: var(--redeem-accent);
   background: rgba(59, 130, 246, 0.08);
 }
 
-/* Form Elements */
 .input-field {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
+  background: var(--redeem-surface-tertiary);
+  border: 1px solid var(--redeem-border-color);
+  color: var(--redeem-text-primary);
   padding: 14px 16px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   width: 100%;
   font-size: 14px;
-  transition: all 0.3s ease;
+  transition:
+    border-color var(--motion-duration-base) var(--motion-timing-standard),
+    box-shadow var(--motion-duration-base) var(--motion-timing-standard);
 }
 
 .input-field:focus {
   outline: none;
-  border-color: var(--accent);
+  border-color: var(--redeem-accent);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
 .input-field.success {
-  border-color: var(--success);
+  border-color: var(--redeem-success);
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
 }
 
 .input-field.error {
-  border-color: var(--error);
+  border-color: var(--redeem-error);
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
 }
 
-/* Utility Classes */
 .text-subtle {
-  color: var(--text-secondary);
+  color: var(--redeem-text-secondary);
 }
 
-/* Toggle Buttons */
 .language-toggle,
 .theme-toggle {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
+  background: var(--redeem-surface-tertiary);
+  border: 1px solid var(--redeem-border-color);
+  color: var(--redeem-text-primary);
   padding: 10px 16px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   cursor: pointer;
   font-size: 14px;
-  transition: all 0.3s ease;
+  transition:
+    background-color var(--motion-duration-base) var(--motion-timing-standard),
+    border-color var(--motion-duration-base) var(--motion-timing-standard),
+    color var(--motion-duration-base) var(--motion-timing-standard),
+    box-shadow var(--motion-duration-base) var(--motion-timing-standard);
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -159,22 +133,21 @@ html.light {
 
 .language-toggle:hover,
 .theme-toggle:hover {
-  background: var(--accent);
-  color: white;
+  background: var(--redeem-accent);
+  color: #ffffff;
   border-color: transparent;
   box-shadow: 0 10px 24px rgba(59, 130, 246, 0.35);
 }
 
-/* Token Display */
 .token-display {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
+  background: var(--redeem-surface-tertiary);
+  border: 1px solid var(--redeem-border-color);
+  border-radius: var(--radius-sm);
   padding: 12px;
-  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+  font-family: var(--font-family-mono);
   font-size: 11px;
   line-height: 1.4;
-  color: var(--text-primary);
+  color: var(--redeem-text-primary);
   word-break: break-all;
   overflow-wrap: break-word;
   white-space: pre-wrap;
@@ -191,7 +164,6 @@ html.light {
   color: inherit;
 }
 
-/* Step Indicator */
 .step-indicator {
   display: flex;
   align-items: center;
@@ -203,8 +175,8 @@ html.light {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: var(--accent);
-  color: white;
+  background: var(--redeem-accent);
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -213,12 +185,11 @@ html.light {
   box-shadow: 0 6px 18px rgba(59, 130, 246, 0.4);
 }
 
-/* Ant Design Overrides */
 .redeem-history-modal .ant-modal-content,
 .redeem-confirm-modal .ant-modal-content {
-  background: var(--bg-secondary);
-  border-radius: 20px;
-  border: 1px solid var(--border-color);
+  background: var(--redeem-surface-secondary);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--redeem-border-color);
   padding: 24px;
 }
 
@@ -234,16 +205,16 @@ html.light {
 
 .redeem-history-table .ant-table-thead > tr > th {
   background: transparent;
-  color: var(--text-secondary);
-  border-bottom: 1px solid var(--border-color);
+  color: var(--redeem-text-secondary);
+  border-bottom: 1px solid var(--redeem-border-color);
 }
 
 .redeem-history-table .ant-table-tbody > tr > td {
   background: transparent;
-  color: var(--text-primary);
-  border-bottom: 1px solid var(--border-color);
+  color: var(--redeem-text-primary);
+  border-bottom: 1px solid var(--redeem-border-color);
 }
 
 .redeem-history-table .ant-empty-description {
-  color: var(--text-secondary);
+  color: var(--redeem-text-secondary);
 }

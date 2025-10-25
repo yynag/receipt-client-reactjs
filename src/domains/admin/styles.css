@@ -1,44 +1,3 @@
-/* Admin Theme Styles - Simplified */
-:root {
-  --admin-bg-primary: #6366f1;
-  --admin-bg-secondary: #f8fafc;
-  --admin-bg-tertiary: #ffffff;
-  --admin-sider-bg: #f1f5f9;
-  --admin-header-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  --admin-text-primary: #1e293b;
-  --admin-text-secondary: #64748b;
-  --admin-text-inverse: #ffffff;
-  --admin-border-color: #e2e8f0;
-  --admin-primary-color: #059669;
-  --admin-primary-hover: #047857;
-  --admin-primary-active: #065f46;
-  --admin-success-color: #10b981;
-  --admin-warning-color: #f59e0b;
-  --admin-danger-color: #ef4444;
-  --admin-menu-hover: #d1fae5;
-  --admin-menu-selected: #a7f3d0;
-}
-
-.dark {
-  --admin-bg-primary: #001529;
-  --admin-bg-secondary: #141414;
-  --admin-bg-tertiary: #1f1f1f;
-  --admin-sider-bg: #000c17;
-  --admin-header-gradient: linear-gradient(135deg, #001529 0%, #000f1f 100%);
-  --admin-text-primary: rgba(255, 255, 255, 0.9);
-  --admin-text-secondary: rgba(255, 255, 255, 0.65);
-  --admin-text-inverse: #ffffff;
-  --admin-border-color: #303030;
-  --admin-primary-color: #1890ff;
-  --admin-primary-hover: #40a9ff;
-  --admin-primary-active: #096dd9;
-  --admin-success-color: #52c41a;
-  --admin-warning-color: #faad14;
-  --admin-danger-color: #ff4d4f;
-  --admin-menu-hover: #262626;
-  --admin-menu-selected: #1890ff;
-}
-
 /* Global reset */
 body, html, #root {
   margin: 0;
@@ -88,7 +47,7 @@ body, html, #root {
 
 .ant-menu-item {
   color: var(--admin-text-primary) !important;
-  border-radius: 8px !important;
+  border-radius: var(--radius-sm) !important;
   margin: 4px 8px !important;
 }
 
@@ -256,7 +215,7 @@ body, html, #root {
 /* Custom sidebar styles */
 .admin-sider {
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
-  transition: all 0.2s;
+  transition: all var(--motion-duration-base) var(--motion-timing-standard);
 }
 
 .admin-menu .ant-menu-item {
@@ -287,11 +246,11 @@ body, html, #root {
 
 /* Sider collapse transition */
 .ant-layout-sider {
-  transition: all 0.2s !important;
+  transition: all var(--motion-duration-base) var(--motion-timing-standard) !important;
 }
 
 .ant-menu {
-  transition: all 0.2s !important;
+  transition: all var(--motion-duration-base) var(--motion-timing-standard) !important;
 }
 
 .ant-menu.ant-menu-inline-collapsed {
@@ -319,7 +278,9 @@ body, html, #root {
 
 /* Menu item text collapse */
 .ant-menu-item .ant-menu-title-content {
-  transition: opacity 0.2s, transform 0.2s;
+  transition:
+    opacity var(--motion-duration-base) var(--motion-timing-standard),
+    transform var(--motion-duration-base) var(--motion-timing-standard);
 }
 
 .ant-menu-inline-collapsed .ant-menu-item .ant-menu-title-content {

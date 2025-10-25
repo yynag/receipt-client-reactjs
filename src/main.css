@@ -1,20 +1,29 @@
 @import "tailwindcss";
+@import "./styles/tokens.css";
 
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: var(--font-family-base);
   line-height: 1.5;
   font-weight: 400;
 }
 
-body,
-html {
+html,
+body {
   margin: 0;
   padding: 0;
-  height: 100%;
+  min-height: 100%;
+}
+
+body {
+  background-color: var(--app-background);
+  color: var(--app-text-color);
+  transition:
+    background-color var(--motion-duration-base) var(--motion-timing-standard),
+    color var(--motion-duration-base) var(--motion-timing-standard);
 }
 
 main {
-  height: 100%;
+  min-height: 100%;
 }
 
 .full-screen {
