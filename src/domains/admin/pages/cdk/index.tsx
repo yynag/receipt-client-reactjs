@@ -100,7 +100,10 @@ export const CDKPage = () => {
       key: "user_id",
       width: 120,
       valueType: "select",
-      request: async () => filterOptions.user_ids
+      valueEnum: filterOptions.user_ids.reduce((acc, item) => {
+        acc[item.value] = { text: item.label };
+        return acc;
+      }, {} as Record<string, { text: string }>)
     },
     {
       title: "App ID",
@@ -108,7 +111,10 @@ export const CDKPage = () => {
       key: "app_id",
       width: 120,
       valueType: "select",
-      request: async () => filterOptions.app_ids
+      valueEnum: filterOptions.app_ids.reduce((acc, item) => {
+        acc[item.value] = { text: item.label };
+        return acc;
+      }, {} as Record<string, { text: string }>)
     },
     {
       title: "App产品ID",
@@ -116,7 +122,10 @@ export const CDKPage = () => {
       key: "app_product_id",
       width: 140,
       valueType: "select",
-      request: async () => filterOptions.product_ids
+      valueEnum: filterOptions.product_ids.reduce((acc, item) => {
+        acc[item.value] = { text: item.label };
+        return acc;
+      }, {} as Record<string, { text: string }>)
     },
     {
       title: "操作",

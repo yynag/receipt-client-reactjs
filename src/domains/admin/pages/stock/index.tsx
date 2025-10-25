@@ -99,7 +99,10 @@ export const StockPage = () => {
       key: "app_id",
       width: 100,
       valueType: "select",
-      request: async () => filterOptions.app_ids
+      valueEnum: filterOptions.app_ids.reduce((acc, item) => {
+        acc[item.value] = { text: item.label };
+        return acc;
+      }, {} as Record<string, { text: string }>)
     },
     {
       title: "产品ID",
@@ -107,7 +110,10 @@ export const StockPage = () => {
       key: "product_id",
       width: 100,
       valueType: "select",
-      request: async () => filterOptions.product_ids
+      valueEnum: filterOptions.product_ids.reduce((acc, item) => {
+        acc[item.value] = { text: item.label };
+        return acc;
+      }, {} as Record<string, { text: string }>)
     },
     {
       title: "使用状态",

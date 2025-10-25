@@ -82,14 +82,12 @@ export const userApi = {
 
   getFilterOptions: async (): Promise<UserFilterOptions> => {
     return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          roles: [
-            { value: "admin", label: "管理员" },
-            { value: "stock", label: "库存管理" }
-          ]
-        });
-      }, 200);
+      resolve({
+        roles: [
+          { value: "admin", label: "管理员" },
+          { value: "stock", label: "库存管理" }
+        ]
+      });
     });
   },
 

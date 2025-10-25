@@ -77,7 +77,6 @@ export const UserPage = () => {
         admin: { text: "管理员", status: "Processing" },
         stock: { text: "库存管理", status: "Default" }
       },
-      request: async () => filterOptions.roles,
       render: (_, record: ListUser) => (
         <Tag color={record.role === "admin" ? "blue" : "green"}>{record.role === "admin" ? "管理员" : "库存管理"}</Tag>
       )
