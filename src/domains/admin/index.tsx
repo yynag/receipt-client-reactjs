@@ -15,7 +15,7 @@ import {
   MenuUnfoldOutlined
 } from "@ant-design/icons";
 const { Header, Footer, Content, Sider } = Layout;
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CDKPage } from "./pages/cdk";
 import { StockPage } from "./pages/stock";
 import { DashboardPage } from "./pages/dashboard";
@@ -84,6 +84,17 @@ const AdminPage = () => {
   const [currentPage, setCurrentPage] = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
 
+  useEffect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+    const { body } = document;
+    body.classList.add("admin-domain");
+    return () => {
+      body.classList.remove("admin-domain");
+    };
+  }, []);
+
   if (user == null || user.role !== "admin") {
     return (
       <Flex align="center" justify="center" className="h-full">
@@ -148,7 +159,7 @@ const AdminPage = () => {
   ];
 
   return (
-    <Layout className="w-full h-screen">
+    <Layout className="admin-app w-full h-screen">
       <Header
         style={{
           padding: "0 24px",

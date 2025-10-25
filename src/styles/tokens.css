@@ -19,6 +19,7 @@
   --shadow-card-hover: 0 16px 48px rgba(0, 0, 0, 0.12);
   --shadow-elevated: 0 10px 30px rgba(59, 130, 246, 0.35);
   --shadow-elevated-hover: 0 14px 32px rgba(59, 130, 246, 0.45);
+  --shadow-header: 0 2px 8px rgba(99, 102, 241, 0.2);
 
   /* Application base */
   --app-background: #ffffff;
@@ -36,6 +37,9 @@
   --redeem-accent-hover: #2563eb;
   --redeem-success: #10b981;
   --redeem-error: #ef4444;
+  --redeem-focus-ring: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  --redeem-focus-ring-success: 0 0 0 3px rgba(16, 185, 129, 0.2);
+  --redeem-focus-ring-error: 0 0 0 3px rgba(239, 68, 68, 0.2);
 
   /* Admin domain */
   --admin-bg-primary: #6366f1;
@@ -59,6 +63,13 @@
   --admin-table-dark-row: #111827;
   --admin-table-dark-border: #374151;
   --admin-table-dark-text: #f3f4f6;
+  --admin-control-surface: var(--admin-bg-tertiary);
+  --admin-control-border: var(--admin-border-color);
+  --admin-control-text: var(--admin-text-primary);
+  --admin-control-focus-ring: 0 0 0 2px rgba(24, 144, 255, 0.2);
+  --admin-menu-item-color: var(--admin-text-primary);
+  --admin-menu-item-selected-color: var(--admin-primary-color);
+  --admin-menu-item-selected-icon: var(--admin-primary-color);
 
   /* Home domain */
   --home-bg-primary: #ffffff;
@@ -72,6 +83,7 @@ body.dark {
   --app-background: #0f172a;
   --app-text-color: #f1f5f9;
   --app-border-color: #475569;
+  --shadow-header: 0 2px 8px rgba(0, 0, 0, 0.3);
 
   --redeem-surface-primary: #0f172a;
   --redeem-surface-secondary: #1e293b;
@@ -79,6 +91,9 @@ body.dark {
   --redeem-border-color: #475569;
   --redeem-text-primary: #f1f5f9;
   --redeem-text-secondary: #cbd5e1;
+  --redeem-focus-ring: 0 0 0 3px rgba(59, 130, 246, 0.45);
+  --redeem-focus-ring-success: 0 0 0 3px rgba(16, 185, 129, 0.35);
+  --redeem-focus-ring-error: 0 0 0 3px rgba(239, 68, 68, 0.35);
 
   --admin-bg-primary: #001529;
   --admin-bg-secondary: #141414;
@@ -97,6 +112,13 @@ body.dark {
   --admin-danger-color: #ff4d4f;
   --admin-menu-hover: #262626;
   --admin-menu-selected: #1890ff;
+  --admin-control-surface: #1f1f1f;
+  --admin-control-border: #303030;
+  --admin-control-text: rgba(255, 255, 255, 0.9);
+  --admin-control-focus-ring: 0 0 0 2px rgba(24, 144, 255, 0.35);
+  --admin-menu-item-color: rgba(255, 255, 255, 0.9);
+  --admin-menu-item-selected-color: #ffffff;
+  --admin-menu-item-selected-icon: #ffffff;
 
   --home-bg-primary: #001529;
   --home-bg-tertiary: #1f1f1f;
