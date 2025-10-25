@@ -45,6 +45,10 @@ export interface UserFilterOptions {
   roles: FilterOption[];
 }
 
+const setToken = (token: string): void => {
+  localStorage.setItem("user_token", token);
+};
+
 export const userApi = {
   login: async (username: string, password: string): Promise<User> => {
     const response = await request(`${baseUrl}/users/public/login`, {
@@ -57,7 +61,12 @@ export const userApi = {
     if (!response.ok) {
       throw new Error("Login failed: " + (await response.text()));
     }
-    return await response.json();
+    const user = await response.json();
+    if (!user.token) {
+      throw new Error("Invalid user token");
+    }
+    setToken(user.token);
+    return user;
   },
 
   loginMock: async (username: string, password: string): Promise<User> => {

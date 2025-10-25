@@ -1,4 +1,6 @@
 export const baseUrl = import.meta.env.DEV ? "http://localhost:3000" : "https://receipt-api.nitro.xin";
+// export const baseUrl = "https://receipt-api.nitro.xin";
+// export const baseUrl = "http://localhost:3000";
 
 export const sleep = (ms: number) => {
   return new Promise<void>((resolve) => {
@@ -17,21 +19,30 @@ export const buildFilterOptions = (data: string[]) => {
   });
 };
 
-let userToken: string | undefined;
+const getToken = (): string | null => {
+  return localStorage.getItem("user_token");
+};
 
-export const setUserToken = (token?: string) => {
-  userToken = token;
+const removeToken = (): void => {
+  localStorage.removeItem("user_token");
 };
 
 export const request = async (input: string | URL | Request, init?: RequestInit): Promise<Response> => {
-  if (userToken) {
+  const token = getToken();
+  if (token) {
     if (!init) {
       init = {};
     }
     if (!init.headers) {
       init.headers = {};
     }
-    (init.headers as Record<string, string>)["Authorization"] = `Bearer ${userToken}`;
+    (init.headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
   }
-  return await fetch(input, init);
+  const response = await fetch(input, init);
+
+  if (response.status === 401) {
+    removeToken();
+  }
+
+  return response;
 };

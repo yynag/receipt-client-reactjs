@@ -1,5 +1,4 @@
 import { createContext, useReducer, useCallback, useEffect, type ReactNode } from "react";
-import { setUserToken } from "../api/shared";
 
 type Theme = "light" | "dark";
 type User = { id: string; user_id: string; role: string; token: string };
@@ -40,7 +39,6 @@ const Reducer: Reducer = (state, action) => {
       return { ...state, theme: action.payload };
     case "t_set_user":
       localStorage.setItem("user", JSON.stringify(action.payload));
-      setUserToken(action.payload.token);
       return { ...state, user: action.payload };
     case "t_logout":
       localStorage.removeItem("user");
@@ -60,7 +58,6 @@ const StoreContext = createContext<StoreContextType | null>(null);
 
 const StoreProvider = ({ children }: { children: ReactNode }) => {
   const rawUser = localStorage.getItem("user");
-  const user = rawUser ? JSON.parse(rawUser!) : null;
 
   // Get stored theme or fall back to device theme
   const getInitialTheme = (): Theme => {
@@ -78,9 +75,6 @@ const StoreProvider = ({ children }: { children: ReactNode }) => {
     theme: getInitialTheme(),
     user: rawUser ? JSON.parse(rawUser!) : null
   });
-
-  console.log(222222);
-  setUserToken(user?.token);
 
   // Listen for device theme changes (only if no manually set theme)
   useEffect(() => {
