@@ -19,7 +19,11 @@ interface State {
   user: User | null;
 }
 
-type Action = { type: "t_toggle_theme" } | { type: "t_set_theme"; payload: Theme } | { type: "t_set_user"; payload: User } | { type: "t_logout" };
+type Action =
+  | { type: "t_toggle_theme" }
+  | { type: "t_set_theme"; payload: Theme }
+  | { type: "t_set_user"; payload: User }
+  | { type: "t_logout" };
 
 type Reducer = (state: State, action: Action) => State;
 
@@ -57,7 +61,7 @@ const StoreContext = createContext<StoreContextType | null>(null);
 const StoreProvider = ({ children }: { children: ReactNode }) => {
   const rawUser = localStorage.getItem("user");
   const user = rawUser ? JSON.parse(rawUser!) : null;
-  
+
   // Get stored theme or fall back to device theme
   const getInitialTheme = (): Theme => {
     if (!isBrowser) {
@@ -69,12 +73,13 @@ const StoreProvider = ({ children }: { children: ReactNode }) => {
     }
     return getDeviceTheme();
   };
-  
+
   const [state, dispatch] = useReducer(Reducer, {
     theme: getInitialTheme(),
     user: rawUser ? JSON.parse(rawUser!) : null
   });
 
+  console.log(222222);
   setUserToken(user?.token);
 
   // Listen for device theme changes (only if no manually set theme)
@@ -82,12 +87,12 @@ const StoreProvider = ({ children }: { children: ReactNode }) => {
     if (!isBrowser) {
       return;
     }
-    
+
     const hasStoredTheme = localStorage.getItem(THEME_STORAGE_KEY);
     if (hasStoredTheme && (hasStoredTheme === "light" || hasStoredTheme === "dark")) {
       return; // Don't override manually set theme
     }
-    
+
     const media = window.matchMedia("(prefers-color-scheme: dark)");
     const syncTheme = (event: MediaQueryListEvent) => {
       dispatch({ type: "t_set_theme", payload: event.matches ? "dark" : "light" });

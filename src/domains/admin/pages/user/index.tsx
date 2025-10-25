@@ -246,6 +246,7 @@ export const UserPage = () => {
           try {
             await userApi.create({
               user_id: values.user_id,
+              password: values.password,
               role: values.role
             });
             message.success("创建用户成功");
@@ -271,6 +272,12 @@ export const UserPage = () => {
               message: "用户ID只能包含字母、数字、@、.、_、-"
             }
           ]}
+        />
+        <ProFormText
+          name="password"
+          label="密码"
+          placeholder="请输入用户密码"
+          rules={[{ required: true, message: "请输入用户密码" }]}
         />
         <ProFormSelect
           name="role"
@@ -328,6 +335,7 @@ export const UserPage = () => {
             }
           ]}
         />
+        <ProFormText name="password" label="密码" placeholder="请输入用户密码" />
         <ProFormSelect
           name="role"
           label="角色"

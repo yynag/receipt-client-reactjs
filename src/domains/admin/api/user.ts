@@ -18,6 +18,7 @@ export interface ListUser {
 
 export interface CreateUserRequest {
   user_id: string;
+  password: string;
   role: "admin" | "stock";
 }
 
