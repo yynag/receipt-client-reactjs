@@ -10,6 +10,7 @@ import {
   ProFormText
 } from "@ant-design/pro-components";
 import { type CDK, cdkApi, type FilterOptions } from "../../api/cdk";
+import { sleep } from "../../api/shared";
 
 export const CDKPage = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<number[]>([]);
@@ -22,20 +23,20 @@ export const CDKPage = () => {
   });
   const actionRef = useRef<ActionType>(null);
   const [createModalVisible, setCreateModalVisible] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
+    const fetchFilterOptions = async () => {
+      try {
+        const options = await cdkApi.getFilterOptions();
+        setFilterOptions(options);
+      } catch (error) {
+        console.error("获取筛选选项失败:", error);
+        messageApi.error("获取筛选选项失败");
+      }
+    };
     fetchFilterOptions();
-  }, []);
-
-  const fetchFilterOptions = async () => {
-    try {
-      const options = await cdkApi.getFilterOptions();
-      setFilterOptions(options);
-    } catch (error) {
-      console.error("获取筛选选项失败:", error);
-      message.error("获取筛选选项失败");
-    }
-  };
+  }, [messageApi]);
 
   const columns: ProColumns<CDK>[] = [
     {
@@ -139,7 +140,7 @@ export const CDKPage = () => {
           type="link"
           size="small"
           icon={<EditOutlined />}
-          onClick={() => message.info("编辑功能开发中")}
+          onClick={() => messageApi.info("编辑功能开发中")}
         >
           编辑
         </Button>,
@@ -161,16 +162,16 @@ export const CDKPage = () => {
   const handleDelete = async (code: string) => {
     try {
       await cdkApi.batchDelete([code]);
-      message.success("删除成功");
+      messageApi.success("删除成功");
       actionRef.current?.reload();
     } catch {
-      message.error("删除失败");
+      messageApi.error("删除失败");
     }
   };
 
   const handleBatchCopy = async () => {
     if (selectedRowKeys.length === 0) {
-      message.warning("请选择要复制的CDK");
+      messageApi.warning("请选择要复制的CDK");
       return;
     }
 
@@ -179,15 +180,12 @@ export const CDKPage = () => {
       const selectedCDKs = allCDKs.filter((item) => selectedRowKeys.includes(item.ID));
 
       if (selectedCDKs.length === 0) {
-        message.error("未找到选中的CDK数据");
+        messageApi.error("未找到选中的CDK数据");
         return;
       }
 
-      // 生成复制内容（每行一个CDK Code）
-      const copyText = selectedCDKs.map((cdk) => cdk.code).join("\n");
-
       // 复制到剪切板
-      await navigator.clipboard.writeText(copyText);
+      await copyText(selectedCDKs.map((cdk) => cdk.code));
 
       // 使用 antd 通知组件
       notification.success({
@@ -207,9 +205,14 @@ export const CDKPage = () => {
     }
   };
 
+  const copyText = async (codes: string[]) => {
+    const copyText = codes.join("\n");
+    navigator.clipboard.writeText(copyText);
+  };
+
   const handleBatchDelete = async () => {
     if (selectedRowKeys.length === 0) {
-      message.warning("请选择要删除的CDK");
+      messageApi.warning("请选择要删除的CDK");
       return;
     }
 
@@ -217,16 +220,17 @@ export const CDKPage = () => {
 
     try {
       await cdkApi.batchDelete(codes);
-      message.success(`成功删除 ${selectedRowKeys.length} 个CDK`);
+      messageApi.success(`成功删除 ${selectedRowKeys.length} 个CDK`);
       setSelectedRowKeys([]);
       actionRef.current?.reload();
     } catch {
-      message.error("批量删除失败");
+      messageApi.error("批量删除失败");
     }
   };
 
   return (
     <div>
+      {contextHolder}
       <ProTable<CDK>
         columns={columns}
         actionRef={actionRef}
@@ -297,16 +301,18 @@ export const CDKPage = () => {
         onOpenChange={setCreateModalVisible}
         onFinish={async (values) => {
           try {
-            await cdkApi.create({
+            const codes = await cdkApi.create({
               app_id: values.appId,
               product_id: values.productId,
               amount: values.quantity
             });
-            message.success(`成功创建 ${values.quantity} 个CDK`);
+            copyText(codes); // 复制到剪切板
+            messageApi.success(`成功创建 ${values.quantity} 个CDK，并复制到剪切板`);
             actionRef.current?.reload();
+            await sleep(1000); // 等待1秒后关闭弹窗
             return true;
           } catch {
-            message.error("创建CDK失败");
+            messageApi.error("创建CDK失败");
             return false;
           }
         }}
@@ -339,7 +345,15 @@ export const CDKPage = () => {
           }}
           rules={[
             { required: true, message: "请输入添加数量" },
-            { type: "number", min: 1, max: 1000, message: "数量必须在1-1000之间" }
+            {
+              type: "number",
+              min: 1,
+              max: 1000,
+              message: "数量必须在1-1000之间",
+              transform(value) {
+                return Number(value);
+              }
+            }
           ]}
         />
       </ModalForm>

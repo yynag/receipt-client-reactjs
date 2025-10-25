@@ -42,20 +42,20 @@ export const StockPage = () => {
   const [detailLoading, setDetailLoading] = useState(false);
   const [uploadFileList, setUploadFileList] = useState<UploadFile[]>([]);
   const [importing, setImporting] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
+    const fetchFilterOptions = async () => {
+      try {
+        const options = await stockApi.getFilterOptions();
+        setFilterOptions(options);
+      } catch (error) {
+        console.error("获取筛选选项失败:", error);
+        messageApi.error("获取筛选选项失败");
+      }
+    };
     fetchFilterOptions();
-  }, []);
-
-  const fetchFilterOptions = async () => {
-    try {
-      const options = await stockApi.getFilterOptions();
-      setFilterOptions(options);
-    } catch (error) {
-      console.error("获取筛选选项失败:", error);
-      message.error("获取筛选选项失败");
-    }
-  };
+  }, [messageApi]);
 
   const columns: ProColumns[] = [
     {
@@ -178,10 +178,10 @@ export const StockPage = () => {
   const handleDelete = async (id: number) => {
     try {
       await stockApi.batchDelete([id]);
-      message.success("删除成功");
+      messageApi.success("删除成功");
       actionRef.current?.reload();
     } catch {
-      message.error("删除失败");
+      messageApi.error("删除失败");
     }
   };
 
@@ -196,16 +196,16 @@ export const StockPage = () => {
       const content = await zip.generateAsync({ type: "blob" });
       saveAs(content, `stock_export_${stock.ID}.zip`);
 
-      message.success("导出成功");
+      messageApi.success("导出成功");
     } catch (error) {
       console.error("导出失败:", error);
-      message.error("导出失败");
+      messageApi.error("导出失败");
     }
   };
 
   const handleBatchExport = async () => {
     if (selectedRowKeys.length === 0) {
-      message.warning("请选择要导出的库存项");
+      messageApi.warning("请选择要导出的库存项");
       return;
     }
 
@@ -230,23 +230,23 @@ export const StockPage = () => {
       });
     } catch (error) {
       console.error("批量导出失败:", error);
-      message.error("批量导出失败");
+      messageApi.error("批量导出失败");
     }
   };
 
   const handleBatchDelete = async () => {
     if (selectedRowKeys.length === 0) {
-      message.warning("请选择要删除的库存项");
+      messageApi.warning("请选择要删除的库存项");
       return;
     }
 
     try {
       await stockApi.batchDelete(selectedRowKeys);
-      message.success(`成功删除 ${selectedRowKeys.length} 个库存项`);
+      messageApi.success(`成功删除 ${selectedRowKeys.length} 个库存项`);
       setSelectedRowKeys([]);
       actionRef.current?.reload();
     } catch {
-      message.error("批量删除失败");
+      messageApi.error("批量删除失败");
     }
   };
 
@@ -260,7 +260,7 @@ export const StockPage = () => {
       setDetailLoading(false);
     } catch (error) {
       console.error("获取库存详情失败:", error);
-      message.error("获取库存详情失败");
+      messageApi.error("获取库存详情失败");
       setDetailLoading(false);
     }
   };
@@ -283,7 +283,7 @@ export const StockPage = () => {
       actionRef.current?.reload();
     } catch (error) {
       console.error("导入失败:", error);
-      message.error("导入失败，请检查文件格式");
+      messageApi.error("导入失败，请检查文件格式");
     } finally {
       setImporting(false);
     }
@@ -303,6 +303,7 @@ export const StockPage = () => {
 
   return (
     <Suspense fallback={<Spin size="large" style={{ display: "block", textAlign: "center", padding: "100px 0" }} />}>
+      {contextHolder}
       <div>
         <ProTable
           columns={columns}

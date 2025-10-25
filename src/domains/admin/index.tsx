@@ -141,8 +141,12 @@ const AdminPage = () => {
       key: "userInfo",
       label: (
         <div>
-          <div className="font-semibold" style={{ color: "var(--admin-text-primary)" }}>{user.user_id}</div>
-          <div className="text-xs" style={{ color: "var(--admin-text-secondary)" }}>管理员</div>
+          <div className="font-semibold" style={{ color: "var(--admin-text-primary)" }}>
+            {user.user_id}
+          </div>
+          <div className="text-xs" style={{ color: "var(--admin-text-secondary)" }}>
+            管理员
+          </div>
         </div>
       ),
       disabled: true
@@ -176,14 +180,16 @@ const AdminPage = () => {
               onClick={() => setCollapsed(!collapsed)}
               style={{ color: "var(--admin-text-inverse)" }}
             />
-            <h1 className="text-xl font-bold m-0" style={{ color: "var(--admin-text-inverse)" }}>凭证后台管理系统</h1>
+            <h1 className="text-xl font-bold m-0" style={{ color: "var(--admin-text-inverse)" }}>
+              凭证后台管理系统
+            </h1>
           </Flex>
           <Flex align="center" gap={12}>
-            <Switch 
-              checked={theme === "dark"} 
-              checkedChildren={<MoonOutlined />} 
-              unCheckedChildren={<SunOutlined />} 
-              onChange={toggleTheme} 
+            <Switch
+              checked={theme === "dark"}
+              checkedChildren={<MoonOutlined />}
+              unCheckedChildren={<SunOutlined />}
+              onChange={toggleTheme}
             />
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
               <Button type="text" icon={<UserOutlined />}>

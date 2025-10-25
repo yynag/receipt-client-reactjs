@@ -6,7 +6,7 @@ import { cdkApi, type FilterOptions, type CDKStatResponse } from "../../api/cdk"
 const { Option } = Select;
 
 // Lazy load ECharts component
-const ReactECharts = lazy(() => import('echarts-for-react').then(module => ({ default: module.default })));
+const ReactECharts = lazy(() => import("echarts-for-react").then((module) => ({ default: module.default })));
 
 interface CDKStatsTabProps {
   filterOptions: FilterOptions;
@@ -87,14 +87,14 @@ export const CDKStatsTab = ({ filterOptions }: CDKStatsTabProps) => {
               value: statsData.used,
               name: "已使用",
               itemStyle: {
-                color: "#52c41a"
+                color: "#ff4d4f"
               }
             },
             {
               value: statsData.unused,
               name: "未使用",
               itemStyle: {
-                color: "#faad14"
+                color: "#1890ff"
               }
             }
           ]
@@ -193,7 +193,9 @@ export const CDKStatsTab = ({ filterOptions }: CDKStatsTabProps) => {
       )}
 
       <Card>
-        <Suspense fallback={<Spin size="large" style={{ display: 'block', textAlign: 'center', padding: '100px 0' }} />}>
+        <Suspense
+          fallback={<Spin size="large" style={{ display: "block", textAlign: "center", padding: "100px 0" }} />}
+        >
           <ReactECharts option={getPieChartOption()} style={{ height: 400 }} notMerge={true} lazyUpdate={true} />
         </Suspense>
       </Card>

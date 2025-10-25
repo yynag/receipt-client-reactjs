@@ -7,7 +7,7 @@ import { stockApi, type StockStatResponse } from "../../api/stock";
 const { Option } = Select;
 
 // Lazy load ECharts component
-const ReactECharts = lazy(() => import('echarts-for-react').then(module => ({ default: module.default })));
+const ReactECharts = lazy(() => import("echarts-for-react").then((module) => ({ default: module.default })));
 
 interface StockStatsTabProps {
   filterOptions: FilterOptions;
@@ -80,15 +80,15 @@ export const StockStatsTab = ({ filterOptions }: StockStatsTabProps) => {
           },
           data: [
             {
-              value: 335,
-              name: "已售罄",
+              value: statsData.used,
+              name: "已兑换",
               itemStyle: {
                 color: "#ff4d4f"
               }
             },
             {
-              value: 310,
-              name: "有库存",
+              value: statsData.unused,
+              name: "未兑换",
               itemStyle: {
                 color: "#1890ff"
               }
@@ -189,7 +189,9 @@ export const StockStatsTab = ({ filterOptions }: StockStatsTabProps) => {
       )}
 
       <Card>
-        <Suspense fallback={<Spin size="large" style={{ display: 'block', textAlign: 'center', padding: '100px 0' }} />}>
+        <Suspense
+          fallback={<Spin size="large" style={{ display: "block", textAlign: "center", padding: "100px 0" }} />}
+        >
           <ReactECharts option={getPieChartOption()} style={{ height: 400 }} notMerge={true} lazyUpdate={true} />
         </Suspense>
       </Card>

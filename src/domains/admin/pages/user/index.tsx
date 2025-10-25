@@ -22,20 +22,20 @@ export const UserPage = () => {
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState<ListUser | null>(null);
+  const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
+    const fetchFilterOptions = async () => {
+      try {
+        const options = await userApi.getFilterOptions();
+        setFilterOptions(options);
+      } catch (error) {
+        console.error("获取筛选选项失败:", error);
+        messageApi.error("获取筛选选项失败");
+      }
+    };
     fetchFilterOptions();
-  }, []);
-
-  const fetchFilterOptions = async () => {
-    try {
-      const options = await userApi.getFilterOptions();
-      setFilterOptions(options);
-    } catch (error) {
-      console.error("获取筛选选项失败:", error);
-      message.error("获取筛选选项失败");
-    }
-  };
+  }, [messageApi]);
 
   const columns: ProColumns<ListUser>[] = [
     {
@@ -114,32 +114,32 @@ export const UserPage = () => {
   const handleDelete = async (id: number) => {
     try {
       await userApi.batchDelete([id]);
-      message.success("删除成功");
+      messageApi.success("删除成功");
       actionRef.current?.reload();
     } catch {
-      message.error("删除失败");
+      messageApi.error("删除失败");
     }
   };
 
   const handleBatchDelete = async () => {
     if (selectedRowKeys.length === 0) {
-      message.warning("请选择要删除的用户");
+      messageApi.warning("请选择要删除的用户");
       return;
     }
 
     try {
       await userApi.batchDelete(selectedRowKeys);
-      message.success(`成功删除 ${selectedRowKeys.length} 个用户`);
+      messageApi.success(`成功删除 ${selectedRowKeys.length} 个用户`);
       setSelectedRowKeys([]);
       actionRef.current?.reload();
     } catch {
-      message.error("批量删除失败");
+      messageApi.error("批量删除失败");
     }
   };
 
   const handleBatchCopy = async () => {
     if (selectedRowKeys.length === 0) {
-      message.warning("请选择要复制的用户");
+      messageApi.warning("请选择要复制的用户");
       return;
     }
 
@@ -147,7 +147,7 @@ export const UserPage = () => {
       const selectedUsers = allUsers.filter((item) => selectedRowKeys.includes(item.ID));
 
       if (selectedUsers.length === 0) {
-        message.error("未找到选中的用户数据");
+        messageApi.error("未找到选中的用户数据");
         return;
       }
 
@@ -176,6 +176,7 @@ export const UserPage = () => {
 
   return (
     <div className="user-management-page">
+      {contextHolder}
       <ProTable<ListUser>
         columns={columns}
         actionRef={actionRef}
@@ -248,11 +249,11 @@ export const UserPage = () => {
               password: values.password,
               role: values.role
             });
-            message.success("创建用户成功");
+            messageApi.success("创建用户成功");
             actionRef.current?.reload();
             return true;
           } catch {
-            message.error("创建用户失败");
+            messageApi.error("创建用户失败");
             return false;
           }
         }}
@@ -308,13 +309,13 @@ export const UserPage = () => {
               user_id: values.user_id,
               role: values.role
             });
-            message.success("更新用户成功");
+            messageApi.success("更新用户成功");
             actionRef.current?.reload();
             setEditModalVisible(false);
             setEditingUser(null);
             return true;
           } catch {
-            message.error("更新用户失败");
+            messageApi.error("更新用户失败");
             return false;
           }
         }}
