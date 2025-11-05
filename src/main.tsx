@@ -8,7 +8,7 @@ import "./main.css";
 
 const AdminEntry = lazy(() => import("./domains/admin"));
 const HomeEntry = lazy(() => import("./domains/home"));
-const RedeemEntry = lazy(() => import("./domains/redeem"));
+const RedeemEntry = lazy(() => import("./domains/redeem-discord"));
 
 const router = createBrowserRouter([
   {

@@ -1,6 +1,6 @@
 // export const baseUrl = import.meta.env.DEV ? "http://localhost:3000" : "https://receipt-api.nitro.xin";
-// export const baseUrl = "https://receipt-api.nitro.xin";
-export const baseUrl = "http://localhost:3000";
+export const baseUrl = "https://receipt-api.nitro.xin";
+// export const baseUrl = "http://localhost:3000";
 
 export const sleep = (ms: number) => {
   return new Promise<void>((resolve) => {
@@ -37,6 +37,8 @@ export const request = async (input: string | URL | Request, init?: RequestInit)
       init.headers = {};
     }
     (init.headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
+  } else {
+    console.error("token not found.");
   }
   const response = await fetch(input, init);
 
