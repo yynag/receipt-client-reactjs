@@ -60,7 +60,12 @@ function HomeEntry() {
     {
       name: "Discord充值入口",
       description: "使用CDK兑换",
-      url: "/redeem-discord"
+      url: "/redeem/discord"
+    },
+    {
+      name: "ChatGPT充值入口",
+      description: "使用CDK兑换",
+      url: "/redeem/chatgpt"
     },
     {
       name: "后台管理入口",

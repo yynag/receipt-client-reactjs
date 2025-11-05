@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Button, message, Popconfirm, Tag, notification } from "antd";
 import { PlusOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import {
@@ -11,6 +11,7 @@ import {
 } from "@ant-design/pro-components";
 import { type CDK, cdkApi, type FilterOptions } from "../../api/cdk";
 import { sleep } from "../../api/shared";
+import { stockApi } from "../../api/stock";
 
 export const CDKPage = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<number[]>([]);
@@ -21,6 +22,14 @@ export const CDKPage = () => {
     product_ids: [],
     user_ids: []
   });
+  const [createFilterOptions, setCreateFilterOptions] = useState<FilterOptions>({
+    used: [],
+    app_ids: [],
+    product_ids: [],
+    user_ids: []
+  }); // 用于创建的，从Stock拿
+  const [selectedAppIdCreate, setSelectedAppIdCreate] = useState<string>();
+  const [selectedAppId, setSelectedAppId] = useState<string>();
   const actionRef = useRef<ActionType>(null);
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
@@ -38,136 +47,158 @@ export const CDKPage = () => {
     fetchFilterOptions();
   }, [messageApi]);
 
-  const columns: ProColumns<CDK>[] = [
-    {
-      title: "ID",
-      dataIndex: "ID",
-      key: "ID",
-      width: 100,
-      ellipsis: true,
-      copyable: true,
-      search: false,
-      hidden: true
+  const handleDelete = useCallback(
+    async (code: string) => {
+      try {
+        await cdkApi.batchDelete([code]);
+        messageApi.success("删除成功");
+        actionRef.current?.reload();
+      } catch {
+        messageApi.error("删除失败");
+      }
     },
-    {
-      title: "创建时间",
-      dataIndex: "CreatedAt",
-      key: "CreatedAt",
-      width: 160,
-      valueType: "dateTime",
-      search: false,
-      sorter: true
-    },
-    {
-      title: "CDK Code",
-      dataIndex: "code",
-      key: "code",
-      width: 200,
-      ellipsis: true,
-      copyable: true,
-      search: false
-    },
-    {
-      title: "使用状态",
-      dataIndex: "used",
-      key: "used",
-      width: 120,
-      valueType: "select",
-      valueEnum: {
-        true: { text: "已使用", status: "Success" },
-        false: { text: "未使用", status: "Warning" }
-      },
-      render: (_, record: CDK) => <Tag color={record.used ? "green" : "blue"}>{record.used ? "已使用" : "未使用"}</Tag>
-    },
-    {
-      title: "使用用户",
-      dataIndex: "used_user",
-      key: "used_user",
-      search: false,
-      ellipsis: true,
-      width: 150
-    },
-    {
-      title: "库存ID",
-      dataIndex: "stock_id",
-      key: "stock_id",
-      width: 120,
-      search: false,
-      ellipsis: true
-    },
-    {
-      title: "创建人",
-      dataIndex: "user_id",
-      key: "user_id",
-      width: 120,
-      valueType: "select",
-      valueEnum: filterOptions.user_ids.reduce((acc, item) => {
-        acc[item.value] = { text: item.label };
-        return acc;
-      }, {} as Record<string, { text: string }>)
-    },
-    {
-      title: "App ID",
-      dataIndex: "app_id",
-      key: "app_id",
-      width: 120,
-      valueType: "select",
-      valueEnum: filterOptions.app_ids.reduce((acc, item) => {
-        acc[item.value] = { text: item.label };
-        return acc;
-      }, {} as Record<string, { text: string }>)
-    },
-    {
-      title: "App产品ID",
-      dataIndex: "app_product_id",
-      key: "app_product_id",
-      width: 140,
-      valueType: "select",
-      valueEnum: filterOptions.product_ids.reduce((acc, item) => {
-        acc[item.value] = { text: item.label };
-        return acc;
-      }, {} as Record<string, { text: string }>)
-    },
-    {
-      title: "操作",
-      key: "action",
-      width: 120,
-      fixed: "right",
-      search: false,
-      render: (_, record) => [
-        <Button
-          key="edit"
-          type="link"
-          size="small"
-          icon={<EditOutlined />}
-          onClick={() => messageApi.info("编辑功能开发中")}
-        >
-          编辑
-        </Button>,
-        <Popconfirm
-          key="delete"
-          title="确定删除这个CDK吗？"
-          onConfirm={() => handleDelete(record.code)}
-          okText="确定"
-          cancelText="取消"
-        >
-          <Button type="link" danger size="small" icon={<DeleteOutlined />}>
-            删除
-          </Button>
-        </Popconfirm>
-      ]
-    }
-  ];
+    [messageApi]
+  );
 
-  const handleDelete = async (code: string) => {
-    try {
-      await cdkApi.batchDelete([code]);
-      messageApi.success("删除成功");
-      actionRef.current?.reload();
-    } catch {
-      messageApi.error("删除失败");
-    }
-  };
+  const columns: ProColumns<CDK>[] = useMemo(() => {
+    const userOptions = filterOptions.user_ids.reduce((acc, item) => {
+      acc[item.value] = { text: item.label };
+      return acc;
+    }, {} as Record<string, { text: string }>);
+
+    const appOptions = filterOptions.app_ids.reduce((acc, item) => {
+      acc[item.value] = { text: item.label };
+      return acc;
+    }, {} as Record<string, { text: string }>);
+
+    const productOptions = filterOptions.product_ids
+      .filter((item) => !selectedAppId || item.value.includes(selectedAppId))
+      .reduce((acc, item) => {
+        const val = item.value.split(".")[1];
+        const label = item.label.split(".")[1];
+        acc[val] = { text: label };
+        return acc;
+      }, {} as Record<string, { text: string }>);
+
+    return [
+      {
+        title: "ID",
+        dataIndex: "ID",
+        key: "ID",
+        width: 100,
+        ellipsis: true,
+        copyable: true,
+        search: false,
+        hidden: true
+      },
+      {
+        title: "创建时间",
+        dataIndex: "CreatedAt",
+        key: "CreatedAt",
+        width: 160,
+        valueType: "dateTime",
+        search: false,
+        sorter: true
+      },
+      {
+        title: "CDK Code",
+        dataIndex: "code",
+        key: "code",
+        width: 200,
+        ellipsis: true,
+        copyable: true,
+        search: false
+      },
+      {
+        title: "使用状态",
+        dataIndex: "used",
+        key: "used",
+        width: 120,
+        valueType: "select",
+        valueEnum: {
+          true: { text: "已使用", status: "Success" },
+          false: { text: "未使用", status: "Warning" }
+        },
+        render: (_, record: CDK) => (
+          <Tag color={record.used ? "green" : "blue"}>{record.used ? "已使用" : "未使用"}</Tag>
+        )
+      },
+      {
+        title: "使用用户",
+        dataIndex: "used_user",
+        key: "used_user",
+        search: false,
+        ellipsis: true,
+        width: 150
+      },
+      {
+        title: "库存ID",
+        dataIndex: "stock_id",
+        key: "stock_id",
+        width: 120,
+        search: false,
+        ellipsis: true
+      },
+      {
+        title: "创建人",
+        dataIndex: "user_id",
+        key: "user_id",
+        width: 120,
+        valueType: "select",
+        valueEnum: userOptions
+      },
+      {
+        title: "App ID",
+        dataIndex: "app_id",
+        key: "app_id",
+        width: 120,
+        valueType: "select",
+        valueEnum: appOptions,
+        fieldProps: {
+          onChange: (value: string) => {
+            setSelectedAppId(value);
+          }
+        }
+      },
+      {
+        title: "App产品ID",
+        dataIndex: "app_product_id",
+        key: "app_product_id",
+        width: 140,
+        valueType: "select",
+        valueEnum: productOptions
+      },
+      {
+        title: "操作",
+        key: "action",
+        width: 120,
+        fixed: "right",
+        search: false,
+        render: (_, record) => [
+          <Button
+            key="edit"
+            type="link"
+            size="small"
+            icon={<EditOutlined />}
+            onClick={() => messageApi.info("编辑功能开发中")}
+          >
+            编辑
+          </Button>,
+          <Popconfirm
+            key="delete"
+            title="确定删除这个CDK吗？"
+            onConfirm={() => handleDelete(record.code)}
+            okText="确定"
+            cancelText="取消"
+          >
+            <Button type="link" danger size="small" icon={<DeleteOutlined />}>
+              删除
+            </Button>
+          </Popconfirm>
+        ]
+      }
+    ];
+  }, [filterOptions, selectedAppId, messageApi, handleDelete]);
 
   const handleBatchCopy = async () => {
     if (selectedRowKeys.length === 0) {
@@ -298,7 +329,21 @@ export const CDKPage = () => {
         title="新建CDK"
         width="600px"
         open={createModalVisible}
-        onOpenChange={setCreateModalVisible}
+        onOpenChange={(open) => {
+          if (open) {
+            const fetchFilterOptions = async () => {
+              try {
+                const options = await stockApi.getFilterOptions();
+                setCreateFilterOptions(options);
+              } catch (error) {
+                console.error("获取筛选选项失败:", error);
+                messageApi.error("获取筛选选项失败");
+              }
+            };
+            fetchFilterOptions();
+          }
+          setCreateModalVisible(open);
+        }}
         onFinish={async (values) => {
           try {
             const codes = await cdkApi.create({
@@ -324,15 +369,24 @@ export const CDKPage = () => {
           name="appId"
           label="App ID"
           placeholder="请选择App ID"
-          options={filterOptions.app_ids}
+          options={createFilterOptions.app_ids}
           rules={[{ required: true, message: "请选择App ID" }]}
+          onChange={(value: string) => {
+            setSelectedAppIdCreate(value);
+          }}
         />
         <ProFormSelect
           name="productId"
           label="产品ID"
           placeholder="请选择产品ID"
-          options={filterOptions.product_ids.map((item) => ({ ...item, value: item.value.replace("product_", "") }))}
+          options={createFilterOptions.product_ids
+            .filter((item) => !selectedAppIdCreate || item.value.includes(selectedAppIdCreate))
+            .map((item) => ({
+              label: item.label.split(".")[1],
+              value: item.value.split(".")[1]
+            }))}
           rules={[{ required: true, message: "请选择产品ID" }]}
+          dependencies={[selectedAppIdCreate]}
         />
         <ProFormText
           name="quantity"

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, lazy, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense, useMemo, useCallback } from "react";
 import { Button, message, Popconfirm, Tag, notification, Upload, Modal, Drawer, Descriptions, Spin } from "antd";
 import {
   DeleteOutlined,
@@ -11,20 +11,9 @@ import {
 import type { UploadFile } from "antd/es/upload/interface";
 import { type ListStock, stockApi, type FilterOptions, type Stock } from "../../api/stock";
 
-// Lazy load ProTable component only
-const ProTable = lazy(() =>
-  import("@ant-design/pro-components").then((module) => ({
-    default: module.ProTable
-  }))
-);
-
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ProColumns = any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ActionType = any;
+import { ProTable, type ActionType, type ProColumns } from "@ant-design/pro-components";
 
 export const StockPage = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<number[]>([]);
@@ -43,6 +32,7 @@ export const StockPage = () => {
   const [uploadFileList, setUploadFileList] = useState<UploadFile[]>([]);
   const [importing, setImporting] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
+  const [selectedAppId, setSelectedAppId] = useState<string>();
 
   useEffect(() => {
     const fetchFilterOptions = async () => {
@@ -57,151 +47,192 @@ export const StockPage = () => {
     fetchFilterOptions();
   }, [messageApi]);
 
-  const columns: ProColumns[] = [
-    {
-      title: "ID",
-      dataIndex: "ID",
-      key: "ID",
-      width: 120,
-      ellipsis: true,
-      copyable: true,
-      search: false,
-      hidden: true
-    },
-    {
-      title: "创建日期时间",
-      dataIndex: "CreatedAt",
-      key: "CreatedAt",
-      width: 140,
-      valueType: "dateTime",
-      search: false,
-      sorter: true
-    },
-    {
-      title: "日期范围",
-      dataIndex: "dateRange",
-      key: "dateRange",
-      hideInTable: true,
-      valueType: "dateRange",
-      search: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        transform: (value: any) => {
-          return {
-            startTime: value?.[0],
-            endTime: value?.[1]
-          };
-        }
+  const handleDelete = useCallback(
+    async (id: number) => {
+      try {
+        await stockApi.batchDelete([id]);
+        messageApi.success("删除成功");
+        actionRef.current?.reload();
+      } catch {
+        messageApi.error("删除失败");
       }
     },
-    {
-      title: "App ID",
-      dataIndex: "app_id",
-      key: "app_id",
-      width: 100,
-      valueType: "select",
-      valueEnum: filterOptions.app_ids.reduce((acc, item) => {
-        acc[item.value] = { text: item.label };
-        return acc;
-      }, {} as Record<string, { text: string }>)
+    [messageApi]
+  );
+
+  const handleSingleExport = useCallback(
+    async (stock: ListStock) => {
+      try {
+        const zip = new JSZip();
+        const fileName = `stock_${stock.ID}_${Date.now()}.json`;
+        const jsonContent = JSON.stringify(stock, null, 2);
+
+        zip.file(fileName, jsonContent);
+
+        const content = await zip.generateAsync({ type: "blob" });
+        saveAs(content, `stock_export_${stock.ID}.zip`);
+
+        messageApi.success("导出成功");
+      } catch (error) {
+        console.error("导出失败:", error);
+        messageApi.error("导出失败");
+      }
     },
-    {
-      title: "产品ID",
-      dataIndex: "product_id",
-      key: "product_id",
-      width: 100,
-      valueType: "select",
-      valueEnum: filterOptions.product_ids.reduce((acc, item) => {
-        acc[item.value] = { text: item.label };
-        return acc;
-      }, {} as Record<string, { text: string }>)
+    [messageApi]
+  );
+
+  const handleShowDetail = useCallback(
+    async (stock: ListStock) => {
+      setDetailDrawerVisible(true);
+      setDetailLoading(true);
+
+      try {
+        const detailData = await stockApi.getStockDetail(stock.ID);
+        setStockDetail(detailData);
+        setDetailLoading(false);
+      } catch (error) {
+        console.error("获取库存详情失败:", error);
+        messageApi.error("获取库存详情失败");
+        setDetailLoading(false);
+      }
     },
-    {
-      title: "使用状态",
-      dataIndex: "used",
-      key: "used",
-      width: 100,
-      valueType: "select",
-      valueEnum: {
-        true: { text: "已使用", status: "Success" },
-        false: { text: "未使用", status: "Warning" }
+    [messageApi]
+  );
+
+  const columns: ProColumns<ListStock>[] = useMemo(() => {
+    const userOptions = filterOptions.user_ids.reduce((acc, item) => {
+      acc[item.value] = { text: item.label };
+      return acc;
+    }, {} as Record<string, { text: string }>);
+
+    const appOptions = filterOptions.app_ids.reduce((acc, item) => {
+      acc[item.value] = { text: item.label };
+      return acc;
+    }, {} as Record<string, { text: string }>);
+
+    const productOptions = filterOptions.product_ids
+      .filter((item) => !selectedAppId || item.value.includes(selectedAppId))
+      .reduce((acc, item) => {
+        const val = item.value.split(".")[1];
+        const label = item.label.split(".")[1];
+        acc[val] = { text: label };
+        return acc;
+      }, {} as Record<string, { text: string }>);
+    return [
+      {
+        title: "ID",
+        dataIndex: "ID",
+        key: "ID",
+        width: 120,
+        ellipsis: true,
+        copyable: true,
+        search: false,
+        hidden: true
       },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      render: (_: any, record: ListStock) => (
-        <Tag color={record.used ? "green" : "orange"}>{record.used ? "已使用" : "未使用"}</Tag>
-      )
-    },
-    {
-      title: "用户ID",
-      dataIndex: "user_id",
-      key: "user_id",
-      width: 100,
-      search: false,
-      ellipsis: true,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      render: (_: any, record: ListStock) => record.user_id || "-"
-    },
-    {
-      title: "操作",
-      key: "action",
-      width: 180,
-      fixed: "right",
-      search: false,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      render: (_: any, record: ListStock) => [
-        <Button
-          key="export"
-          type="link"
-          size="small"
-          icon={<ExportOutlined />}
-          onClick={() => handleSingleExport(record)}
-        >
-          导出JSON
-        </Button>,
-        <Button key="detail" type="link" size="small" icon={<EyeOutlined />} onClick={() => handleShowDetail(record)}>
-          详情
-        </Button>,
-        <Popconfirm
-          key="delete"
-          title="确定删除这个库存项吗？"
-          onConfirm={() => handleDelete(record.ID)}
-          okText="确定"
-          cancelText="取消"
-        >
-          <Button type="link" danger size="small" icon={<DeleteOutlined />}>
-            删除
-          </Button>
-        </Popconfirm>
-      ]
-    }
-  ];
-
-  const handleDelete = async (id: number) => {
-    try {
-      await stockApi.batchDelete([id]);
-      messageApi.success("删除成功");
-      actionRef.current?.reload();
-    } catch {
-      messageApi.error("删除失败");
-    }
-  };
-
-  const handleSingleExport = async (stock: ListStock) => {
-    try {
-      const zip = new JSZip();
-      const fileName = `stock_${stock.ID}_${Date.now()}.json`;
-      const jsonContent = JSON.stringify(stock, null, 2);
-
-      zip.file(fileName, jsonContent);
-
-      const content = await zip.generateAsync({ type: "blob" });
-      saveAs(content, `stock_export_${stock.ID}.zip`);
-
-      messageApi.success("导出成功");
-    } catch (error) {
-      console.error("导出失败:", error);
-      messageApi.error("导出失败");
-    }
-  };
+      {
+        title: "创建日期时间",
+        dataIndex: "CreatedAt",
+        key: "CreatedAt",
+        width: 140,
+        valueType: "dateTime",
+        search: false,
+        sorter: true
+      },
+      {
+        title: "日期范围",
+        dataIndex: "dateRange",
+        key: "dateRange",
+        hideInTable: true,
+        valueType: "dateRange",
+        search: {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          transform: (value: any) => {
+            return {
+              startTime: value?.[0],
+              endTime: value?.[1]
+            };
+          }
+        }
+      },
+      {
+        title: "App ID",
+        dataIndex: "app_id",
+        key: "app_id",
+        width: 100,
+        valueType: "select",
+        valueEnum: appOptions,
+        fieldProps: {
+          onChange: (value: string) => {
+            setSelectedAppId(value);
+          }
+        }
+      },
+      {
+        title: "产品ID",
+        dataIndex: "product_id",
+        key: "product_id",
+        width: 100,
+        valueType: "select",
+        valueEnum: productOptions
+      },
+      {
+        title: "使用状态",
+        dataIndex: "used",
+        key: "used",
+        width: 100,
+        valueType: "select",
+        valueEnum: {
+          true: { text: "已使用", status: "Success" },
+          false: { text: "未使用", status: "Warning" }
+        },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        render: (_: any, record: ListStock) => (
+          <Tag color={record.used ? "green" : "orange"}>{record.used ? "已使用" : "未使用"}</Tag>
+        )
+      },
+      {
+        title: "创建人",
+        dataIndex: "user_id",
+        key: "user_id",
+        width: 120,
+        valueType: "select",
+        valueEnum: userOptions
+      },
+      {
+        title: "操作",
+        key: "action",
+        width: 180,
+        fixed: "right",
+        search: false,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        render: (_: any, record: ListStock) => [
+          <Button
+            key="export"
+            type="link"
+            size="small"
+            icon={<ExportOutlined />}
+            onClick={() => handleSingleExport(record)}
+          >
+            导出JSON
+          </Button>,
+          <Button key="detail" type="link" size="small" icon={<EyeOutlined />} onClick={() => handleShowDetail(record)}>
+            详情
+          </Button>,
+          <Popconfirm
+            key="delete"
+            title="确定删除这个库存项吗？"
+            onConfirm={() => handleDelete(record.ID)}
+            okText="确定"
+            cancelText="取消"
+          >
+            <Button type="link" danger size="small" icon={<DeleteOutlined />}>
+              删除
+            </Button>
+          </Popconfirm>
+        ]
+      }
+    ];
+  }, [filterOptions, handleDelete, handleShowDetail, handleSingleExport, selectedAppId]);
 
   const handleBatchExport = async () => {
     if (selectedRowKeys.length === 0) {
@@ -250,21 +281,6 @@ export const StockPage = () => {
     }
   };
 
-  const handleShowDetail = async (stock: ListStock) => {
-    setDetailDrawerVisible(true);
-    setDetailLoading(true);
-
-    try {
-      const detailData = await stockApi.getStockDetail(stock.ID);
-      setStockDetail(detailData);
-      setDetailLoading(false);
-    } catch (error) {
-      console.error("获取库存详情失败:", error);
-      messageApi.error("获取库存详情失败");
-      setDetailLoading(false);
-    }
-  };
-
   const handleImport = async (file: File) => {
     try {
       setImporting(true);
@@ -305,7 +321,7 @@ export const StockPage = () => {
     <Suspense fallback={<Spin size="large" style={{ display: "block", textAlign: "center", padding: "100px 0" }} />}>
       {contextHolder}
       <div>
-        <ProTable
+        <ProTable<ListStock>
           columns={columns}
           actionRef={actionRef}
           rowKey="ID"

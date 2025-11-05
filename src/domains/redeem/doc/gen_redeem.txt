@@ -217,7 +217,7 @@ prompt/redeem.html 是一份HTML实现的代码，我很满意，视觉设计和
       },
       "login": {
         "title": "登录网站",
-        "description": "在浏览器打开并登录 http://www.cdk.com/login"
+        "description": "在浏览器打开并登录 https://discord.com/"
       },
       "run": {
         "title": "执行脚本",
@@ -295,7 +295,7 @@ prompt/redeem.html 是一份HTML实现的代码，我很满意，视觉设计和
       },
       "login": {
         "title": "Login",
-        "description": "Log in at http://www.cdk.com/login."
+        "description": "Log in at https://discord.com/."
       },
       "run": {
         "title": "Run bookmark",

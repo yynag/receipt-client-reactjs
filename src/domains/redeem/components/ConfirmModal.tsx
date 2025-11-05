@@ -40,6 +40,8 @@ export default function ConfirmModal({
       centered
       footer={null}
       closable={false}
+      rootClassName="redeem-confirm-modal-root"
+      wrapClassName="redeem-confirm-modal-wrap"
       className="redeem-confirm-modal"
     >
       <div className="flex flex-col items-center gap-4 text-center py-4">

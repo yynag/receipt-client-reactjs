@@ -1,10 +1,10 @@
-import { useCallback, useState, type KeyboardEvent } from "react";
+import { useCallback, useMemo, useState, type KeyboardEvent } from "react";
 import { HistoryOutlined, RocketOutlined } from "@ant-design/icons";
 import { Spin } from "antd";
-import { redeemCdk, verifyCdk, verifyToken } from "../api";
-import type { CdkInfo, DiscordUser } from "../api";
-import type { ConfirmPayload, HistoryRecord } from "../types";
-import type { TranslationContent } from "../translation";
+import { redeem, verifyCdk, verifyUser } from "../api";
+import type { ConfirmPayload, HistoryRecord, ProductSlug, VerifiedCdk, VerifiedUser } from "../types";
+import type { Language, TranslationContent } from "../translation";
+import { getProductDefinition } from "../products";
 
 type Status = {
   type: "success" | "error";
@@ -12,6 +12,8 @@ type Status = {
 };
 
 interface RedeemFormProps {
+  product: ProductSlug;
+  language: Language;
   translation: TranslationContent;
   onNotify: (payload: ConfirmPayload) => void;
   onAddHistory: (record: HistoryRecord) => void;
@@ -22,7 +24,32 @@ interface ValidateOptions {
   silent?: boolean;
 }
 
-export default function RedeemForm({ translation, onNotify, onAddHistory, onOpenHistory }: RedeemFormProps) {
+const statusText: Record<Language, { success: string; error: string }> = {
+  zh: { success: "验证成功", error: "验证失败" },
+  en: { success: "Verified", error: "Validation failed" }
+};
+
+function fallbackToDisplay(user: VerifiedUser | null): string {
+  if (!user) return "-";
+  return user.user;
+}
+
+function fallbackBuildDetails(user: VerifiedUser, language: Language): string[] {
+  const labels = {
+    zh: { user: "用户" },
+    en: { user: "User" }
+  }[language];
+  return [`${labels.user}: ${user.user}`];
+}
+
+export default function RedeemForm({
+  product,
+  language,
+  translation,
+  onNotify,
+  onAddHistory,
+  onOpenHistory
+}: RedeemFormProps) {
   const [tokenInput, setTokenInput] = useState("");
   const [cdkInput, setCdkInput] = useState("");
 
@@ -30,14 +57,17 @@ export default function RedeemForm({ translation, onNotify, onAddHistory, onOpen
   const [cdkLoading, setCdkLoading] = useState(false);
   const [redeeming, setRedeeming] = useState(false);
 
-  const [verifiedUser, setVerifiedUser] = useState<DiscordUser | null>(null);
-  const [verifiedCdk, setVerifiedCdk] = useState<CdkInfo | null>(null);
+  const [verifiedUser, setVerifiedUser] = useState<VerifiedUser | null>(null);
+  const [verifiedCdk, setVerifiedCdk] = useState<VerifiedCdk | null>(null);
 
   const [validatedTokenValue, setValidatedTokenValue] = useState<string | null>(null);
   const [validatedCdkValue, setValidatedCdkValue] = useState<string | null>(null);
 
   const [tokenStatus, setTokenStatus] = useState<Status | null>(null);
   const [cdkStatus, setCdkStatus] = useState<Status | null>(null);
+
+  const statusCopy = useMemo(() => statusText[language], [language]);
+  const productDef = useMemo(() => getProductDefinition(product), [product]);
 
   const resetCdkValidation = () => {
     setVerifiedCdk(null);
@@ -65,9 +95,10 @@ export default function RedeemForm({ translation, onNotify, onAddHistory, onOpen
       setTokenStatus(null);
 
       try {
-        const user = await verifyToken(rawToken);
-        if ((user.premium_type ?? 0) > 0) {
-          const message = translation.errors.tokenIsPremium;
+        const user = await verifyUser(rawToken, product);
+
+        if (!user.verified) {
+          const message = translation.errors.tokenInvalid;
           setTokenStatus({ type: "error", message });
           onNotify({
             type: "error",
@@ -78,28 +109,37 @@ export default function RedeemForm({ translation, onNotify, onAddHistory, onOpen
           return false;
         }
 
+        // Product-specific validation
+        const validation = productDef.userFormatter?.validate?.(user);
+        if (validation && !validation.ok) {
+          const message = validation.messageKey
+            ? translation.errors[validation.messageKey]
+            : validation.message ?? statusCopy.error;
+          setTokenStatus({ type: "error", message });
+          onNotify({ type: "error", title: translation.form.step1, message, okText: translation.buttons.confirm });
+          return false;
+        }
+
         setVerifiedUser(user);
         setValidatedTokenValue(rawToken);
 
-        setTokenStatus({ type: "success", message: "验证成功" });
+        setTokenStatus({ type: "success", message: statusCopy.success });
 
         if (!options.silent) {
-          const userMessage = [
-            `用户名: ${user.global_name || user.username}`,
-            `邮箱：${user.email ?? "N/A"}`,
-            `手机号码：${user.phone ?? "N/A"}`
-          ].join("\n");
+          const lines = productDef.userFormatter?.toDetails(user, language) ?? fallbackBuildDetails(user, language);
+          const message = lines.length > 0 ? lines.join("\n") : translation.result.noUserDetail;
           onNotify({
             type: "success",
-            title: "Token验证成功",
-            message: userMessage,
+            title: translation.form.step1,
+            message,
             okText: translation.buttons.confirm
           });
         }
+
         return true;
       } catch (error) {
         const message = error instanceof Error ? error.message : translation.errors.network;
-        setTokenStatus({ type: "error", message });
+        setTokenStatus({ type: "error", message: statusCopy.error });
         onNotify({
           type: "error",
           title: translation.form.step1,
@@ -111,7 +151,19 @@ export default function RedeemForm({ translation, onNotify, onAddHistory, onOpen
         setTokenLoading(false);
       }
     },
-    [tokenInput, translation, onNotify]
+    [
+      language,
+      onNotify,
+      product,
+      productDef.userFormatter,
+      statusCopy.error,
+      statusCopy.success,
+      tokenInput,
+      translation.buttons.confirm,
+      translation.errors,
+      translation.form.step1,
+      translation.result.noUserDetail
+    ]
   );
 
   const handleCdkValidation = useCallback(
@@ -153,7 +205,7 @@ export default function RedeemForm({ translation, onNotify, onAddHistory, onOpen
       setCdkStatus(null);
 
       try {
-        const cdk = await verifyCdk(rawCdk);
+        const cdk = await verifyCdk(rawCdk, product);
         if (cdk.used) {
           const message = translation.errors.cdkUsed;
           setCdkStatus({ type: "error", message });
@@ -167,14 +219,14 @@ export default function RedeemForm({ translation, onNotify, onAddHistory, onOpen
         }
 
         setVerifiedCdk(cdk);
-        setValidatedCdkValue(rawCdk);
-        setCdkStatus({ type: "success", message: "验证成功" });
+        setValidatedCdkValue(rawCdk.toUpperCase());
+        setCdkStatus({ type: "success", message: statusCopy.success });
 
         if (!options.silent) {
-          const cdkMessage = `AppID: ${cdk.app_id}`;
+          const cdkMessage = `App: ${cdk.app_name}`;
           onNotify({
             type: "success",
-            title: "CDK验证成功",
+            title: translation.form.step2,
             message: cdkMessage,
             okText: translation.buttons.confirm
           });
@@ -182,7 +234,7 @@ export default function RedeemForm({ translation, onNotify, onAddHistory, onOpen
         return true;
       } catch (error) {
         const message = error instanceof Error ? error.message : translation.errors.network;
-        setCdkStatus({ type: "error", message });
+        setCdkStatus({ type: "error", message: statusCopy.error });
         onNotify({
           type: "error",
           title: translation.form.step2,
@@ -194,42 +246,76 @@ export default function RedeemForm({ translation, onNotify, onAddHistory, onOpen
         setCdkLoading(false);
       }
     },
-    [translation, onNotify, validatedTokenValue, tokenInput, verifiedUser, handleTokenValidation, cdkInput]
+    [
+      cdkInput,
+      tokenInput,
+      handleTokenValidation,
+      onNotify,
+      product,
+      statusCopy.error,
+      statusCopy.success,
+      translation,
+      validatedTokenValue,
+      verifiedUser
+    ]
   );
 
   const handleRedeem = useCallback(async () => {
     const rawToken = tokenInput.trim();
     const rawCdk = cdkInput.trim();
 
-    // 直接发起兑换请求，后台会校验CDK和Token
     setRedeeming(true);
     try {
-      const result = await redeemCdk({ cdk: rawCdk, user: rawToken });
-      if (result !== true) {
-        throw new Error(translation.errors.network);
-      }
+      await redeem(rawCdk, rawToken, verifiedCdk?.app_name ?? "", product);
 
-      const record: HistoryRecord = {
+      const userId = verifiedUser
+        ? (() => {
+            const extra = verifiedUser.extra ?? {};
+            for (const k of ["id", "user_id", "uid"]) {
+              const v = extra[k];
+              if (typeof v === "string" && v.trim()) return v.trim();
+            }
+            return verifiedUser.user;
+          })()
+        : undefined;
+
+      const historyRecord: HistoryRecord = {
         id: `${Date.now()}`,
-        userId: verifiedUser?.id || "unknown",
-        token: rawToken,
+        userId,
+        user: productDef.userFormatter?.toDisplay(verifiedUser!) ?? fallbackToDisplay(verifiedUser),
         cdk: rawCdk,
-        appId: verifiedCdk?.app_id || "unknown",
+        appName: verifiedCdk?.app_name ?? "unknown",
         redeemedAt: new Date().toISOString()
       };
-      onAddHistory(record);
+
+      onAddHistory(historyRecord);
+
+      const userLines = verifiedUser
+        ? productDef.userFormatter?.toDetails(verifiedUser, language) ?? fallbackBuildDetails(verifiedUser, language)
+        : [];
+      const detailBlock = userLines.length > 0 ? userLines.join("\n") : translation.result.noUserDetail;
+      const message = [
+        translation.result.successMessage,
+        "",
+        `${translation.result.currentUserTitle}:`,
+        detailBlock
+      ].join("\n");
 
       onNotify({
         type: "success",
         title: translation.result.successTitle,
-        message: "兑换成功！",
+        message,
         okText: translation.result.again,
         onOk: () => {
-          const isMock = tokenInput.trim().includes("mock") || cdkInput.trim().includes("mock");
-          if (!isMock) {
+          const trimmedToken = tokenInput.trim();
+          const trimmedCdk = cdkInput.trim();
+          const isMockRedeem = product === "chatgpt" || trimmedToken.includes("mock") || trimmedCdk.includes("mock");
+
+          if (!isMockRedeem) {
             setTokenInput("");
             setCdkInput("");
           }
+
           setVerifiedUser(null);
           setVerifiedCdk(null);
           setValidatedTokenValue(null);
@@ -242,14 +328,32 @@ export default function RedeemForm({ translation, onNotify, onAddHistory, onOpen
       const message = error instanceof Error ? error.message : translation.errors.network;
       onNotify({
         type: "error",
-        title: "兑换失败",
+        title: translation.result.failureTitle,
         message,
         okText: translation.buttons.confirm
       });
     } finally {
       setRedeeming(false);
     }
-  }, [tokenInput, cdkInput, verifiedUser, verifiedCdk, translation, onNotify, onAddHistory]);
+  }, [
+    cdkInput,
+    language,
+    onAddHistory,
+    onNotify,
+    product,
+    tokenInput,
+    translation.buttons.confirm,
+    translation.errors.network,
+    translation.result.again,
+    translation.result.currentUserTitle,
+    translation.result.noUserDetail,
+    translation.result.successMessage,
+    translation.result.successTitle,
+    translation.result.failureTitle,
+    verifiedCdk,
+    verifiedUser,
+    productDef
+  ]);
 
   const handleTokenKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
@@ -270,8 +374,25 @@ export default function RedeemForm({ translation, onNotify, onAddHistory, onOpen
       return null;
     }
     const colorClass = status.type === "success" ? "text-emerald-400" : "text-red-400";
-    const message = status.type === "success" ? "验证成功" : "验证失败";
-    return <span className={`font-medium ${colorClass}`}>{message}</span>;
+    return (
+      <span className={`font-medium ${colorClass}`}>
+        {status.type === "success" ? statusCopy.success : statusCopy.error}
+      </span>
+    );
+  };
+
+  const renderHelperText = (value: string, status: Status | null, loading: boolean) => {
+    if (loading) {
+      return <Spin size="small" />;
+    }
+    const statusNode = renderStatus(status);
+    if (statusNode) {
+      return statusNode;
+    }
+    if (!value.trim()) {
+      return <span>{translation.form.waitingForInput}</span>;
+    }
+    return null;
   };
 
   const tokenInputClass = ["input-field", "mt-2"];
@@ -318,7 +439,7 @@ export default function RedeemForm({ translation, onNotify, onAddHistory, onOpen
             className={tokenInputClass.join(" ")}
           />
           <div className="mt-2 text-sm text-subtle flex items-center gap-2 min-h-6">
-            {tokenLoading ? <Spin size="small" /> : renderStatus(tokenStatus)}
+            {renderHelperText(tokenInput, tokenStatus, tokenLoading)}
           </div>
         </div>
 
@@ -343,7 +464,7 @@ export default function RedeemForm({ translation, onNotify, onAddHistory, onOpen
             className={cdkInputClass.join(" ")}
           />
           <div className="mt-2 text-sm text-subtle flex items-center gap-2 min-h-6">
-            {cdkLoading ? <Spin size="small" /> : renderStatus(cdkStatus)}
+            {renderHelperText(cdkInput, cdkStatus, cdkLoading)}
           </div>
         </div>
 
@@ -358,7 +479,9 @@ export default function RedeemForm({ translation, onNotify, onAddHistory, onOpen
           <button
             type="button"
             className="btn-primary"
-            onClick={handleRedeem}
+            onClick={() => {
+              void handleRedeem();
+            }}
             disabled={redeeming || !verifiedUser || !verifiedCdk}
           >
             {redeeming ? <Spin size="small" /> : <RocketOutlined />}

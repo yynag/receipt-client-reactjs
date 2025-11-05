@@ -5,20 +5,26 @@ import { RouterProvider } from "react-router/dom";
 import { LazyLoad } from "./components/LazyLoad";
 
 import "./main.css";
+import { redirect } from "react-router";
 
 const AdminEntry = lazy(() => import("./domains/admin"));
 const HomeEntry = lazy(() => import("./domains/home"));
-const RedeemEntry = lazy(() => import("./domains/redeem-discord"));
+const RedeemEntry = lazy(() => import("./domains/redeem"));
 
 const router = createBrowserRouter([
-  {
-    path: "/",
-    element: (
-      <div>
-        <div>Hello, World!</div>
-      </div>
-    )
-  },
+  import.meta.env.PROD
+    ? {
+        path: "/",
+        element: (
+          <div>
+            <div>Hello, World!</div>
+          </div>
+        )
+      }
+    : {
+        path: "/",
+        loader: async () => redirect("/home-8j0vm")
+      },
   {
     path: "/home-8j0vm",
     element: LazyLoad(HomeEntry)
@@ -28,7 +34,7 @@ const router = createBrowserRouter([
     element: LazyLoad(AdminEntry)
   },
   {
-    path: "/redeem-discord",
+    path: "/redeem/:product",
     element: LazyLoad(RedeemEntry)
   }
 ]);
