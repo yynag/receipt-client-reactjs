@@ -1,59 +1,26 @@
-import { useState, useEffect } from "react";
-import { Card, Spin, Tabs } from "antd";
+import { Card, Tabs } from "antd";
 import { TrendTab } from "./TrendTab";
 import { CDKStatsTab } from "./CDKStatsTab";
 import { StockStatsTab } from "./StockStatsTab";
-import { cdkApi, type FilterOptions } from "../../api/cdk";
 
 export const DashboardPage = () => {
-  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
-    used: [],
-    app_ids: [],
-    product_ids: [],
-    user_ids: []
-  });
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchFilterOptions();
-  }, []);
-
-  const fetchFilterOptions = async () => {
-    try {
-      const options = await cdkApi.getFilterOptions();
-      setFilterOptions(options);
-    } catch (error) {
-      console.error("获取筛选选项失败:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const tabItems = [
     {
       key: "trend",
       label: "兑换趋势",
-      children: <TrendTab filterOptions={filterOptions} />
+      children: <TrendTab />
     },
     {
       key: "cdk-stats",
       label: "CDK统计",
-      children: <CDKStatsTab filterOptions={filterOptions} />
+      children: <CDKStatsTab />
     },
     {
       key: "stock-stats",
       label: "库存统计",
-      children: <StockStatsTab filterOptions={filterOptions} />
+      children: <StockStatsTab />
     }
   ];
-
-  if (loading) {
-    return (
-      <div style={{ textAlign: "center", padding: "100px 0" }}>
-        <Spin size="large" />
-      </div>
-    );
-  }
 
   return (
     <div>

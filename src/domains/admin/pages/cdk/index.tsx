@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Button, message, Popconfirm, Tag, notification } from "antd";
-import { PlusOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
+import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import {
   ProTable,
   type ProColumns,
@@ -12,8 +12,10 @@ import {
 import { type CDK, cdkApi, type FilterOptions } from "../../api/cdk";
 import { sleep } from "../../api/shared";
 import { stockApi } from "../../api/stock";
+import { useStore } from "../../store/hook";
 
 export const CDKPage = () => {
+  const { user } = useStore();
   const [selectedRowKeys, setSelectedRowKeys] = useState<number[]>([]);
   const [allCDKs, setAllCDKs] = useState<CDK[]>([]);
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({
@@ -72,7 +74,7 @@ export const CDKPage = () => {
     }, {} as Record<string, { text: string }>);
 
     const productOptions = filterOptions.product_ids
-      .filter((item) => !selectedAppId || item.value.includes(selectedAppId))
+      .filter((item) => selectedAppId && item.value.includes(selectedAppId))
       .reduce((acc, item) => {
         const val = item.value.split(".")[1];
         const label = item.label.split(".")[1];
@@ -132,23 +134,17 @@ export const CDKPage = () => {
         width: 150
       },
       {
-        title: "库存ID",
-        dataIndex: "stock_id",
-        key: "stock_id",
-        width: 120,
-        search: false,
-        ellipsis: true
-      },
-      {
         title: "创建人",
         dataIndex: "user_id",
         key: "user_id",
         width: 120,
         valueType: "select",
-        valueEnum: userOptions
+        valueEnum: userOptions,
+        hidden: user?.role !== "admin",
+        search: user?.role === "admin"
       },
       {
-        title: "App ID",
+        title: "App",
         dataIndex: "app_id",
         key: "app_id",
         width: 120,
@@ -161,7 +157,7 @@ export const CDKPage = () => {
         }
       },
       {
-        title: "App产品ID",
+        title: "App产品",
         dataIndex: "app_product_id",
         key: "app_product_id",
         width: 140,
@@ -175,15 +171,6 @@ export const CDKPage = () => {
         fixed: "right",
         search: false,
         render: (_, record) => [
-          <Button
-            key="edit"
-            type="link"
-            size="small"
-            icon={<EditOutlined />}
-            onClick={() => messageApi.info("编辑功能开发中")}
-          >
-            编辑
-          </Button>,
           <Popconfirm
             key="delete"
             title="确定删除这个CDK吗？"
@@ -198,7 +185,7 @@ export const CDKPage = () => {
         ]
       }
     ];
-  }, [filterOptions, selectedAppId, messageApi, handleDelete]);
+  }, [filterOptions, selectedAppId, handleDelete, user]);
 
   const handleBatchCopy = async () => {
     if (selectedRowKeys.length === 0) {

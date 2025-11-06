@@ -11,7 +11,7 @@ export interface ListUser {
   ID: number;
   CreatedAt: string;
   user_id: string;
-  role: "admin" | "stock";
+  role: "admin" | "instock";
   login_at: string;
   device_id: string;
 }
@@ -19,7 +19,7 @@ export interface ListUser {
 export interface CreateUserRequest {
   user_id: string;
   password: string;
-  role: "admin" | "stock";
+  role: "admin" | "instock";
 }
 
 export interface UserListResponse {
@@ -33,7 +33,7 @@ export interface UserListParams {
   current: number;
   page_size: number;
   keywords?: string;
-  role?: "admin" | "stock";
+  role?: "admin" | "instock";
 }
 
 export interface FilterOption {
@@ -85,7 +85,7 @@ export const userApi = {
       resolve({
         roles: [
           { value: "admin", label: "管理员" },
-          { value: "stock", label: "库存管理" }
+          { value: "instock", label: "库存管理" }
         ]
       });
     });
@@ -118,7 +118,7 @@ export const userApi = {
           : i % 3 === 1
           ? `138${String(Math.floor(Math.random() * 100000000)).padStart(8, "0")}`
           : `user${Math.floor(Math.random() * 1000)}@company.com`,
-      role: Math.random() > 0.7 ? "admin" : "stock",
+      role: Math.random() > 0.7 ? "admin" : "instock",
       login_at: new Date(Date.now() - i * 60000).toISOString(),
       device_id: `device_${Math.floor(Math.random() * 1000)}`
     }));

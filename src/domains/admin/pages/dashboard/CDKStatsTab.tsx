@@ -1,28 +1,43 @@
 import { useState, useEffect, useCallback, lazy, Suspense } from "react";
-import { Card, Row, Col, Select, Button, Statistic, Space, Spin } from "antd";
+import { Card, Row, Col, Select, Button, Statistic, Space, Spin, message } from "antd";
 import { ReloadOutlined } from "@ant-design/icons";
 import { cdkApi, type FilterOptions, type CDKStatResponse } from "../../api/cdk";
+import { useStore } from "../../store/hook";
 
 const { Option } = Select;
 
 // Lazy load ECharts component
 const ReactECharts = lazy(() => import("echarts-for-react").then((module) => ({ default: module.default })));
 
-interface CDKStatsTabProps {
-  filterOptions: FilterOptions;
-}
-
-export const CDKStatsTab = ({ filterOptions }: CDKStatsTabProps) => {
+export const CDKStatsTab = () => {
+  const { isAdmin } = useStore();
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
+    used: [],
+    app_ids: [],
+    product_ids: [],
+    user_ids: []
+  });
+  const [messageApi, contextHolder] = message.useMessage();
   const [statsData, setStatsData] = useState<CDKStatResponse | null>(null);
   const [selectedApp, setSelectedApp] = useState<string>("");
   const [selectedProduct, setSelectedProduct] = useState<string>("");
   const [selectedUploader, setSelectedUploader] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    cdkApi
+      .getFilterOptions()
+      .then((options) => {
+        setFilterOptions(options);
+      })
+      .catch((error) => {
+        messageApi.error("获取筛选选项失败", error);
+      });
+  }, [messageApi]);
+
   const fetchStatsData = useCallback(async () => {
     setLoading(true);
     try {
-      console.log(111111);
       const response = await cdkApi.getCDKStats(
         selectedApp || undefined,
         selectedProduct || undefined,
@@ -111,6 +126,7 @@ export const CDKStatsTab = ({ filterOptions }: CDKStatsTabProps) => {
 
   return (
     <div>
+      {contextHolder}
       <Card size="small" style={{ marginBottom: 16 }}>
         <Row gutter={[16, 16]} align="middle">
           <Col>
@@ -138,14 +154,16 @@ export const CDKStatsTab = ({ filterOptions }: CDKStatsTabProps) => {
               placeholder="全部产品"
               allowClear
             >
-              {filterOptions.product_ids.map((product) => (
-                <Option key={product.value} value={product.value}>
-                  {product.label}
-                </Option>
-              ))}
+              {filterOptions.product_ids
+                .filter((product) => selectedApp != "" && product.value.startsWith(selectedApp))
+                .map((product) => (
+                  <Option key={product.value.split(".")[1]} value={product.value.split(".")[1]}>
+                    {product.label.split(".")[1]}
+                  </Option>
+                ))}
             </Select>
           </Col>
-          <Col>
+          <Col hidden={!isAdmin}>
             <span>归属人筛选：</span>
             <Select
               value={selectedUploader}

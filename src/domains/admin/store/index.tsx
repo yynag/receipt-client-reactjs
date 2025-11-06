@@ -49,6 +49,7 @@ const Reducer: Reducer = (state, action) => {
 interface StoreContextType {
   theme: Theme;
   user: User | null;
+  isAdmin: boolean;
   toggleTheme: () => void;
   setUser: (user: User) => void;
   logout: () => void;
@@ -119,6 +120,7 @@ const StoreProvider = ({ children }: { children: ReactNode }) => {
   const contextValue: StoreContextType = {
     theme: state.theme,
     user: state.user,
+    isAdmin: state.user?.role === "admin",
     toggleTheme,
     setUser,
     logout

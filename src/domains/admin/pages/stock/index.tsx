@@ -1,21 +1,16 @@
 import { useState, useEffect, useRef, Suspense, useMemo, useCallback } from "react";
-import { Button, message, Popconfirm, Tag, notification, Upload, Modal, Drawer, Descriptions, Spin } from "antd";
-import {
-  DeleteOutlined,
-  ExportOutlined,
-  ImportOutlined,
-  EyeOutlined,
-  DownloadOutlined,
-  UploadOutlined
-} from "@ant-design/icons";
+import { Button, message, Popconfirm, Tag, notification, Upload, Modal, Spin } from "antd";
+import { DeleteOutlined, ExportOutlined, ImportOutlined, DownloadOutlined, UploadOutlined } from "@ant-design/icons";
 import type { UploadFile } from "antd/es/upload/interface";
-import { type ListStock, stockApi, type FilterOptions, type Stock } from "../../api/stock";
+import { type ListStock, stockApi, type FilterOptions } from "../../api/stock";
 
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { ProTable, type ActionType, type ProColumns } from "@ant-design/pro-components";
+import { useStore } from "../../store/hook";
 
 export const StockPage = () => {
+  const { isAdmin } = useStore();
   const [selectedRowKeys, setSelectedRowKeys] = useState<number[]>([]);
   const [allStocks, setAllStocks] = useState<ListStock[]>([]);
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({
@@ -26,9 +21,9 @@ export const StockPage = () => {
   });
   const actionRef = useRef<ActionType>(null);
   const [importModalVisible, setImportModalVisible] = useState(false);
-  const [detailDrawerVisible, setDetailDrawerVisible] = useState(false);
-  const [stockDetail, setStockDetail] = useState<Stock | null>(null);
-  const [detailLoading, setDetailLoading] = useState(false);
+  // const [detailDrawerVisible, setDetailDrawerVisible] = useState(false);
+  // const [stockDetail, setStockDetail] = useState<Stock | null>(null);
+  // const [detailLoading, setDetailLoading] = useState(false);
   const [uploadFileList, setUploadFileList] = useState<UploadFile[]>([]);
   const [importing, setImporting] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
@@ -81,23 +76,23 @@ export const StockPage = () => {
     [messageApi]
   );
 
-  const handleShowDetail = useCallback(
-    async (stock: ListStock) => {
-      setDetailDrawerVisible(true);
-      setDetailLoading(true);
+  // const handleShowDetail = useCallback(
+  //   async (stock: ListStock) => {
+  //     setDetailDrawerVisible(true);
+  //     setDetailLoading(true);
 
-      try {
-        const detailData = await stockApi.getStockDetail(stock.ID);
-        setStockDetail(detailData);
-        setDetailLoading(false);
-      } catch (error) {
-        console.error("获取库存详情失败:", error);
-        messageApi.error("获取库存详情失败");
-        setDetailLoading(false);
-      }
-    },
-    [messageApi]
-  );
+  //     try {
+  //       const detailData = await stockApi.getStockDetail(stock.ID);
+  //       setStockDetail(detailData);
+  //       setDetailLoading(false);
+  //     } catch (error) {
+  //       console.error("获取库存详情失败:", error);
+  //       messageApi.error("获取库存详情失败");
+  //       setDetailLoading(false);
+  //     }
+  //   },
+  //   [messageApi]
+  // );
 
   const columns: ProColumns<ListStock>[] = useMemo(() => {
     const userOptions = filterOptions.user_ids.reduce((acc, item) => {
@@ -111,7 +106,7 @@ export const StockPage = () => {
     }, {} as Record<string, { text: string }>);
 
     const productOptions = filterOptions.product_ids
-      .filter((item) => !selectedAppId || item.value.includes(selectedAppId))
+      .filter((item) => selectedAppId && item.value.includes(selectedAppId))
       .reduce((acc, item) => {
         const val = item.value.split(".")[1];
         const label = item.label.split(".")[1];
@@ -206,18 +201,20 @@ export const StockPage = () => {
         search: false,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         render: (_: any, record: ListStock) => [
-          <Button
-            key="export"
-            type="link"
-            size="small"
-            icon={<ExportOutlined />}
-            onClick={() => handleSingleExport(record)}
-          >
-            导出JSON
-          </Button>,
-          <Button key="detail" type="link" size="small" icon={<EyeOutlined />} onClick={() => handleShowDetail(record)}>
-            详情
-          </Button>,
+          isAdmin && (
+            <Button
+              key="export"
+              type="link"
+              size="small"
+              icon={<ExportOutlined />}
+              onClick={() => handleSingleExport(record)}
+            >
+              导出JSON
+            </Button>
+          ),
+          // <Button key="detail" type="link" size="small" icon={<EyeOutlined />} onClick={() => handleShowDetail(record)}>
+          //   详情
+          // </Button>,
           <Popconfirm
             key="delete"
             title="确定删除这个库存项吗？"
@@ -232,7 +229,7 @@ export const StockPage = () => {
         ]
       }
     ];
-  }, [filterOptions, handleDelete, handleShowDetail, handleSingleExport, selectedAppId]);
+  }, [filterOptions, handleDelete, handleSingleExport, selectedAppId]);
 
   const handleBatchExport = async () => {
     if (selectedRowKeys.length === 0) {
@@ -375,14 +372,16 @@ export const StockPage = () => {
             <Button key="import" icon={<ImportOutlined />} onClick={() => setImportModalVisible(true)}>
               导入JSON
             </Button>,
-            <Button
-              key="batch-export"
-              icon={<DownloadOutlined />}
-              onClick={handleBatchExport}
-              disabled={selectedRowKeys.length === 0}
-            >
-              批量导出
-            </Button>
+            isAdmin && (
+              <Button
+                key="batch-export"
+                icon={<DownloadOutlined />}
+                onClick={handleBatchExport}
+                disabled={selectedRowKeys.length === 0}
+              >
+                批量导出
+              </Button>
+            )
           ]}
           pagination={{
             defaultPageSize: 20,
@@ -422,7 +421,7 @@ export const StockPage = () => {
           </div>
         </Modal>
 
-        <Drawer
+        {/* <Drawer
           title="库存详情"
           placement="right"
           width={600}
@@ -465,7 +464,7 @@ export const StockPage = () => {
               )}
             </Descriptions>
           )}
-        </Drawer>
+        </Drawer> */}
       </div>
     </Suspense>
   );

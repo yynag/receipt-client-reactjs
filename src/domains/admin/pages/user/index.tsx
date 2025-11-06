@@ -188,7 +188,7 @@ export const UserPage = () => {
             current: params.current || 1,
             page_size: params.pageSize || 20,
             keywords: params.user_id,
-            role: params.role as "admin" | "stock"
+            role: params.role as "admin" | "instock"
           });
 
           setAllUsers(response.items);

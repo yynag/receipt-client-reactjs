@@ -1,24 +1,40 @@
 import { useState, useEffect, useCallback, lazy, Suspense } from "react";
-import { Card, Row, Col, Select, Button, Statistic, Space, Spin } from "antd";
+import { Card, Row, Col, Select, Button, Statistic, Space, Spin, message } from "antd";
 import { ReloadOutlined } from "@ant-design/icons";
 import { type FilterOptions } from "../../api/cdk";
 import { stockApi, type StockStatResponse } from "../../api/stock";
+import { useStore } from "../../store/hook";
 
 const { Option } = Select;
 
 // Lazy load ECharts component
 const ReactECharts = lazy(() => import("echarts-for-react").then((module) => ({ default: module.default })));
 
-interface StockStatsTabProps {
-  filterOptions: FilterOptions;
-}
-
-export const StockStatsTab = ({ filterOptions }: StockStatsTabProps) => {
+export const StockStatsTab = () => {
+  const { isAdmin } = useStore();
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
+    used: [],
+    app_ids: [],
+    product_ids: [],
+    user_ids: []
+  });
+  const [messageApi, contextHolder] = message.useMessage();
   const [statsData, setStatsData] = useState<StockStatResponse | null>(null);
   const [selectedApp, setSelectedApp] = useState<string>("");
   const [selectedProduct, setSelectedProduct] = useState<string>("");
   const [selectedUser, setSelectedUser] = useState<string>("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    stockApi
+      .getFilterOptions()
+      .then((options) => {
+        setFilterOptions(options);
+      })
+      .catch((error) => {
+        messageApi.error("获取筛选选项失败", error);
+      });
+  }, [messageApi]);
 
   const fetchStatsData = useCallback(async () => {
     setLoading(true);
@@ -107,6 +123,7 @@ export const StockStatsTab = ({ filterOptions }: StockStatsTabProps) => {
 
   return (
     <div>
+      {contextHolder}
       <Card size="small" style={{ marginBottom: 16 }}>
         <Row gutter={[16, 16]} align="middle">
           <Col>
@@ -134,14 +151,16 @@ export const StockStatsTab = ({ filterOptions }: StockStatsTabProps) => {
               placeholder="全部产品"
               allowClear
             >
-              {filterOptions.product_ids.map((product) => (
-                <Option key={product.value} value={product.value}>
-                  {product.label}
-                </Option>
-              ))}
+              {filterOptions.product_ids
+                .filter((product) => selectedApp != "" && product.value.startsWith(selectedApp))
+                .map((product) => (
+                  <Option key={product.value.split(".")[1]} value={product.value.split(".")[1]}>
+                    {product.label.split(".")[1]}
+                  </Option>
+                ))}
             </Select>
           </Col>
-          <Col>
+          <Col hidden={!isAdmin}>
             <span>用户筛选：</span>
             <Select
               value={selectedUser}

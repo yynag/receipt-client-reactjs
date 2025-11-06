@@ -80,7 +80,7 @@ const ThemedAdminApp = () => {
 };
 
 const AdminPage = () => {
-  const { user, toggleTheme, logout, theme } = useStore();
+  const { user, isAdmin, toggleTheme, logout, theme } = useStore();
   const [currentPage, setCurrentPage] = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
 
@@ -121,11 +121,13 @@ const AdminPage = () => {
       icon: <DatabaseOutlined />,
       label: "库存管理"
     },
-    {
-      key: "user",
-      icon: <TeamOutlined />,
-      label: "用户管理"
-    }
+    isAdmin
+      ? {
+          key: "user",
+          icon: <TeamOutlined />,
+          label: "用户管理"
+        }
+      : null
   ];
 
   const onClick: MenuProps["onClick"] = (e) => {

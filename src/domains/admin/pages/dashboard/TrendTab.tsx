@@ -1,24 +1,41 @@
 import { useState, useEffect, useCallback, lazy, Suspense } from "react";
-import { Card, Row, Col, Select, Button, Spin } from "antd";
+import { Card, Row, Col, Select, Button, Spin, message } from "antd";
 import { ReloadOutlined } from "@ant-design/icons";
 import { cdkApi, type FilterOptions, type TrendData } from "../../api/cdk";
+import { stockApi } from "../../api/stock";
+import { useStore } from "../../store/hook";
 
 const { Option } = Select;
 
 // Lazy load ECharts component
-const ReactECharts = lazy(() => import('echarts-for-react').then(module => ({ default: module.default })));
+const ReactECharts = lazy(() => import("echarts-for-react").then((module) => ({ default: module.default })));
 
-interface TrendTabProps {
-  filterOptions: FilterOptions;
-}
-
-export const TrendTab = ({ filterOptions }: TrendTabProps) => {
+export const TrendTab = () => {
+  const { isAdmin } = useStore();
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
+    used: [],
+    app_ids: [],
+    product_ids: [],
+    user_ids: []
+  });
+  const [messageApi, contextHolder] = message.useMessage();
   const [trendData, setTrendData] = useState<TrendData[]>([]);
   const [dimension, setDimension] = useState<"year" | "month" | "today">("month");
   const [selectedUser, setSelectedUser] = useState<string>("");
   const [selectedAppId, setSelectedAppId] = useState<string>("");
   const [selectedProductId, setSelectedProductId] = useState<string>("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    stockApi
+      .getFilterOptions()
+      .then((options) => {
+        setFilterOptions(options);
+      })
+      .catch((error) => {
+        messageApi.error("获取筛选选项失败", error);
+      });
+  }, [messageApi]);
 
   const fetchTrendData = useCallback(async () => {
     setLoading(true);
@@ -110,6 +127,7 @@ export const TrendTab = ({ filterOptions }: TrendTabProps) => {
 
   return (
     <div>
+      {contextHolder}
       <Card size="small" style={{ marginBottom: 16 }}>
         <Row gutter={[16, 16]} align="middle">
           <Col>
@@ -120,8 +138,8 @@ export const TrendTab = ({ filterOptions }: TrendTabProps) => {
               <Option value="today">今日</Option>
             </Select>
           </Col>
-          <Col>
-            <span>用户筛选：</span>
+          <Col hidden={!isAdmin}>
+            <span>用户：</span>
             <Select
               value={selectedUser}
               onChange={setSelectedUser}
@@ -137,7 +155,7 @@ export const TrendTab = ({ filterOptions }: TrendTabProps) => {
             </Select>
           </Col>
           <Col>
-            <span>AppID：</span>
+            <span>应用：</span>
             <Select
               value={selectedAppId}
               onChange={setSelectedAppId}
@@ -153,7 +171,7 @@ export const TrendTab = ({ filterOptions }: TrendTabProps) => {
             </Select>
           </Col>
           <Col>
-            <span>App商品ID：</span>
+            <span>应用商品：</span>
             <Select
               value={selectedProductId}
               onChange={setSelectedProductId}
@@ -161,11 +179,13 @@ export const TrendTab = ({ filterOptions }: TrendTabProps) => {
               placeholder="全部产品"
               allowClear
             >
-              {filterOptions.product_ids.map((product) => (
-                <Option key={product.value} value={product.value}>
-                  {product.label}
-                </Option>
-              ))}
+              {filterOptions.product_ids
+                .filter((product) => selectedAppId != "" && product.value.startsWith(selectedAppId))
+                .map((product) => (
+                  <Option key={product.value.split(".")[1]} value={product.value.split(".")[1]}>
+                    {product.label.split(".")[1]}
+                  </Option>
+                ))}
             </Select>
           </Col>
           <Col>
@@ -177,7 +197,9 @@ export const TrendTab = ({ filterOptions }: TrendTabProps) => {
       </Card>
 
       <Card>
-        <Suspense fallback={<Spin size="large" style={{ display: 'block', textAlign: 'center', padding: '100px 0' }} />}>
+        <Suspense
+          fallback={<Spin size="large" style={{ display: "block", textAlign: "center", padding: "100px 0" }} />}
+        >
           <ReactECharts option={getChartOption()} style={{ height: 400 }} notMerge={true} lazyUpdate={true} />
         </Suspense>
       </Card>
