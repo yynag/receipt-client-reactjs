@@ -1,3 +1,11 @@
+生成代码提示词，输出到 prompts/2_gen_code.txt 文件中，如果上下文大小受限，可以使用 prompts/context.txt 作为上下文页面交换。
+
+prompts/query.html 是我之前使用的网页，想收入到当前项目中，输出到 src/domains/query 目录，要求：
+- 不需要使用Ant Design，用 tailwindcss + reactjs
+- 提供中英文（切换按钮/加载自动匹配设备语言），提供白天/夜晚主题
+- 代码组织与 src/domains/ 其他子域一致
+- API接口留置，我自己实现
+
 对 User 的处理有点问题，User默认只有 user 和 是否验证 两个字段，如果还需要显示其他字段，通过 extra 字段来补充属性。
 - 对Discord来说，他的extra属性有 global_name、email、phone、locale
 - 对ChatGPT来说，它的extra属性是空的，所以弹窗的时候只需要展示user这个字符串即可，字段名就叫 用户（user）

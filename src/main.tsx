@@ -10,6 +10,7 @@ import { redirect } from "react-router";
 const AdminEntry = lazy(() => import("./domains/admin"));
 const HomeEntry = lazy(() => import("./domains/home"));
 const RedeemEntry = lazy(() => import("./domains/redeem"));
+const QueryEntry = lazy(() => import("./domains/query"));
 
 const router = createBrowserRouter([
   import.meta.env.PROD
@@ -36,6 +37,14 @@ const router = createBrowserRouter([
   {
     path: "/redeem/:product",
     element: LazyLoad(RedeemEntry)
+  },
+  {
+    path: "/public/query-cdk",
+    element: LazyLoad(QueryEntry)
+  },
+  {
+    path: "/*",
+    element: <div>404</div>
   }
 ]);
 

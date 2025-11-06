@@ -95,7 +95,7 @@ const AdminPage = () => {
     };
   }, []);
 
-  if (localStorage.getItem("user_token") == null || user == null || user.role !== "admin") {
+  if (localStorage.getItem("user_token") == null || user == null) {
     return (
       <Flex align="center" justify="center" className="h-full">
         <LoginPage />
