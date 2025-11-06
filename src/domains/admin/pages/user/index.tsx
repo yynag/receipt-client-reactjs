@@ -94,7 +94,7 @@ export const UserPage = () => {
         <Popconfirm
           key="delete"
           title="确定删除这个用户吗？"
-          onConfirm={() => handleDelete(record.ID)}
+          onConfirm={() => handleDelete(record.id)}
           okText="确定"
           cancelText="取消"
         >
@@ -144,7 +144,7 @@ export const UserPage = () => {
     }
 
     try {
-      const selectedUsers = allUsers.filter((item) => selectedRowKeys.includes(item.ID));
+      const selectedUsers = allUsers.filter((item) => selectedRowKeys.includes(item.id));
 
       if (selectedUsers.length === 0) {
         messageApi.error("未找到选中的用户数据");
@@ -305,7 +305,7 @@ export const UserPage = () => {
           if (!editingUser) return false;
 
           try {
-            await userApi.update(editingUser.ID, {
+            await userApi.update(editingUser.id, {
               user_id: values.user_id,
               role: values.role
             });

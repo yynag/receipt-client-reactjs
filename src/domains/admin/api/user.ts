@@ -8,7 +8,7 @@ interface User {
 }
 
 export interface ListUser {
-  ID: number;
+  id: number;
   CreatedAt: string;
   user_id: string;
   role: "admin" | "instock";
@@ -110,7 +110,7 @@ export const userApi = {
 
   getListMock: async (params: UserListParams): Promise<UserListResponse> => {
     const mockData: ListUser[] = Array.from({ length: 100 }, (_, i) => ({
-      ID: i,
+      id: i,
       CreatedAt: new Date(Date.now() - i * 3600000).toISOString(),
       user_id:
         i % 3 === 0
@@ -169,7 +169,9 @@ export const userApi = {
   },
 
   batchDelete: async (ids: number[]): Promise<void> => {
-    const response = await request(`${baseUrl}/users/${ids.join(",")}`);
+    const response = await request(`${baseUrl}/users/${ids.join(",")}`, {
+      method: "DELETE"
+    });
     if (!response.ok) {
       throw new Error("Failed to delete users: " + (await response.text()));
     }
