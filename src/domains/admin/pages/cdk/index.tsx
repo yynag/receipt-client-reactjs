@@ -72,7 +72,7 @@ export const CDKPage = () => {
     }, {} as Record<string, { text: string }>);
 
     const productOptions = filterOptions.product_ids
-      .filter((item) => !selectedAppId || item.value.includes(selectedAppId))
+      .filter((item) => selectedAppId && item.value.includes(selectedAppId))
       .reduce((acc, item) => {
         const val = item.value.split(".")[1];
         const label = item.label.split(".")[1];
