@@ -318,7 +318,7 @@ const baseTranslations: Record<Language, AdminTranslationContent> = {
       product: "商品",
       role: "角色",
       admin: "Admin",
-      instock: "库存管理",
+      instock: "Instock",
       user: "用户",
       dashboard: "仪表盘",
       cdk: "CDK",

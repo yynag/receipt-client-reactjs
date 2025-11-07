@@ -70,7 +70,7 @@ function HomeEntry() {
     {
       name: "后台管理入口",
       description: "凭证系统的后台管理页面",
-      url: "/admin-snu79"
+      url: "/admin"
     },
     {
       name: "查询CDK（公共）",

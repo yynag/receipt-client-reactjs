@@ -31,7 +31,7 @@ const router = createBrowserRouter([
     element: LazyLoad(HomeEntry)
   },
   {
-    path: "/admin-snu79",
+    path: "/admin",
     element: LazyLoad(AdminEntry)
   },
   {
