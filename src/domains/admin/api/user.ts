@@ -14,12 +14,15 @@ export interface ListUser {
   role: "admin" | "instock";
   login_at: string;
   device_id: string;
+  total_amount: number;
+  consumed_amount: number;
 }
 
 export interface CreateUserRequest {
   user_id: string;
   password: string;
   role: "admin" | "instock";
+  amount: number;
 }
 
 export interface UserListResponse {
@@ -108,43 +111,6 @@ export const userApi = {
     return await response.json();
   },
 
-  getListMock: async (params: UserListParams): Promise<UserListResponse> => {
-    const mockData: ListUser[] = Array.from({ length: 100 }, (_, i) => ({
-      id: i,
-      CreatedAt: new Date(Date.now() - i * 3600000).toISOString(),
-      user_id:
-        i % 3 === 0
-          ? `admin${Math.floor(Math.random() * 100)}@example.com`
-          : i % 3 === 1
-          ? `138${String(Math.floor(Math.random() * 100000000)).padStart(8, "0")}`
-          : `user${Math.floor(Math.random() * 1000)}@company.com`,
-      role: Math.random() > 0.7 ? "admin" : "instock",
-      login_at: new Date(Date.now() - i * 60000).toISOString(),
-      device_id: `device_${Math.floor(Math.random() * 1000)}`
-    }));
-
-    let filteredData = mockData;
-
-    if (params.keywords) {
-      filteredData = filteredData.filter((item) => item.user_id.toLowerCase().includes(params.keywords!.toLowerCase()));
-    }
-
-    if (params.role) {
-      filteredData = filteredData.filter((item) => item.role === params.role);
-    }
-
-    const startIndex = (params.current - 1) * params.page_size;
-    const endIndex = startIndex + params.page_size;
-    const paginatedData = filteredData.slice(startIndex, endIndex);
-
-    return {
-      items: paginatedData,
-      total: filteredData.length,
-      current: params.current,
-      page_size: params.page_size
-    };
-  },
-
   create: async (data: CreateUserRequest): Promise<void> => {
     const response = await request(`${baseUrl}/users`, {
       method: "POST",
@@ -157,15 +123,6 @@ export const userApi = {
       throw new Error("Failed to create user: " + (await response.text()));
     }
     return;
-  },
-
-  createMock: async (data: CreateUserRequest): Promise<void> => {
-    console.log("Creating user:", data);
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve();
-      }, 500);
-    });
   },
 
   batchDelete: async (ids: number[]): Promise<void> => {
@@ -197,14 +154,5 @@ export const userApi = {
       throw new Error("Failed to update user: " + (await response.text()));
     }
     return;
-  },
-
-  updateMock: async (id: string, data: Partial<CreateUserRequest>): Promise<void> => {
-    console.log("Updating user:", id, data);
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve();
-      }, 500);
-    });
   }
 };

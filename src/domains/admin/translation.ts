@@ -264,6 +264,8 @@ export interface AdminTranslationContent {
       createdAt: string;
       user: string;
       role: string;
+      total_amount: string;
+      consumed_amount: string;
       actions: string;
     };
     roles: {
@@ -295,8 +297,11 @@ export interface AdminTranslationContent {
       passwordPlaceholder: string;
       passwordRequired: string;
       role: string;
+      amount: string;
       rolePlaceholder: string;
       roleRequired: string;
+      amountRequired: string;
+      amountMustIntRequired: string;
       createSuccess: string;
       createError: string;
       updateSuccess: string;
@@ -570,6 +575,8 @@ const baseTranslations: Record<Language, AdminTranslationContent> = {
         createdAt: "创建时间",
         user: "用户",
         role: "角色",
+        consumed_amount: "额度使用量",
+        total_amount: "额度",
         actions: "操作"
       },
       roles: {
@@ -601,8 +608,11 @@ const baseTranslations: Record<Language, AdminTranslationContent> = {
         passwordPlaceholder: "请输入用户密码",
         passwordRequired: "请输入用户密码",
         role: "角色",
+        amount: "额度",
         rolePlaceholder: "请选择角色",
         roleRequired: "请选择角色",
+        amountRequired: "请输入额度",
+        amountMustIntRequired: "必须是整数",
         createSuccess: "创建用户成功",
         createError: "创建用户失败",
         updateSuccess: "更新用户成功",
@@ -874,6 +884,8 @@ const baseTranslations: Record<Language, AdminTranslationContent> = {
         createdAt: "Created At",
         user: "User",
         role: "Role",
+        total_amount: "Total Amount",
+        consumed_amount: "Consumed Amount",
         actions: "Actions"
       },
       roles: {
@@ -907,6 +919,9 @@ const baseTranslations: Record<Language, AdminTranslationContent> = {
         role: "Role",
         rolePlaceholder: "Please select a role",
         roleRequired: "Please select a role",
+        amount: "Total Amount",
+        amountRequired: "Please enter amount number",
+        amountMustIntRequired: "Amount must be a integer",
         createSuccess: "User created successfully",
         createError: "Failed to create user",
         updateSuccess: "User updated successfully",

@@ -86,6 +86,20 @@ export const UserPage = ({ language = "zh" }: { language?: Language }) => {
       )
     },
     {
+      title: t.user.columns.total_amount,
+      dataIndex: "total_amount",
+      key: "total_amount",
+      width: 60,
+      valueType: "digit"
+    },
+    {
+      title: t.user.columns.consumed_amount,
+      dataIndex: "consumed_amount",
+      key: "consumed_amount",
+      width: 60,
+      valueType: "digit"
+    },
+    {
       title: t.user.columns.actions,
       key: "action",
       width: 120,
@@ -251,7 +265,8 @@ export const UserPage = ({ language = "zh" }: { language?: Language }) => {
             await userApi.create({
               user_id: values.user_id,
               password: values.password,
-              role: values.role
+              role: values.role,
+              amount: values.amount
             });
             messageApi.success(t.user.form.createSuccess);
             actionRef.current?.reload();
@@ -290,6 +305,20 @@ export const UserPage = ({ language = "zh" }: { language?: Language }) => {
           options={filterOptions.roles}
           rules={[{ required: true, message: t.user.form.roleRequired }]}
         />
+        <ProFormText
+          name="amount"
+          label={t.user.form.amount}
+          fieldProps={{
+            type: "number",
+            min: 1,
+            max: 1000000,
+            step: 100
+          }}
+          rules={[
+            { required: true, message: t.user.form.amountRequired },
+            { pattern: /^\d+$/, message: t.user.form.amountMustIntRequired }
+          ]}
+        />
       </ModalForm>
 
       <ModalForm
@@ -301,7 +330,8 @@ export const UserPage = ({ language = "zh" }: { language?: Language }) => {
           editingUser
             ? {
                 user_id: editingUser.user_id,
-                role: editingUser.role
+                role: editingUser.role,
+                amount: editingUser.total_amount
               }
             : undefined
         }
@@ -312,7 +342,8 @@ export const UserPage = ({ language = "zh" }: { language?: Language }) => {
             await userApi.update(editingUser.id, {
               user_id: values.user_id,
               role: values.role,
-              password: values.password
+              password: values.password,
+              amount: values.amount
             });
             messageApi.success(t.user.form.updateSuccess);
             actionRef.current?.reload();
@@ -347,6 +378,20 @@ export const UserPage = ({ language = "zh" }: { language?: Language }) => {
           placeholder={t.user.form.rolePlaceholder}
           options={filterOptions.roles}
           rules={[{ required: true, message: t.user.form.roleRequired }]}
+        />
+        <ProFormText
+          name="amount"
+          label={t.user.form.amount}
+          fieldProps={{
+            type: "number",
+            min: 1,
+            max: 10000000,
+            step: 100
+          }}
+          rules={[
+            { required: true, message: t.user.form.amountRequired },
+            { pattern: /^\d+$/, message: t.user.form.amountMustIntRequired }
+          ]}
         />
       </ModalForm>
     </div>
