@@ -31,8 +31,6 @@ export default function QueryPage() {
 
   const [{ theme, manual }, setTheme] = useState<{ theme: ThemePreference; manual: boolean }>(() => {
     if (!isBrowser) return { theme: "light", manual: false };
-    const stored = window.localStorage.getItem(THEME_KEY) as ThemePreference | null;
-    if (stored === "light" || stored === "dark") return { theme: stored, manual: true };
     return { theme: detectDeviceTheme(), manual: false };
   });
 

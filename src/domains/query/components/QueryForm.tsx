@@ -78,7 +78,7 @@ export default function QueryForm({ translation, onResults, onProgress }: Props)
       {loading || progress > 0 ? (
         <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded mt-4 overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all"
+            className="h-full bg-linear-to-r from-blue-500 to-indigo-500 transition-all"
             style={{ width: `${Math.round(progress * 100)}%` }}
           />
         </div>
