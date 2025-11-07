@@ -266,7 +266,7 @@ export default function RedeemForm({
 
     setRedeeming(true);
     try {
-      await redeem(rawCdk, rawToken, verifiedCdk?.app_name ?? "", product);
+      await redeem(rawCdk, rawToken, verifiedCdk?.app_name?.toLocaleLowerCase() ?? "", product);
 
       const userId = verifiedUser
         ? (() => {
