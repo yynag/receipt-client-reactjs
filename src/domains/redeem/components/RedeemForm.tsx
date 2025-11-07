@@ -69,6 +69,8 @@ export default function RedeemForm({
   const statusCopy = useMemo(() => statusText[language], [language]);
   const productDef = useMemo(() => getProductDefinition(product), [product]);
 
+  const [validated, setValidated] = useState(false);
+
   const resetCdkValidation = () => {
     setVerifiedCdk(null);
     setValidatedCdkValue(null);
@@ -355,18 +357,42 @@ export default function RedeemForm({
     productDef
   ]);
 
+  const callAntiShaking = (cb: () => void) => {
+    if (validated) return;
+    setValidated(true);
+    cb();
+    // 1000ms 后允许再次验证（防抖）
+    setTimeout(() => setValidated(false), 1000);
+  };
+
   const handleTokenKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       event.preventDefault();
-      void handleTokenValidation();
+      callAntiShaking(() => {
+        handleTokenValidation();
+      });
     }
+  };
+
+  const handleTokenBlur = () => {
+    callAntiShaking(() => {
+      handleTokenValidation();
+    });
   };
 
   const handleCdkKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       event.preventDefault();
-      void handleCdkValidation();
+      callAntiShaking(() => {
+        handleCdkValidation();
+      });
     }
+  };
+
+  const handleCdkBlur = () => {
+    callAntiShaking(() => {
+      handleCdkValidation();
+    });
   };
 
   const renderStatus = (status: Status | null) => {
@@ -435,6 +461,7 @@ export default function RedeemForm({
               }
             }}
             onKeyDown={handleTokenKeyDown}
+            onBlur={handleTokenBlur}
             placeholder={translation.form.tokenPlaceholder}
             className={tokenInputClass.join(" ")}
           />
@@ -460,6 +487,7 @@ export default function RedeemForm({
               }
             }}
             onKeyDown={handleCdkKeyDown}
+            onBlur={handleCdkBlur}
             placeholder={translation.form.cdkPlaceholder}
             className={cdkInputClass.join(" ")}
           />
