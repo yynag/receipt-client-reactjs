@@ -82,15 +82,7 @@ const getBrowserLanguage = (): Language => {
 const StoreProvider = ({ children }: { children: ReactNode }) => {
   const rawUser = localStorage.getItem("user");
 
-  // Get stored theme or fall back to device theme
   const getInitialTheme = (): Theme => {
-    if (!isBrowser) {
-      return "light";
-    }
-    const storedTheme = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
-    if (storedTheme && (storedTheme === "light" || storedTheme === "dark")) {
-      return storedTheme;
-    }
     return getDeviceTheme();
   };
 

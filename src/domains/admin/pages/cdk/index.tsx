@@ -16,7 +16,7 @@ import { useStore } from "../../store/hook";
 import { getTranslation, formatMessage, type Language } from "../../translation";
 
 export const CDKPage = ({ language = "zh" }: { language?: Language }) => {
-  const { user } = useStore();
+  const { user, isAdmin } = useStore();
   const [selectedRowKeys, setSelectedRowKeys] = useState<number[]>([]);
   const [allCDKs, setAllCDKs] = useState<CDK[]>([]);
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({
@@ -49,6 +49,7 @@ export const CDKPage = ({ language = "zh" }: { language?: Language }) => {
       }
     };
     fetchFilterOptions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messageApi]);
 
   const handleDelete = useCallback(
@@ -61,6 +62,7 @@ export const CDKPage = ({ language = "zh" }: { language?: Language }) => {
         messageApi.error(t.cdk.actions.deleteError);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [messageApi]
   );
 
@@ -142,8 +144,8 @@ export const CDKPage = ({ language = "zh" }: { language?: Language }) => {
         width: 120,
         valueType: "select",
         valueEnum: userOptions,
-        hidden: user?.role !== "admin",
-        search: user?.role === "admin"
+        hidden: !isAdmin,
+        search: isAdmin
       },
       {
         title: t.cdk.columns.app,
@@ -187,6 +189,8 @@ export const CDKPage = ({ language = "zh" }: { language?: Language }) => {
         ]
       }
     ];
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterOptions, selectedAppId, handleDelete, user]);
 
   const handleBatchCopy = async () => {

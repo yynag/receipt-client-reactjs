@@ -46,7 +46,7 @@ export interface StockListParams {
   end_date?: string;
   app_id?: string;
   product_id?: string;
-  used?: boolean;
+  used?: number; // 0: false, 1: true
   user_id?: string;
 }
 
@@ -145,54 +145,6 @@ export const stockApi = {
       throw new Error(`Failed to request CDK list: ${await response.text()}`);
     }
     return await response.json();
-  },
-
-  getListMock: async (params: StockListParams): Promise<StockListResponse> => {
-    const mockData: ListStock[] = Array.from({ length: 1000 }, (_, i) => ({
-      ID: i,
-      CreatedAt: new Date(Date.now() - i * 3600000).toISOString(),
-      updatedAt: new Date(Date.now() - i * 1800000).toISOString(),
-      app_id: `app_${Math.floor(Math.random() * 10)}`,
-      device_id: `device_${Math.floor(Math.random() * 20)}`,
-      product_id: `product_${Math.floor(Math.random() * 50)}`,
-      used: Math.random() > 0.8,
-      user_id: Math.random() > 0.8 ? `user_${Math.floor(Math.random() * 1000)}` : undefined
-    }));
-
-    let filteredData = mockData;
-
-    if (params.start_date) {
-      const startTime = new Date(params.start_date).getTime();
-      filteredData = filteredData.filter((item) => new Date(item.CreatedAt).getTime() >= startTime);
-    }
-
-    if (params.end_date) {
-      const endTime = new Date(params.end_date).getTime();
-      filteredData = filteredData.filter((item) => new Date(item.CreatedAt).getTime() <= endTime);
-    }
-
-    if (params.used !== undefined) {
-      filteredData = filteredData.filter((item) => item.used === params.used);
-    }
-
-    if (params.app_id) {
-      filteredData = filteredData.filter((item) => item.app_id === params.app_id);
-    }
-
-    if (params.product_id) {
-      filteredData = filteredData.filter((item) => item.product_id === params.product_id);
-    }
-
-    const startIndex = (params.page - 1) * params.page_size;
-    const endIndex = startIndex + params.page_size;
-    const paginatedData = filteredData.slice(startIndex, endIndex);
-
-    return {
-      items: paginatedData,
-      total: filteredData.length,
-      current: params.page,
-      page_size: params.page_size
-    };
   },
 
   getStockStats: async (app_id?: string, product_id?: string, user_id?: string): Promise<StockStatResponse> => {

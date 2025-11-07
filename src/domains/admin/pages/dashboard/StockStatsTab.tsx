@@ -37,19 +37,24 @@ export const StockStatsTab = ({ language = "zh" }: { language?: Language }) => {
         messageApi.error(t.stock.messages.getFilterOptionsError);
         console.error(error);
       });
-  }, [messageApi]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const fetchStatsData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await stockApi.getStockStats(selectedApp || undefined, selectedProduct || undefined);
+      const response = await stockApi.getStockStats(
+        selectedApp || undefined,
+        selectedProduct || undefined,
+        selectedUser || undefined
+      );
       setStatsData(response);
     } catch (error) {
       console.error("获取库存统计数据失败:", error);
     } finally {
       setLoading(false);
     }
-  }, [selectedApp, selectedProduct]);
+  }, [selectedApp, selectedProduct, selectedUser]);
 
   useEffect(() => {
     fetchStatsData();
@@ -194,17 +199,29 @@ export const StockStatsTab = ({ language = "zh" }: { language?: Language }) => {
         <Row gutter={16} style={{ marginBottom: 16 }}>
           <Col span={8}>
             <Card>
-              <Statistic title={t.dashboard.stockStats.stats.total} value={statsData.unused + statsData.used} valueStyle={{ color: "#1890ff" }} />
+              <Statistic
+                title={t.dashboard.stockStats.stats.total}
+                value={statsData.unused + statsData.used}
+                valueStyle={{ color: "#1890ff" }}
+              />
             </Card>
           </Col>
           <Col span={8}>
             <Card>
-              <Statistic title={t.dashboard.stockStats.stats.used} value={statsData.used} valueStyle={{ color: "#ff4d4f" }} />
+              <Statistic
+                title={t.dashboard.stockStats.stats.used}
+                value={statsData.used}
+                valueStyle={{ color: "#ff4d4f" }}
+              />
             </Card>
           </Col>
           <Col span={8}>
             <Card>
-              <Statistic title={t.dashboard.stockStats.stats.unused} value={statsData.unused} valueStyle={{ color: "#52c41a" }} />
+              <Statistic
+                title={t.dashboard.stockStats.stats.unused}
+                value={statsData.unused}
+                valueStyle={{ color: "#52c41a" }}
+              />
             </Card>
           </Col>
         </Row>

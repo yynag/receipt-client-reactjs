@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, Suspense, useMemo, useCallback } from "react";
 import { Button, message, Popconfirm, Tag, notification, Upload, Modal, Spin } from "antd";
-import { DeleteOutlined, ExportOutlined, ImportOutlined, DownloadOutlined, UploadOutlined } from "@ant-design/icons";
+import { DeleteOutlined, ExportOutlined, DownloadOutlined, UploadOutlined } from "@ant-design/icons";
 import type { UploadFile } from "antd/es/upload/interface";
 import { type ListStock, stockApi, type FilterOptions } from "../../api/stock";
 
@@ -42,7 +42,7 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
       }
     };
     fetchFilterOptions();
-  }, [messageApi]);
+  }, [messageApi, t.stock.messages.getFilterOptionsError]);
 
   const handleDelete = useCallback(
     async (id: number) => {
@@ -54,7 +54,7 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
         messageApi.error(t.stock.actions.deleteError);
       }
     },
-    [messageApi]
+    [messageApi, t.stock.actions.deleteError, t.stock.actions.deleteSuccess]
   );
 
   const handleSingleExport = useCallback(
@@ -75,7 +75,7 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
         messageApi.error(t.stock.actions.exportError);
       }
     },
-    [messageApi]
+    [messageApi, t.stock.actions.exportError, t.stock.actions.exportSuccess]
   );
 
   // const handleShowDetail = useCallback(
@@ -184,7 +184,9 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
         },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         render: (_: any, record: ListStock) => (
-          <Tag color={record.used ? "green" : "orange"}>{record.used ? t.stock.status.used : t.stock.status.unused}</Tag>
+          <Tag color={record.used ? "green" : "orange"}>
+            {record.used ? t.stock.status.used : t.stock.status.unused}
+          </Tag>
         )
       },
       {
@@ -233,6 +235,7 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
         ]
       }
     ];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterOptions, handleDelete, handleSingleExport, selectedAppId]);
 
   const handleBatchExport = async () => {
@@ -334,9 +337,10 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
               page_size: params.pageSize || 20,
               start_date: params.startTime,
               end_date: params.endTime,
-              used: params.used !== undefined ? params.used === "true" : undefined,
+              used: params.used,
               app_id: params.app_id,
-              product_id: params.product_id
+              product_id: params.product_id,
+              user_id: params.user_id
             });
 
             // 存储数据供批量操作使用
@@ -373,9 +377,9 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
             persistenceType: "localStorage"
           }}
           toolBarRender={() => [
-            <Button key="import" icon={<ImportOutlined />} onClick={() => setImportModalVisible(true)}>
-              {t.stock.actions.importJson}
-            </Button>,
+            // <Button key="import" icon={<ImportOutlined />} onClick={() => setImportModalVisible(true)}>
+            //   {t.stock.actions.importJson}
+            // </Button>,
             isAdmin && (
               <Button
                 key="batch-export"
