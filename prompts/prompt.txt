@@ -1,10 +1,4 @@
-src/domains/query 对于已使用的CDK，列表项中间展示 user（字符串）：
-export interface CdkResult {
-  code: string;
-  status: CdkStatus;
-  user: string;
-}
-
+src/domains/query 再添加App名称、兑换时间信息，接口我已经写好：src/domains/query/api/index.ts
 
 
 src/domains/admin 添加英文语言，国际化按照跟 /src/domians 文件夹其他子域一致，按照 src/domains/redeem/translation.ts 来，另外一些关键的翻译：

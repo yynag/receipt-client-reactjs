@@ -45,7 +45,7 @@ export default function QueryForm({ translation, onResults, onProgress }: Props)
       const batch = await checkCdks(lines);
       onResults(batch);
     } catch {
-      const results: CdkResult[] = lines.map((code) => ({ code, status: "invalid", user: "" }));
+      const results: CdkResult[] = lines.map((code) => ({ code, status: "invalid", user: "", app_name: "" }));
       onResults(results);
     } finally {
       emitProgress(1);

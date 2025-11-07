@@ -8,4 +8,6 @@ export interface CdkResult {
   code: string;
   status: CdkStatus;
   user: string;
+  app_name: string;
+  redeem_time?: string;
 }

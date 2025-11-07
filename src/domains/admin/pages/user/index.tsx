@@ -80,7 +80,9 @@ export const UserPage = ({ language = "zh" }: { language?: Language }) => {
         instock: { text: t.user.roles.instock, status: "Default" }
       },
       render: (_, record: ListUser) => (
-        <Tag color={record.role === "admin" ? "blue" : "green"}>{record.role === "admin" ? t.user.roles.admin : t.user.roles.instock}</Tag>
+        <Tag color={record.role === "admin" ? "blue" : "green"}>
+          {record.role === "admin" ? t.user.roles.admin : t.user.roles.instock}
+        </Tag>
       )
     },
     {
@@ -309,7 +311,8 @@ export const UserPage = ({ language = "zh" }: { language?: Language }) => {
           try {
             await userApi.update(editingUser.id, {
               user_id: values.user_id,
-              role: values.role
+              role: values.role,
+              password: values.password
             });
             messageApi.success(t.user.form.updateSuccess);
             actionRef.current?.reload();

@@ -102,13 +102,18 @@ export default function ResultsPanel({ translation, results }: Props) {
               className="flex items-center justify-between px-3 py-2 border-b last:border-b-0 border-slate-100 dark:border-slate-800 gap-3"
             >
               <div className="font-mono text-sm font-semibold break-all mr-1 min-w-0">{r.code}</div>
-              {r.status === "used" && r.user ? (
-                <div className="text-xs text-slate-500 dark:text-slate-400 truncate flex-1 text-center" title={r.user}>
-                  {r.user}
-                </div>
-              ) : (
-                <div className="flex-1" />
-              )}
+              <div
+                className="text-xs text-slate-500 dark:text-slate-400 truncate flex-1 text-center"
+                title={[r.app_name, r.user, r.redeem_time].filter(Boolean).join(" | ")}
+              >
+                {[
+                  r.app_name && `${r.app_name}`,
+                  r.status === "used" && r.user && r.user,
+                  r.status === "used" && r.redeem_time && `${r.redeem_time}`
+                ]
+                  .filter(Boolean)
+                  .join(" | ") || ""}
+              </div>
               <div className="flex items-center gap-2 ml-1">
                 <span
                   className={`text-xs px-2 py-0.5 rounded-full ${
