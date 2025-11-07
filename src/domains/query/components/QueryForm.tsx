@@ -1,7 +1,7 @@
-import { useCallback, useMemo, useState } from 'react';
-import { checkCdks } from '../api';
-import type { CdkResult } from '../types';
-import type { QueryTranslations } from '../translation';
+import { useCallback, useMemo, useState } from "react";
+import { checkCdks } from "../api";
+import type { CdkResult } from "../types";
+import type { QueryTranslations } from "../translation";
 
 interface Props {
   translation: QueryTranslations;
@@ -10,12 +10,16 @@ interface Props {
 }
 
 export default function QueryForm({ translation, onResults, onProgress }: Props) {
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState("");
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
 
   const lines = useMemo(
-    () => value.split(/\r?\n/).map((s) => s.trim()).filter(Boolean),
+    () =>
+      value
+        .split(/\r?\n/)
+        .map((s) => s.trim())
+        .filter(Boolean),
     [value]
   );
 
@@ -28,7 +32,7 @@ export default function QueryForm({ translation, onResults, onProgress }: Props)
   );
 
   const handleClear = useCallback(() => {
-    setValue('');
+    setValue("");
     setProgress(0);
     onResults([]);
   }, [onResults]);
@@ -40,9 +44,8 @@ export default function QueryForm({ translation, onResults, onProgress }: Props)
     try {
       const batch = await checkCdks(lines);
       onResults(batch);
-    } catch (err) {
-      // Default to invalid on error from placeholder API
-      const results: CdkResult[] = lines.map((code) => ({ code, status: 'invalid' }));
+    } catch {
+      const results: CdkResult[] = lines.map((code) => ({ code, status: "invalid", user: "" }));
       onResults(results);
     } finally {
       emitProgress(1);

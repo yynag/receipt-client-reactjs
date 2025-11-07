@@ -12,10 +12,12 @@ import {
 import { UserOutlined } from "@ant-design/icons";
 import { userApi } from "./api/user";
 import { useStore } from "./store/hook";
+import { getTranslation, type Language } from "./translation";
 
-export const LoginPage: React.FC = () => {
+export const LoginPage: React.FC<{ language?: Language }> = ({ language = "zh" }) => {
   const { setUser, theme } = useStore();
   const [api, contextHolder] = notification.useNotification();
+  const t = getTranslation(language);
 
   type FieldType = {
     username: string;
@@ -30,7 +32,7 @@ export const LoginPage: React.FC = () => {
       })
       .catch((err: Error) => {
         api.error({
-          message: "用户登录失败",
+          message: t.login.loginFailed,
           description: err.message
         });
       });
@@ -47,7 +49,7 @@ export const LoginPage: React.FC = () => {
           title={
             <Flex align="center" gap="small">
               <UserOutlined />
-              用户登录
+              {t.login.title}
             </Flex>
           }
           style={{ width: 400 }}
@@ -60,17 +62,17 @@ export const LoginPage: React.FC = () => {
             onFinish={onFinish}
           >
             {contextHolder}
-            <Form.Item<FieldType> label="用户名" name="username" rules={[{ required: true, message: "请填写用户名" }]}>
+            <Form.Item<FieldType> label={t.login.username} name="username" rules={[{ required: true, message: t.login.usernameRequired }]}>
               <Input />
             </Form.Item>
 
-            <Form.Item<FieldType> label="密码" name="password" rules={[{ required: true, message: "请填写密码" }]}>
+            <Form.Item<FieldType> label={t.login.password} name="password" rules={[{ required: true, message: t.login.passwordRequired }]}>
               <Input.Password />
             </Form.Item>
 
             <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
               <Button type="primary" htmlType="submit">
-                登录
+                {t.login.submit}
               </Button>
             </Form.Item>
           </Form>

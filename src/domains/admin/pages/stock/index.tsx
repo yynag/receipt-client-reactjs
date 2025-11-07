@@ -8,8 +8,9 @@ import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { ProTable, type ActionType, type ProColumns } from "@ant-design/pro-components";
 import { useStore } from "../../store/hook";
+import { getTranslation, formatMessage, type Language } from "../../translation";
 
-export const StockPage = () => {
+export const StockPage = ({ language = "zh" }: { language?: Language }) => {
   const { isAdmin } = useStore();
   const [selectedRowKeys, setSelectedRowKeys] = useState<number[]>([]);
   const [allStocks, setAllStocks] = useState<ListStock[]>([]);
@@ -28,6 +29,7 @@ export const StockPage = () => {
   const [importing, setImporting] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const [selectedAppId, setSelectedAppId] = useState<string>();
+  const t = getTranslation(language);
 
   useEffect(() => {
     const fetchFilterOptions = async () => {
@@ -36,7 +38,7 @@ export const StockPage = () => {
         setFilterOptions(options);
       } catch (error) {
         console.error("获取筛选选项失败:", error);
-        messageApi.error("获取筛选选项失败");
+        messageApi.error(t.stock.messages.getFilterOptionsError);
       }
     };
     fetchFilterOptions();
@@ -46,10 +48,10 @@ export const StockPage = () => {
     async (id: number) => {
       try {
         await stockApi.batchDelete([id]);
-        messageApi.success("删除成功");
+        messageApi.success(t.stock.actions.deleteSuccess);
         actionRef.current?.reload();
       } catch {
-        messageApi.error("删除失败");
+        messageApi.error(t.stock.actions.deleteError);
       }
     },
     [messageApi]
@@ -67,10 +69,10 @@ export const StockPage = () => {
         const content = await zip.generateAsync({ type: "blob" });
         saveAs(content, `stock_export_${stock.ID}.zip`);
 
-        messageApi.success("导出成功");
+        messageApi.success(t.stock.actions.exportSuccess);
       } catch (error) {
         console.error("导出失败:", error);
-        messageApi.error("导出失败");
+        messageApi.error(t.stock.actions.exportError);
       }
     },
     [messageApi]
@@ -125,7 +127,7 @@ export const StockPage = () => {
         hidden: true
       },
       {
-        title: "创建日期时间",
+        title: t.stock.columns.createdAt,
         dataIndex: "CreatedAt",
         key: "CreatedAt",
         width: 140,
@@ -134,7 +136,7 @@ export const StockPage = () => {
         sorter: true
       },
       {
-        title: "日期范围",
+        title: t.stock.columns.dateRange,
         dataIndex: "dateRange",
         key: "dateRange",
         hideInTable: true,
@@ -150,7 +152,7 @@ export const StockPage = () => {
         }
       },
       {
-        title: "应用",
+        title: t.stock.columns.app,
         dataIndex: "app_id",
         key: "app_id",
         width: 100,
@@ -163,7 +165,7 @@ export const StockPage = () => {
         }
       },
       {
-        title: "应用商品",
+        title: t.stock.columns.appProduct,
         dataIndex: "product_id",
         key: "product_id",
         width: 100,
@@ -171,22 +173,22 @@ export const StockPage = () => {
         valueEnum: productOptions
       },
       {
-        title: "使用状态",
+        title: t.stock.columns.status,
         dataIndex: "used",
         key: "used",
         width: 100,
         valueType: "select",
         valueEnum: {
-          true: { text: "已使用", status: "Success" },
-          false: { text: "未使用", status: "Warning" }
+          true: { text: t.stock.status.used, status: "Success" },
+          false: { text: t.stock.status.unused, status: "Warning" }
         },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         render: (_: any, record: ListStock) => (
-          <Tag color={record.used ? "green" : "orange"}>{record.used ? "已使用" : "未使用"}</Tag>
+          <Tag color={record.used ? "green" : "orange"}>{record.used ? t.stock.status.used : t.stock.status.unused}</Tag>
         )
       },
       {
-        title: "创建人",
+        title: t.stock.columns.creator,
         dataIndex: "user_id",
         key: "user_id",
         width: 120,
@@ -196,7 +198,7 @@ export const StockPage = () => {
         search: isAdmin
       },
       {
-        title: "操作",
+        title: t.stock.columns.actions,
         key: "action",
         width: 180,
         fixed: "right",
@@ -211,7 +213,7 @@ export const StockPage = () => {
               icon={<ExportOutlined />}
               onClick={() => handleSingleExport(record)}
             >
-              导出JSON
+              {t.stock.actions.exportJson}
             </Button>
           ),
           // <Button key="detail" type="link" size="small" icon={<EyeOutlined />} onClick={() => handleShowDetail(record)}>
@@ -219,13 +221,13 @@ export const StockPage = () => {
           // </Button>,
           <Popconfirm
             key="delete"
-            title="确定删除这个库存项吗？"
+            title={t.stock.actions.deleteConfirm}
             onConfirm={() => handleDelete(record.ID)}
-            okText="确定"
-            cancelText="取消"
+            okText={t.common.confirm}
+            cancelText={t.common.cancel}
           >
             <Button type="link" danger size="small" icon={<DeleteOutlined />}>
-              删除
+              {t.stock.actions.delete}
             </Button>
           </Popconfirm>
         ]
@@ -235,7 +237,7 @@ export const StockPage = () => {
 
   const handleBatchExport = async () => {
     if (selectedRowKeys.length === 0) {
-      messageApi.warning("请选择要导出的库存项");
+      messageApi.warning(t.stock.messages.selectToExport);
       return;
     }
 
@@ -253,30 +255,30 @@ export const StockPage = () => {
       saveAs(content, `stock_batch_export_${Date.now()}.zip`);
 
       notification.success({
-        message: "批量导出成功",
-        description: `已导出 ${selectedRowKeys.length} 个库存项`,
+        message: t.stock.actions.batchExportSuccess,
+        description: formatMessage(t.stock.actions.batchExportSuccessDesc, { count: selectedRowKeys.length }),
         placement: "topRight",
         duration: 3
       });
     } catch (error) {
       console.error("批量导出失败:", error);
-      messageApi.error("批量导出失败");
+      messageApi.error(t.stock.actions.batchExportError);
     }
   };
 
   const handleBatchDelete = async () => {
     if (selectedRowKeys.length === 0) {
-      messageApi.warning("请选择要删除的库存项");
+      messageApi.warning(t.stock.messages.selectToDelete);
       return;
     }
 
     try {
       await stockApi.batchDelete(selectedRowKeys);
-      messageApi.success(`成功删除 ${selectedRowKeys.length} 个库存项`);
+      messageApi.success(formatMessage(t.stock.actions.batchDeleteSuccess, { count: selectedRowKeys.length }));
       setSelectedRowKeys([]);
       actionRef.current?.reload();
     } catch {
-      messageApi.error("批量删除失败");
+      messageApi.error(t.stock.actions.batchDeleteError);
     }
   };
 
@@ -287,8 +289,8 @@ export const StockPage = () => {
       await stockApi.importFromLiNiuJson(text);
 
       notification.success({
-        message: "导入成功",
-        description: `成功导入数据`,
+        message: t.stock.actions.importSuccess,
+        description: t.stock.actions.importSuccessDesc,
         placement: "topRight",
         duration: 3
       });
@@ -298,7 +300,7 @@ export const StockPage = () => {
       actionRef.current?.reload();
     } catch (error) {
       console.error("导入失败:", error);
-      messageApi.error("导入失败，请检查文件格式");
+      messageApi.error(t.stock.actions.importError);
     } finally {
       setImporting(false);
     }
@@ -352,18 +354,18 @@ export const StockPage = () => {
           }}
           tableAlertRender={({ selectedRowKeys, onCleanSelected }) => (
             <span>
-              已选择 <a style={{ fontWeight: 600 }}>{selectedRowKeys.length}</a> 项
+              {t.common.selected} <a style={{ fontWeight: 600 }}>{selectedRowKeys.length}</a> 项
               <a style={{ marginLeft: 8 }} onClick={onCleanSelected}>
-                取消选择
+                {t.common.cancelSelection}
               </a>
             </span>
           )}
           tableAlertOptionRender={() => (
             <>
               <a onClick={handleBatchExport} style={{ marginRight: 16 }}>
-                批量导出
+                {t.stock.actions.batchExport}
               </a>
-              <a onClick={handleBatchDelete}>批量删除</a>
+              <a onClick={handleBatchDelete}>{t.stock.actions.batchDelete}</a>
             </>
           )}
           columnsState={{
@@ -372,7 +374,7 @@ export const StockPage = () => {
           }}
           toolBarRender={() => [
             <Button key="import" icon={<ImportOutlined />} onClick={() => setImportModalVisible(true)}>
-              导入JSON
+              {t.stock.actions.importJson}
             </Button>,
             isAdmin && (
               <Button
@@ -381,7 +383,7 @@ export const StockPage = () => {
                 onClick={handleBatchExport}
                 disabled={selectedRowKeys.length === 0}
               >
-                批量导出
+                {t.stock.actions.batchExport}
               </Button>
             )
           ]}
@@ -391,7 +393,7 @@ export const StockPage = () => {
             pageSizeOptions: ["10", "20", "50", "100"]
           }}
           scroll={{ x: "max-content" }}
-          headerTitle="库存列表"
+          headerTitle={t.stock.listTitle}
           size="small"
           options={{
             density: true,
@@ -402,7 +404,7 @@ export const StockPage = () => {
         />
 
         <Modal
-          title="导入JSON文件"
+          title={t.stock.importTitle}
           open={importModalVisible}
           onCancel={() => {
             setImportModalVisible(false);
@@ -412,13 +414,13 @@ export const StockPage = () => {
           width="600px"
         >
           <div style={{ padding: "20px 0" }}>
-            <p>请上传JSON格式的库存文件，支持单个对象或数组格式。</p>
+            <p>{t.stock.upload.formatInfo}</p>
             <Upload.Dragger {...uploadProps} disabled={importing}>
               <p className="ant-upload-drag-icon">
                 <UploadOutlined />
               </p>
-              <p className="ant-upload-text">点击或拖拽文件到此区域上传</p>
-              <p className="ant-upload-hint">仅支持犁牛插件序列化的JSON格式文件</p>
+              <p className="ant-upload-text">{t.stock.upload.dragText}</p>
+              <p className="ant-upload-hint">{t.stock.upload.dragHint}</p>
             </Upload.Dragger>
           </div>
         </Modal>

@@ -1,3 +1,23 @@
+src/domains/query 对于已使用的CDK，列表项中间展示 user（字符串）：
+export interface CdkResult {
+  code: string;
+  status: CdkStatus;
+  user: string;
+}
+
+
+
+src/domains/admin 添加英文语言，国际化按照跟 /src/domians 文件夹其他子域一致，按照 src/domains/redeem/translation.ts 来，另外一些关键的翻译：
+- 应用：App
+- 商品：Product
+- 角色：Role
+
+
+src/domains/admin 每次加载页面，读取浏览器语言作为默认值。
+
+
+src/domains/admin/pages/dashboard 文件夹内的页面还没有适配国际化
+
 生成代码提示词，输出到 prompts/2_gen_code.txt 文件中，如果上下文大小受限，可以使用 prompts/context.txt 作为上下文页面交换。
 
 prompts/query.html 是我之前使用的网页，想收入到当前项目中，输出到 src/domains/query 目录，要求：

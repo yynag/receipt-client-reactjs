@@ -3,14 +3,16 @@ import { Card, Row, Col, Select, Button, Statistic, Space, Spin, message } from 
 import { ReloadOutlined } from "@ant-design/icons";
 import { cdkApi, type FilterOptions, type CDKStatResponse } from "../../api/cdk";
 import { useStore } from "../../store/hook";
+import { getTranslation, type Language } from "../../translation";
 
 const { Option } = Select;
 
 // Lazy load ECharts component
 const ReactECharts = lazy(() => import("echarts-for-react").then((module) => ({ default: module.default })));
 
-export const CDKStatsTab = () => {
+export const CDKStatsTab = ({ language = "zh" }: { language?: Language }) => {
   const { isAdmin } = useStore();
+  const t = getTranslation(language);
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({
     used: [],
     app_ids: [],
@@ -31,7 +33,8 @@ export const CDKStatsTab = () => {
         setFilterOptions(options);
       })
       .catch((error) => {
-        messageApi.error("获取筛选选项失败", error);
+        messageApi.error(t.cdk.messages.getFilterOptionsError);
+        console.error(error);
       });
   }, [messageApi]);
 
@@ -60,7 +63,7 @@ export const CDKStatsTab = () => {
 
     return {
       title: {
-        text: "CDK使用情况分布",
+        text: t.dashboard.cdkStats.chart.title,
         left: "center"
       },
       tooltip: {
@@ -73,7 +76,7 @@ export const CDKStatsTab = () => {
       },
       series: [
         {
-          name: "CDK状态",
+          name: t.dashboard.cdkStats.chart.seriesName,
           type: "pie",
           radius: ["40%", "70%"],
           center: ["60%", "50%"],
@@ -100,14 +103,14 @@ export const CDKStatsTab = () => {
           data: [
             {
               value: statsData.used,
-              name: "已使用",
+              name: t.dashboard.cdkStats.chart.used,
               itemStyle: {
                 color: "#ff4d4f"
               }
             },
             {
               value: statsData.unused,
-              name: "未使用",
+              name: t.dashboard.cdkStats.chart.unused,
               itemStyle: {
                 color: "#1890ff"
               }
@@ -130,12 +133,12 @@ export const CDKStatsTab = () => {
       <Card size="small" style={{ marginBottom: 16 }}>
         <Row gutter={[16, 16]} align="middle">
           <Col>
-            <span>应用筛选：</span>
+            <span>{t.dashboard.cdkStats.labels.app}：</span>
             <Select
               value={selectedApp}
               onChange={setSelectedApp}
               style={{ width: 150, marginLeft: 8 }}
-              placeholder="全部应用"
+              placeholder={t.dashboard.cdkStats.placeholders.allApps}
               allowClear
             >
               {filterOptions.app_ids.map((app) => (
@@ -146,12 +149,12 @@ export const CDKStatsTab = () => {
             </Select>
           </Col>
           <Col>
-            <span>商品筛选：</span>
+            <span>{t.dashboard.cdkStats.labels.product}：</span>
             <Select
               value={selectedProduct}
               onChange={setSelectedProduct}
               style={{ width: 150, marginLeft: 8 }}
-              placeholder="全部商品"
+              placeholder={t.dashboard.cdkStats.placeholders.allProducts}
               allowClear
             >
               {filterOptions.product_ids
@@ -164,12 +167,12 @@ export const CDKStatsTab = () => {
             </Select>
           </Col>
           <Col hidden={!isAdmin}>
-            <span>归属人筛选：</span>
+            <span>{t.dashboard.cdkStats.labels.uploader}：</span>
             <Select
               value={selectedUploader}
               onChange={setSelectedUploader}
               style={{ width: 150, marginLeft: 8 }}
-              placeholder="全部归属人"
+              placeholder={t.dashboard.cdkStats.placeholders.allUploaders}
               allowClear
             >
               {filterOptions.user_ids.map((uploader) => (
@@ -181,9 +184,9 @@ export const CDKStatsTab = () => {
           </Col>
           <Col>
             <Space>
-              <Button onClick={handleReset}>重置</Button>
+              <Button onClick={handleReset}>{t.dashboard.cdkStats.buttons.reset}</Button>
               <Button type="primary" icon={<ReloadOutlined />} onClick={fetchStatsData} loading={loading}>
-                刷新数据
+                {t.dashboard.cdkStats.buttons.refresh}
               </Button>
             </Space>
           </Col>
@@ -194,17 +197,17 @@ export const CDKStatsTab = () => {
         <Row gutter={16} style={{ marginBottom: 16 }}>
           <Col span={8}>
             <Card>
-              <Statistic title="CDK总量" value={statsData.used + statsData.unused} valueStyle={{ color: "#1890ff" }} />
+              <Statistic title={t.dashboard.cdkStats.stats.total} value={statsData.used + statsData.unused} valueStyle={{ color: "#1890ff" }} />
             </Card>
           </Col>
           <Col span={8}>
             <Card>
-              <Statistic title="已使用" value={statsData.used} valueStyle={{ color: "#52c41a" }} />
+              <Statistic title={t.dashboard.cdkStats.stats.used} value={statsData.used} valueStyle={{ color: "#52c41a" }} />
             </Card>
           </Col>
           <Col span={8}>
             <Card>
-              <Statistic title="未使用" value={statsData.unused} valueStyle={{ color: "#faad14" }} />
+              <Statistic title={t.dashboard.cdkStats.stats.unused} value={statsData.unused} valueStyle={{ color: "#faad14" }} />
             </Card>
           </Col>
         </Row>

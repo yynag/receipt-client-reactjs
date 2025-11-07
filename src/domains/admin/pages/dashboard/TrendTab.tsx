@@ -4,14 +4,16 @@ import { ReloadOutlined } from "@ant-design/icons";
 import { cdkApi, type FilterOptions, type TrendData } from "../../api/cdk";
 import { stockApi } from "../../api/stock";
 import { useStore } from "../../store/hook";
+import { getTranslation, type Language } from "../../translation";
 
 const { Option } = Select;
 
 // Lazy load ECharts component
 const ReactECharts = lazy(() => import("echarts-for-react").then((module) => ({ default: module.default })));
 
-export const TrendTab = () => {
+export const TrendTab = ({ language = "zh" }: { language?: Language }) => {
   const { isAdmin } = useStore();
+  const t = getTranslation(language);
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({
     used: [],
     app_ids: [],
@@ -33,7 +35,8 @@ export const TrendTab = () => {
         setFilterOptions(options);
       })
       .catch((error) => {
-        messageApi.error("获取筛选选项失败", error);
+        messageApi.error(t.stock.messages.getFilterOptionsError);
+        console.error(error);
       });
   }, [messageApi]);
 
@@ -60,7 +63,12 @@ export const TrendTab = () => {
 
   const buildTrendData = (dimension: string, data: number[]): TrendData[] => {
     return data.map((count, index) => ({
-      date: dimension === "year" ? `${index + 1}月` : dimension === "month" ? `${index + 1}日` : `${index + 1}时`,
+      date:
+        dimension === "year"
+          ? `${index + 1}${language === "zh" ? "月" : t.dashboard.trend.units.month}`
+          : dimension === "month"
+          ? `${index + 1}${language === "zh" ? "日" : t.dashboard.trend.units.day}`
+          : `${index + 1}${language === "zh" ? "时" : t.dashboard.trend.units.hour}`,
       count
     }));
   };
@@ -70,14 +78,23 @@ export const TrendTab = () => {
 
     return {
       title: {
-        text: `CDK兑换趋势 - ${dimension === "year" ? "今年" : dimension === "month" ? "当月" : "今日"}`,
+        text:
+          (language === "zh"
+            ? `CDK兑换趋势 - ${dimension === "year" ? "今年" : dimension === "month" ? "当月" : "今日"}`
+            : `${t.dashboard.trend.chart.titlePrefix}${
+                dimension === "year"
+                  ? t.dashboard.trend.dimensions.year
+                  : dimension === "month"
+                  ? t.dashboard.trend.dimensions.month
+                  : t.dashboard.trend.dimensions.today
+              }`),
         left: "center"
       },
       tooltip: {
         trigger: "axis",
         formatter: (params: Array<{ name: string; value: number }>) => {
           const point = params[0];
-          return `${point.name}<br/>兑换量: ${point.value}`;
+          return `${point.name}<br/>${t.dashboard.trend.chart.countLabel}: ${point.value}`;
         }
       },
       xAxis: {
@@ -89,11 +106,11 @@ export const TrendTab = () => {
       },
       yAxis: {
         type: "value",
-        name: "兑换量"
+        name: t.dashboard.trend.chart.countLabel
       },
       series: [
         {
-          name: "兑换量",
+          name: t.dashboard.trend.chart.countLabel,
           type: "line",
           data: data.map((item) => item.count),
           smooth: true,
@@ -131,20 +148,20 @@ export const TrendTab = () => {
       <Card size="small" style={{ marginBottom: 16 }}>
         <Row gutter={[16, 16]} align="middle">
           <Col>
-            <span>时间维度：</span>
+            <span>{t.dashboard.trend.labels.dimension}：</span>
             <Select value={dimension} onChange={setDimension} style={{ width: 120, marginLeft: 8 }}>
-              <Option value="year">今年</Option>
-              <Option value="month">当月</Option>
-              <Option value="today">今日</Option>
+              <Option value="year">{t.dashboard.trend.dimensions.year}</Option>
+              <Option value="month">{t.dashboard.trend.dimensions.month}</Option>
+              <Option value="today">{t.dashboard.trend.dimensions.today}</Option>
             </Select>
           </Col>
           <Col hidden={!isAdmin}>
-            <span>用户：</span>
+            <span>{t.dashboard.trend.labels.user}：</span>
             <Select
               value={selectedUser}
               onChange={setSelectedUser}
               style={{ width: 150, marginLeft: 8 }}
-              placeholder="全部用户"
+              placeholder={t.dashboard.trend.placeholders.allUsers}
               allowClear
             >
               {filterOptions.user_ids.map((user) => (
@@ -155,12 +172,12 @@ export const TrendTab = () => {
             </Select>
           </Col>
           <Col>
-            <span>应用：</span>
+            <span>{t.dashboard.trend.labels.app}：</span>
             <Select
               value={selectedAppId}
               onChange={setSelectedAppId}
               style={{ width: 150, marginLeft: 8 }}
-              placeholder="全部应用"
+              placeholder={t.dashboard.trend.placeholders.allApps}
               allowClear
             >
               {filterOptions.app_ids.map((app) => (
@@ -171,12 +188,12 @@ export const TrendTab = () => {
             </Select>
           </Col>
           <Col>
-            <span>应用商品：</span>
+            <span>{t.dashboard.trend.labels.product}：</span>
             <Select
               value={selectedProductId}
               onChange={setSelectedProductId}
               style={{ width: 150, marginLeft: 8 }}
-              placeholder="全部商品"
+              placeholder={t.dashboard.trend.placeholders.allProducts}
               allowClear
             >
               {filterOptions.product_ids
@@ -190,7 +207,7 @@ export const TrendTab = () => {
           </Col>
           <Col>
             <Button type="primary" icon={<ReloadOutlined />} onClick={fetchTrendData} loading={loading}>
-              刷新数据
+              {t.dashboard.trend.buttons.refresh}
             </Button>
           </Col>
         </Row>

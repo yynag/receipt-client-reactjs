@@ -2,29 +2,32 @@ import { Card, Tabs } from "antd";
 import { TrendTab } from "./TrendTab";
 import { CDKStatsTab } from "./CDKStatsTab";
 import { StockStatsTab } from "./StockStatsTab";
+import { getTranslation, type Language } from "../../translation";
 
-export const DashboardPage = () => {
+export const DashboardPage = ({ language = "zh" }: { language?: Language }) => {
+  const t = getTranslation(language);
+  
   const tabItems = [
     {
       key: "trend",
-      label: "兑换趋势",
-      children: <TrendTab />
+      label: t.dashboard.trendTab,
+      children: <TrendTab language={language} />
     },
     {
       key: "cdk-stats",
-      label: "CDK统计",
-      children: <CDKStatsTab />
+      label: t.dashboard.cdkStatsTab,
+      children: <CDKStatsTab language={language} />
     },
     {
       key: "stock-stats",
-      label: "库存统计",
-      children: <StockStatsTab />
+      label: t.dashboard.stockStatsTab,
+      children: <StockStatsTab language={language} />
     }
   ];
 
   return (
     <div>
-      <Card title="数据仪表盘" bordered={false}>
+      <Card title={t.dashboard.title} bordered={false}>
         <Tabs defaultActiveKey="trend" items={tabItems} />
       </Card>
     </div>

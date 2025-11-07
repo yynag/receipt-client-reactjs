@@ -1,4 +1,5 @@
 import { createContext, useReducer, useCallback, useEffect, type ReactNode } from "react";
+import type { Language } from "../translation";
 
 type Theme = "light" | "dark";
 type User = { id: string; user_id: string; role: string; token: string };
@@ -16,13 +17,16 @@ function getDeviceTheme(): Theme {
 interface State {
   theme: Theme;
   user: User | null;
+  language: Language;
 }
 
 type Action =
   | { type: "t_toggle_theme" }
   | { type: "t_set_theme"; payload: Theme }
   | { type: "t_set_user"; payload: User }
-  | { type: "t_logout" };
+  | { type: "t_logout" }
+  | { type: "t_set_language"; payload: Language }
+  | { type: "t_toggle_language" };
 
 type Reducer = (state: State, action: Action) => State;
 
@@ -43,19 +47,37 @@ const Reducer: Reducer = (state, action) => {
     case "t_logout":
       localStorage.removeItem("user");
       return { ...state, user: null };
+    case "t_set_language":
+      return { ...state, language: action.payload };
+    case "t_toggle_language": {
+      const newLanguage = state.language === "zh" ? "en" : "zh";
+      return { ...state, language: newLanguage };
+    }
   }
 };
 
 interface StoreContextType {
   theme: Theme;
   user: User | null;
+  language: Language;
   isAdmin: boolean;
   toggleTheme: () => void;
+  setLanguage: (language: Language) => void;
+  toggleLanguage: () => void;
   setUser: (user: User) => void;
   logout: () => void;
 }
 
 const StoreContext = createContext<StoreContextType | null>(null);
+
+const getBrowserLanguage = (): Language => {
+  try {
+    const lang = (navigator.language || "en").toLowerCase();
+    return lang.startsWith("zh") ? "zh" : "en";
+  } catch {
+    return "en";
+  }
+};
 
 const StoreProvider = ({ children }: { children: ReactNode }) => {
   const rawUser = localStorage.getItem("user");
@@ -74,7 +96,8 @@ const StoreProvider = ({ children }: { children: ReactNode }) => {
 
   const [state, dispatch] = useReducer(Reducer, {
     theme: getInitialTheme(),
-    user: rawUser ? JSON.parse(rawUser!) : null
+    user: rawUser ? JSON.parse(rawUser!) : null,
+    language: getBrowserLanguage()
   });
 
   // Listen for device theme changes (only if no manually set theme)
@@ -109,6 +132,14 @@ const StoreProvider = ({ children }: { children: ReactNode }) => {
     dispatch({ type: "t_toggle_theme" });
   }, []);
 
+  const setLanguage = useCallback((language: Language) => {
+    dispatch({ type: "t_set_language", payload: language });
+  }, []);
+
+  const toggleLanguage = useCallback(() => {
+    dispatch({ type: "t_toggle_language" });
+  }, []);
+
   const setUser = useCallback((user: User) => {
     dispatch({ type: "t_set_user", payload: user });
   }, []);
@@ -120,8 +151,11 @@ const StoreProvider = ({ children }: { children: ReactNode }) => {
   const contextValue: StoreContextType = {
     theme: state.theme,
     user: state.user,
+    language: state.language,
     isAdmin: state.user?.role === "admin",
     toggleTheme,
+    setLanguage,
+    toggleLanguage,
     setUser,
     logout
   };

@@ -10,9 +10,10 @@ import {
   ProFormText
 } from "@ant-design/pro-components";
 import { type ListUser, type UserFilterOptions, userApi } from "../../api/user";
+import { getTranslation, formatMessage, type Language } from "../../translation";
 import "./styles.css";
 
-export const UserPage = () => {
+export const UserPage = ({ language = "zh" }: { language?: Language }) => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<number[]>([]);
   const [allUsers, setAllUsers] = useState<ListUser[]>([]);
   const [filterOptions, setFilterOptions] = useState<UserFilterOptions>({
@@ -23,6 +24,7 @@ export const UserPage = () => {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState<ListUser | null>(null);
   const [messageApi, contextHolder] = message.useMessage();
+  const t = getTranslation(language);
 
   useEffect(() => {
     const fetchFilterOptions = async () => {
@@ -31,7 +33,7 @@ export const UserPage = () => {
         setFilterOptions(options);
       } catch (error) {
         console.error("获取筛选选项失败:", error);
-        messageApi.error("获取筛选选项失败");
+        messageApi.error(t.user.messages.getFilterOptionsError);
       }
     };
     fetchFilterOptions();
@@ -49,7 +51,7 @@ export const UserPage = () => {
       hidden: true
     },
     {
-      title: "创建时间",
+      title: t.user.columns.createdAt,
       dataIndex: "created_at",
       key: "created_at",
       width: 160,
@@ -58,7 +60,7 @@ export const UserPage = () => {
       sorter: true
     },
     {
-      title: "用户",
+      title: t.user.columns.user,
       dataIndex: "user_id",
       key: "user_id",
       width: 200,
@@ -68,38 +70,38 @@ export const UserPage = () => {
       render: (text) => <span className="user-id-cell">{text}</span>
     },
     {
-      title: "角色",
+      title: t.user.columns.role,
       dataIndex: "role",
       key: "role",
       width: 120,
       valueType: "select",
       valueEnum: {
-        admin: { text: "Admin", status: "Processing" },
-        instock: { text: "Instock", status: "Default" }
+        admin: { text: t.user.roles.admin, status: "Processing" },
+        instock: { text: t.user.roles.instock, status: "Default" }
       },
       render: (_, record: ListUser) => (
-        <Tag color={record.role === "admin" ? "blue" : "green"}>{record.role === "admin" ? "Admin" : "Instock"}</Tag>
+        <Tag color={record.role === "admin" ? "blue" : "green"}>{record.role === "admin" ? t.user.roles.admin : t.user.roles.instock}</Tag>
       )
     },
     {
-      title: "操作",
+      title: t.user.columns.actions,
       key: "action",
       width: 120,
       fixed: "right",
       search: false,
       render: (_, record: ListUser) => [
         <Button key="edit" type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)}>
-          编辑
+          {t.user.actions.edit}
         </Button>,
         <Popconfirm
           key="delete"
-          title="确定删除这个用户吗？"
+          title={t.user.actions.deleteConfirm}
           onConfirm={() => handleDelete(record.id)}
-          okText="确定"
-          cancelText="取消"
+          okText={t.common.confirm}
+          cancelText={t.common.cancel}
         >
           <Button type="link" danger size="small" icon={<DeleteOutlined />}>
-            删除
+            {t.user.actions.delete}
           </Button>
         </Popconfirm>
       ]
@@ -114,10 +116,10 @@ export const UserPage = () => {
   const handleDelete = async (id: number) => {
     try {
       await userApi.batchDelete([id]);
-      messageApi.success("删除成功");
+      messageApi.success(t.user.actions.deleteSuccess);
       actionRef.current?.reload();
     } catch {
-      messageApi.error("删除失败");
+      messageApi.error(t.user.actions.deleteError);
     }
   };
 
@@ -129,17 +131,17 @@ export const UserPage = () => {
 
     try {
       await userApi.batchDelete(selectedRowKeys);
-      messageApi.success(`成功删除 ${selectedRowKeys.length} 个用户`);
+      messageApi.success(formatMessage(t.user.actions.batchDeleteSuccess, { count: selectedRowKeys.length }));
       setSelectedRowKeys([]);
       actionRef.current?.reload();
     } catch {
-      messageApi.error("批量删除失败");
+      messageApi.error(t.user.actions.batchDeleteError);
     }
   };
 
   const handleBatchCopy = async () => {
     if (selectedRowKeys.length === 0) {
-      messageApi.warning("请选择要复制的用户");
+      messageApi.warning(t.user.messages.selectToCopy);
       return;
     }
 
@@ -147,27 +149,27 @@ export const UserPage = () => {
       const selectedUsers = allUsers.filter((item) => selectedRowKeys.includes(item.id));
 
       if (selectedUsers.length === 0) {
-        messageApi.error("未找到选中的用户数据");
+        messageApi.error(t.user.messages.notFound);
         return;
       }
 
       const copyText = selectedUsers
-        .map((user) => `${user.user_id} (${user.role === "admin" ? "Admin" : "库存管理"})`)
+        .map((user) => `${user.user_id} (${user.role === "admin" ? t.user.roles.admin : t.common.instock})`)
         .join("\n");
 
       await navigator.clipboard.writeText(copyText);
 
       notification.success({
-        message: "复制成功",
-        description: `已复制 ${selectedRowKeys.length} 个用户信息到剪切板`,
+        message: t.user.actions.copySuccess,
+        description: formatMessage(t.user.actions.copySuccessDesc, { count: selectedRowKeys.length }),
         placement: "topRight",
         duration: 3
       });
     } catch (error) {
       console.error("复制失败:", error);
       notification.error({
-        message: "复制失败",
-        description: "请重试",
+        message: t.user.actions.copyError,
+        description: t.user.actions.copyErrorDesc,
         placement: "topRight",
         duration: 3
       });
@@ -205,18 +207,18 @@ export const UserPage = () => {
         }}
         tableAlertRender={({ selectedRowKeys, onCleanSelected }) => (
           <span>
-            已选择 <a style={{ fontWeight: 600 }}>{selectedRowKeys.length}</a> 项
+            {t.common.selected} <a style={{ fontWeight: 600 }}>{selectedRowKeys.length}</a> 项
             <a style={{ marginLeft: 8 }} onClick={onCleanSelected}>
-              取消选择
+              {t.common.cancelSelection}
             </a>
           </span>
         )}
         tableAlertOptionRender={() => (
           <>
             <a onClick={handleBatchCopy} style={{ marginRight: 16 }}>
-              复制到剪切板
+              {t.user.actions.batchCopy}
             </a>
-            <a onClick={handleBatchDelete}>批量删除</a>
+            <a onClick={handleBatchDelete}>{t.user.actions.batchDelete}</a>
           </>
         )}
         columnsState={{
@@ -225,7 +227,7 @@ export const UserPage = () => {
         }}
         toolBarRender={() => [
           <Button key="add" type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalVisible(true)}>
-            新建
+            {t.user.actions.create}
           </Button>
         ]}
         pagination={{
@@ -234,11 +236,11 @@ export const UserPage = () => {
           pageSizeOptions: ["10", "20", "50", "100"]
         }}
         scroll={{ x: "max-content" }}
-        headerTitle="用户列表"
+        headerTitle={t.user.listTitle}
       />
 
       <ModalForm
-        title="新建用户"
+        title={t.user.createTitle}
         width="500px"
         open={createModalVisible}
         onOpenChange={setCreateModalVisible}
@@ -249,11 +251,11 @@ export const UserPage = () => {
               password: values.password,
               role: values.role
             });
-            messageApi.success("创建用户成功");
+            messageApi.success(t.user.form.createSuccess);
             actionRef.current?.reload();
             return true;
           } catch {
-            messageApi.error("创建用户失败");
+            messageApi.error(t.user.form.createError);
             return false;
           }
         }}
@@ -263,33 +265,33 @@ export const UserPage = () => {
       >
         <ProFormText
           name="user_id"
-          label="用户"
-          placeholder="请输入用户ID（邮箱或手机号）"
+          label={t.user.form.user}
+          placeholder={t.user.form.userPlaceholder}
           rules={[
-            { required: true, message: "请输入用户ID" },
+            { required: true, message: t.user.form.userRequired },
             {
               pattern: /^[a-zA-Z0-9@._-]+$/,
-              message: "用户ID只能包含字母、数字、@、.、_、-"
+              message: t.user.form.userPattern
             }
           ]}
         />
         <ProFormText
           name="password"
-          label="密码"
-          placeholder="请输入用户密码"
-          rules={[{ required: true, message: "请输入用户密码" }]}
+          label={t.user.form.password}
+          placeholder={t.user.form.passwordPlaceholder}
+          rules={[{ required: true, message: t.user.form.passwordRequired }]}
         />
         <ProFormSelect
           name="role"
-          label="角色"
-          placeholder="请选择角色"
+          label={t.user.form.role}
+          placeholder={t.user.form.rolePlaceholder}
           options={filterOptions.roles}
-          rules={[{ required: true, message: "请选择角色" }]}
+          rules={[{ required: true, message: t.user.form.roleRequired }]}
         />
       </ModalForm>
 
       <ModalForm
-        title="编辑用户"
+        title={t.user.editTitle}
         width="500px"
         open={editModalVisible}
         onOpenChange={setEditModalVisible}
@@ -309,13 +311,13 @@ export const UserPage = () => {
               user_id: values.user_id,
               role: values.role
             });
-            messageApi.success("更新用户成功");
+            messageApi.success(t.user.form.updateSuccess);
             actionRef.current?.reload();
             setEditModalVisible(false);
             setEditingUser(null);
             return true;
           } catch {
-            messageApi.error("更新用户失败");
+            messageApi.error(t.user.form.updateError);
             return false;
           }
         }}
@@ -325,23 +327,23 @@ export const UserPage = () => {
       >
         <ProFormText
           name="user_id"
-          label="用户"
-          placeholder="请输入用户ID（邮箱或手机号）"
+          label={t.user.form.user}
+          placeholder={t.user.form.userPlaceholder}
           rules={[
-            { required: true, message: "请输入用户ID" },
+            { required: true, message: t.user.form.userRequired },
             {
               pattern: /^[a-zA-Z0-9@._-]+$/,
-              message: "用户ID只能包含字母、数字、@、.、_、-"
+              message: t.user.form.userPattern
             }
           ]}
         />
-        <ProFormText name="password" label="密码" placeholder="请输入用户密码" />
+        <ProFormText name="password" label={t.user.form.password} placeholder={t.user.form.passwordPlaceholder} />
         <ProFormSelect
           name="role"
-          label="角色"
-          placeholder="请选择角色"
+          label={t.user.form.role}
+          placeholder={t.user.form.rolePlaceholder}
           options={filterOptions.roles}
-          rules={[{ required: true, message: "请选择角色" }]}
+          rules={[{ required: true, message: t.user.form.roleRequired }]}
         />
       </ModalForm>
     </div>

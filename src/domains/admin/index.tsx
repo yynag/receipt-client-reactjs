@@ -12,7 +12,8 @@ import {
   SunOutlined,
   MoonOutlined,
   MenuFoldOutlined,
-  MenuUnfoldOutlined
+  MenuUnfoldOutlined,
+  GlobalOutlined
 } from "@ant-design/icons";
 const { Header, Footer, Content, Sider } = Layout;
 import { useEffect, useState } from "react";
@@ -20,7 +21,10 @@ import { CDKPage } from "./pages/cdk";
 import { StockPage } from "./pages/stock";
 import { DashboardPage } from "./pages/dashboard";
 import { UserPage } from "./pages/user";
+import { getTranslation, type Language } from "./translation";
 import "./styles.css";
+import zhCN from "antd/locale/zh_CN";
+import enUS from "antd/locale/en_US";
 
 function AdminEntry() {
   return (
@@ -31,10 +35,11 @@ function AdminEntry() {
 }
 
 const ThemedAdminApp = () => {
-  const { theme } = useStore();
+  const { theme, language } = useStore();
 
   return (
     <ConfigProvider
+      locale={language == "zh" ? zhCN : enUS}
       theme={{
         algorithm: theme === "dark" ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
         token: {
@@ -80,9 +85,10 @@ const ThemedAdminApp = () => {
 };
 
 const AdminPage = () => {
-  const { user, isAdmin, toggleTheme, logout, theme } = useStore();
+  const { user, isAdmin, toggleTheme, logout, theme, language, toggleLanguage } = useStore();
   const [currentPage, setCurrentPage] = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
+  const t = getTranslation(language);
 
   useEffect(() => {
     if (typeof document === "undefined") {
@@ -98,7 +104,7 @@ const AdminPage = () => {
   if (localStorage.getItem("user_token") == null || user == null) {
     return (
       <Flex align="center" justify="center" className="h-full">
-        <LoginPage />
+        <LoginPage language={language} />
       </Flex>
     );
   }
@@ -109,23 +115,23 @@ const AdminPage = () => {
     {
       key: "dashboard",
       icon: <DashboardOutlined />,
-      label: "仪表盘"
+      label: t.layout.dashboard
     },
     {
       key: "cdk",
       icon: <KeyOutlined />,
-      label: "CDK管理"
+      label: t.layout.cdkManagement
     },
     {
       key: "stock",
       icon: <DatabaseOutlined />,
-      label: "库存管理"
+      label: t.layout.stockManagement
     },
     isAdmin
       ? {
           key: "user",
           icon: <TeamOutlined />,
-          label: "用户管理"
+          label: t.layout.userManagement
         }
       : null
   ];
@@ -147,7 +153,7 @@ const AdminPage = () => {
             {user.user_id}
           </div>
           <div className="text-xs" style={{ color: "var(--admin-text-secondary)" }}>
-            {isAdmin ? "Admin" : "Instock"}
+            {isAdmin ? t.common.admin : t.common.instock}
           </div>
         </div>
       ),
@@ -159,7 +165,7 @@ const AdminPage = () => {
     {
       key: "logout",
       icon: <LogoutOutlined />,
-      label: "退出登录",
+      label: t.layout.logout,
       onClick: handleLogout
     }
   ];
@@ -183,10 +189,16 @@ const AdminPage = () => {
               style={{ color: "var(--admin-text-inverse)" }}
             />
             <h1 className="text-xl font-bold m-0" style={{ color: "var(--admin-text-inverse)" }}>
-              凭证后台管理系统
+              {t.layout.headerTitle}
             </h1>
           </Flex>
           <Flex align="center" gap={12}>
+            <Switch
+              checked={language === "en"}
+              checkedChildren={<GlobalOutlined />}
+              unCheckedChildren={<GlobalOutlined />}
+              onChange={toggleLanguage}
+            />
             <Switch
               checked={theme === "dark"}
               checkedChildren={<MoonOutlined />}
@@ -229,7 +241,7 @@ const AdminPage = () => {
             backgroundColor: "var(--admin-bg-secondary)"
           }}
         >
-          <ContentPage page={currentPage} />
+          <ContentPage page={currentPage} language={language} />
         </Content>
       </Layout>
       <Footer
@@ -241,7 +253,7 @@ const AdminPage = () => {
           color: "var(--admin-text-secondary)"
         }}
       >
-        凭证后台管理系统 ©2025
+        {t.layout.footer}
       </Footer>
     </Layout>
   );
@@ -249,28 +261,18 @@ const AdminPage = () => {
 
 export default AdminEntry;
 
-const ContentPage = ({ page }: { page: string }) => {
+const ContentPage = ({ page, language }: { page: string; language: Language }) => {
   if (page === "dashboard") {
-    return <DashboardPage />;
+    return <DashboardPage language={language} />;
   }
   if (page === "cdk") {
-    return <CDKPage />;
+    return <CDKPage language={language} />;
   }
   if (page === "stock") {
-    return <StockPage />;
-  }
-  if (page === "voucher") {
-    return (
-      <div className="p-6">
-        <h2 className="text-2xl font-bold mb-6">凭证管理</h2>
-        <div className="p-6 rounded-lg shadow">
-          <p>凭证管理功能开发中...</p>
-        </div>
-      </div>
-    );
+    return <StockPage language={language} />;
   }
   if (page === "user") {
-    return <UserPage />;
+    return <UserPage language={language} />;
   }
   return (
     <Flex align="center" justify="center">

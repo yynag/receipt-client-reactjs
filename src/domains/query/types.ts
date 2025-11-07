@@ -1,11 +1,11 @@
-export type Language = 'zh' | 'en';
+export type Language = "zh" | "en";
 
-export type ThemePreference = 'light' | 'dark';
+export type ThemePreference = "light" | "dark";
 
-export type CdkStatus = 'used' | 'unused' | 'invalid';
+export type CdkStatus = "used" | "unused" | "invalid";
 
 export interface CdkResult {
   code: string;
   status: CdkStatus;
+  user: string;
 }
-

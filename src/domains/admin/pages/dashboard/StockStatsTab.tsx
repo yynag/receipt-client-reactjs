@@ -4,14 +4,16 @@ import { ReloadOutlined } from "@ant-design/icons";
 import { type FilterOptions } from "../../api/cdk";
 import { stockApi, type StockStatResponse } from "../../api/stock";
 import { useStore } from "../../store/hook";
+import { getTranslation, type Language } from "../../translation";
 
 const { Option } = Select;
 
 // Lazy load ECharts component
 const ReactECharts = lazy(() => import("echarts-for-react").then((module) => ({ default: module.default })));
 
-export const StockStatsTab = () => {
+export const StockStatsTab = ({ language = "zh" }: { language?: Language }) => {
   const { isAdmin } = useStore();
+  const t = getTranslation(language);
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({
     used: [],
     app_ids: [],
@@ -32,7 +34,8 @@ export const StockStatsTab = () => {
         setFilterOptions(options);
       })
       .catch((error) => {
-        messageApi.error("获取筛选选项失败", error);
+        messageApi.error(t.stock.messages.getFilterOptionsError);
+        console.error(error);
       });
   }, [messageApi]);
 
@@ -57,7 +60,7 @@ export const StockStatsTab = () => {
 
     return {
       title: {
-        text: "库存状态分布",
+        text: t.dashboard.stockStats.chart.title,
         left: "center"
       },
       tooltip: {
@@ -70,7 +73,7 @@ export const StockStatsTab = () => {
       },
       series: [
         {
-          name: "库存状态",
+          name: t.dashboard.stockStats.chart.seriesName,
           type: "pie",
           radius: ["40%", "70%"],
           center: ["60%", "50%"],
@@ -97,14 +100,14 @@ export const StockStatsTab = () => {
           data: [
             {
               value: statsData.used,
-              name: "已兑换",
+              name: t.dashboard.stockStats.chart.used,
               itemStyle: {
                 color: "#ff4d4f"
               }
             },
             {
               value: statsData.unused,
-              name: "未兑换",
+              name: t.dashboard.stockStats.chart.unused,
               itemStyle: {
                 color: "#1890ff"
               }
@@ -127,12 +130,12 @@ export const StockStatsTab = () => {
       <Card size="small" style={{ marginBottom: 16 }}>
         <Row gutter={[16, 16]} align="middle">
           <Col>
-            <span>应用筛选：</span>
+            <span>{t.dashboard.stockStats.labels.app}：</span>
             <Select
               value={selectedApp}
               onChange={setSelectedApp}
               style={{ width: 150, marginLeft: 8 }}
-              placeholder="全部应用"
+              placeholder={t.dashboard.stockStats.placeholders.allApps}
               allowClear
             >
               {filterOptions.app_ids.map((app) => (
@@ -143,12 +146,12 @@ export const StockStatsTab = () => {
             </Select>
           </Col>
           <Col>
-            <span>商品筛选：</span>
+            <span>{t.dashboard.stockStats.labels.product}：</span>
             <Select
               value={selectedProduct}
               onChange={setSelectedProduct}
               style={{ width: 150, marginLeft: 8 }}
-              placeholder="全部商品"
+              placeholder={t.dashboard.stockStats.placeholders.allProducts}
               allowClear
             >
               {filterOptions.product_ids
@@ -161,12 +164,12 @@ export const StockStatsTab = () => {
             </Select>
           </Col>
           <Col hidden={!isAdmin}>
-            <span>用户筛选：</span>
+            <span>{t.dashboard.stockStats.labels.user}：</span>
             <Select
               value={selectedUser}
               onChange={setSelectedUser}
               style={{ width: 150, marginLeft: 8 }}
-              placeholder="全部用户"
+              placeholder={t.dashboard.stockStats.placeholders.allUsers}
               allowClear
             >
               {filterOptions.user_ids.map((user) => (
@@ -178,9 +181,9 @@ export const StockStatsTab = () => {
           </Col>
           <Col>
             <Space>
-              <Button onClick={handleReset}>重置</Button>
+              <Button onClick={handleReset}>{t.dashboard.stockStats.buttons.reset}</Button>
               <Button type="primary" icon={<ReloadOutlined />} onClick={fetchStatsData} loading={loading}>
-                刷新数据
+                {t.dashboard.stockStats.buttons.refresh}
               </Button>
             </Space>
           </Col>
@@ -191,17 +194,17 @@ export const StockStatsTab = () => {
         <Row gutter={16} style={{ marginBottom: 16 }}>
           <Col span={8}>
             <Card>
-              <Statistic title="库存总量" value={statsData.unused + statsData.used} valueStyle={{ color: "#1890ff" }} />
+              <Statistic title={t.dashboard.stockStats.stats.total} value={statsData.unused + statsData.used} valueStyle={{ color: "#1890ff" }} />
             </Card>
           </Col>
           <Col span={8}>
             <Card>
-              <Statistic title="已出库" value={statsData.used} valueStyle={{ color: "#ff4d4f" }} />
+              <Statistic title={t.dashboard.stockStats.stats.used} value={statsData.used} valueStyle={{ color: "#ff4d4f" }} />
             </Card>
           </Col>
           <Col span={8}>
             <Card>
-              <Statistic title="库存中" value={statsData.unused} valueStyle={{ color: "#52c41a" }} />
+              <Statistic title={t.dashboard.stockStats.stats.unused} value={statsData.unused} valueStyle={{ color: "#52c41a" }} />
             </Card>
           </Col>
         </Row>

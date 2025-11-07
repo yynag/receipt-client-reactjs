@@ -223,7 +223,7 @@ export default function RedeemForm({
         setCdkStatus({ type: "success", message: statusCopy.success });
 
         if (!options.silent) {
-          const cdkMessage = `App: ${cdk.app_name}`;
+          const cdkMessage = `App: ${cdk.app_name}\nProduct: ${cdk.app_product_name}`;
           onNotify({
             type: "success",
             title: translation.form.step2,
