@@ -266,7 +266,7 @@ export const UserPage = ({ language = "zh" }: { language?: Language }) => {
               user_id: values.user_id,
               password: values.password,
               role: values.role,
-              amount: values.amount
+              amount: parseInt(values.amount)
             });
             messageApi.success(t.user.form.createSuccess);
             actionRef.current?.reload();
@@ -343,7 +343,7 @@ export const UserPage = ({ language = "zh" }: { language?: Language }) => {
               user_id: values.user_id,
               role: values.role,
               password: values.password,
-              amount: values.amount
+              amount: parseInt(values.amount)
             });
             messageApi.success(t.user.form.updateSuccess);
             actionRef.current?.reload();
