@@ -176,7 +176,7 @@ export const TrendTab = () => {
               value={selectedProductId}
               onChange={setSelectedProductId}
               style={{ width: 150, marginLeft: 8 }}
-              placeholder="全部产品"
+              placeholder="全部商品"
               allowClear
             >
               {filterOptions.product_ids

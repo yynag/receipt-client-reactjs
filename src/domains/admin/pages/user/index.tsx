@@ -58,7 +58,7 @@ export const UserPage = () => {
       sorter: true
     },
     {
-      title: "用户ID",
+      title: "用户",
       dataIndex: "user_id",
       key: "user_id",
       width: 200,
@@ -74,11 +74,11 @@ export const UserPage = () => {
       width: 120,
       valueType: "select",
       valueEnum: {
-        admin: { text: "管理员", status: "Processing" },
-        stock: { text: "库存管理", status: "Default" }
+        admin: { text: "Admin", status: "Processing" },
+        instock: { text: "Instock", status: "Default" }
       },
       render: (_, record: ListUser) => (
-        <Tag color={record.role === "admin" ? "blue" : "green"}>{record.role === "admin" ? "管理员" : "库存管理"}</Tag>
+        <Tag color={record.role === "admin" ? "blue" : "green"}>{record.role === "admin" ? "Admin" : "Instock"}</Tag>
       )
     },
     {
@@ -152,7 +152,7 @@ export const UserPage = () => {
       }
 
       const copyText = selectedUsers
-        .map((user) => `${user.user_id} (${user.role === "admin" ? "管理员" : "库存管理"})`)
+        .map((user) => `${user.user_id} (${user.role === "admin" ? "Admin" : "库存管理"})`)
         .join("\n");
 
       await navigator.clipboard.writeText(copyText);
@@ -263,7 +263,7 @@ export const UserPage = () => {
       >
         <ProFormText
           name="user_id"
-          label="用户ID"
+          label="用户"
           placeholder="请输入用户ID（邮箱或手机号）"
           rules={[
             { required: true, message: "请输入用户ID" },
@@ -325,7 +325,7 @@ export const UserPage = () => {
       >
         <ProFormText
           name="user_id"
-          label="用户ID"
+          label="用户"
           placeholder="请输入用户ID（邮箱或手机号）"
           rules={[
             { required: true, message: "请输入用户ID" },

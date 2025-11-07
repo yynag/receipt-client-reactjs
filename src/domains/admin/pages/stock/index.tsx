@@ -150,7 +150,7 @@ export const StockPage = () => {
         }
       },
       {
-        title: "App ID",
+        title: "应用",
         dataIndex: "app_id",
         key: "app_id",
         width: 100,
@@ -163,7 +163,7 @@ export const StockPage = () => {
         }
       },
       {
-        title: "产品ID",
+        title: "应用商品",
         dataIndex: "product_id",
         key: "product_id",
         width: 100,
@@ -191,7 +191,9 @@ export const StockPage = () => {
         key: "user_id",
         width: 120,
         valueType: "select",
-        valueEnum: userOptions
+        valueEnum: userOptions,
+        hidden: !isAdmin,
+        search: isAdmin
       },
       {
         title: "操作",
@@ -437,13 +439,13 @@ export const StockPage = () => {
               <Descriptions.Item label="ID">{stockDetail.ID}</Descriptions.Item>
               <Descriptions.Item label="创建时间">{stockDetail.CreatedAt}</Descriptions.Item>
               <Descriptions.Item label="更新时间">{stockDetail.updatedAt}</Descriptions.Item>
-              <Descriptions.Item label="App ID">{stockDetail.app_id}</Descriptions.Item>
+              <Descriptions.Item label="应用">{stockDetail.app_id}</Descriptions.Item>
               <Descriptions.Item label="设备ID">{stockDetail.device_id}</Descriptions.Item>
-              <Descriptions.Item label="产品ID">{stockDetail.product_id}</Descriptions.Item>
+              <Descriptions.Item label="应用商品">{stockDetail.product_id}</Descriptions.Item>
               <Descriptions.Item label="使用状态">
                 <Tag color={stockDetail.used ? "green" : "orange"}>{stockDetail.used ? "已使用" : "未使用"}</Tag>
               </Descriptions.Item>
-              <Descriptions.Item label="用户ID">{stockDetail.user_id || "-"}</Descriptions.Item>
+              <Descriptions.Item label="用户">{stockDetail.user_id || "-"}</Descriptions.Item>
               {stockDetail.raw_data && (
                 <Descriptions.Item label="原始数据">
                   <div

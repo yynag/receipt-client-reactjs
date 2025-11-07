@@ -84,8 +84,8 @@ export const userApi = {
     return new Promise((resolve) => {
       resolve({
         roles: [
-          { value: "admin", label: "管理员" },
-          { value: "instock", label: "库存管理" }
+          { value: "admin", label: "Admin" },
+          { value: "instock", label: "Instock" }
         ]
       });
     });

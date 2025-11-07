@@ -147,7 +147,7 @@ const AdminPage = () => {
             {user.user_id}
           </div>
           <div className="text-xs" style={{ color: "var(--admin-text-secondary)" }}>
-            管理员
+            {isAdmin ? "Admin" : "Instock"}
           </div>
         </div>
       ),

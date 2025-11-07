@@ -93,31 +93,6 @@ export const cdkApi = {
     };
   },
 
-  getFilterOptionsMock: async (): Promise<FilterOptions> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          used: [
-            { value: "true", label: "已使用" },
-            { value: "false", label: "未使用" }
-          ],
-          app_ids: Array.from({ length: 10 }, (_, i) => ({
-            value: `app_${i}`,
-            label: `App ${i}`
-          })),
-          product_ids: Array.from({ length: 50 }, (_, i) => ({
-            value: `product_${i}`,
-            label: `Product ${i}`
-          })),
-          user_ids: Array.from({ length: 10 }, (_, i) => ({
-            value: `admin_${i}`,
-            label: `Admin ${i}`
-          }))
-        });
-      }, 200);
-    });
-  },
-
   getTrendData: async (
     dimension: "year" | "month" | "today",
     userId?: string,

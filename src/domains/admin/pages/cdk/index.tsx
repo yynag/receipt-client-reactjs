@@ -144,7 +144,7 @@ export const CDKPage = () => {
         search: user?.role === "admin"
       },
       {
-        title: "App",
+        title: "应用",
         dataIndex: "app_id",
         key: "app_id",
         width: 120,
@@ -157,7 +157,7 @@ export const CDKPage = () => {
         }
       },
       {
-        title: "App产品",
+        title: "应用商品",
         dataIndex: "app_product_id",
         key: "app_product_id",
         width: 140,
@@ -354,25 +354,25 @@ export const CDKPage = () => {
       >
         <ProFormSelect
           name="appId"
-          label="App ID"
-          placeholder="请选择App ID"
+          label="应用"
+          placeholder="请选择应用"
           options={createFilterOptions.app_ids}
-          rules={[{ required: true, message: "请选择App ID" }]}
+          rules={[{ required: true, message: "请选择应用" }]}
           onChange={(value: string) => {
             setSelectedAppIdCreate(value);
           }}
         />
         <ProFormSelect
           name="productId"
-          label="产品ID"
-          placeholder="请选择产品ID"
+          label="应用商品"
+          placeholder="请选择应用商品"
           options={createFilterOptions.product_ids
             .filter((item) => !selectedAppIdCreate || item.value.includes(selectedAppIdCreate))
             .map((item) => ({
               label: item.label.split(".")[1],
               value: item.value.split(".")[1]
             }))}
-          rules={[{ required: true, message: "请选择产品ID" }]}
+          rules={[{ required: true, message: "请选择应用商品" }]}
           dependencies={[selectedAppIdCreate]}
         />
         <ProFormText

@@ -72,7 +72,7 @@
 - 初始化时清理旧 Key（若存在）以避免干扰：
   - 需删除的旧 Key：redeem_history / redeem_language / redeem_theme。
 
-5) 翻译与文案（中英文；每个产品引导不同，集中到产品目录）
+5) 翻译与文案（中英文；每个商品引导不同，集中到商品目录）
 - 保留中英文。
 - 通用：页面标题、副标题、按钮文案、表单占位、错误提示与成功提示保留原风格。
 - Discord 商品：沿用现有文案（与原 redeem-discord 保持一致）。
@@ -85,10 +85,10 @@
     3) 输入 CDK 卡密并完成充值（点击无响应，仅说明）
   - 表单标签：账号密钥（Access Token）、CDK 卡密
   - 成功弹窗：展示当前用户信息（按可用字段展示：email/name/id 等）
-- 所有“产品差异”的文案与引导统一放在：src/domains/redeem/products/{product}/ 下，便于扩展新产品。
+- 所有“商品差异”的文案与引导统一放在：src/domains/redeem/products/{product}/ 下，便于扩展新商品。
 
-6) API 适配（统一三接口 + 通过 X-Product-ID 区分产品；DEV 直连正式 API）
-- 所有产品共用三个接口，前端通过请求头携带 `X-Product-ID` 指示产品（取值：`discord` 或 `chatgpt`）：
+6) API 适配（统一三接口 + 通过 X-Product-ID 区分商品；DEV 直连正式 API）
+- 所有商品共用三个接口，前端通过请求头携带 `X-Product-ID` 指示商品（取值：`discord` 或 `chatgpt`）：
   - POST /external/public/user         # 校验 Access Token，并返回标准化用户信息
   - GET  /cdks/public/:code            # 校验 CDK
   - POST /stocks/public/outstock       # 兑换下发
@@ -169,7 +169,7 @@ function toDisplayUser(u) {
   return u.email || u.name || u.username || u.id || 'unknown';
 }
 
-附录 B：产品配置示例（src/domains/redeem/products/{product}/config.ts）
+附录 B：商品配置示例（src/domains/redeem/products/{product}/config.ts）
 
 export const productConfig = {
   discord: {

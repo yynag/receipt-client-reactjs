@@ -143,12 +143,12 @@ export const StockStatsTab = () => {
             </Select>
           </Col>
           <Col>
-            <span>产品筛选：</span>
+            <span>商品筛选：</span>
             <Select
               value={selectedProduct}
               onChange={setSelectedProduct}
               style={{ width: 150, marginLeft: 8 }}
-              placeholder="全部产品"
+              placeholder="全部商品"
               allowClear
             >
               {filterOptions.product_ids

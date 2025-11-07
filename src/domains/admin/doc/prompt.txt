@@ -91,7 +91,7 @@
 - 库存跟CDK差不多
 - 库存模型：ID、创建/更新日期时间、appID、deviceId、productId、used、user_id、raw_data
 - 列表只包括：ID、创建日期时间、appID、deviceId、productId、used、user_id，最后是 导出json、详情、删除 三个按钮
-- 筛选框：创建时间范围、AppID、App产品ID（API请求接口我来实现，目前用mock数据）
+- 筛选框：创建时间范围、AppID、App应用商品（API请求接口我来实现，目前用mock数据）
 - 数量多，包含分页功能。
 - 导出按钮：用户选择多项，然后序列化为JSON文件，zip打包下载
 - 导入按钮：上传json文件，上传到服务器（留接口，我来失效，目前用mock模拟），成功后手动触发刷新列表
@@ -132,9 +132,9 @@
 生成 src/domains/admin/pages/cdk/ 文件夹内的代码，src/domains/admin/index.ts 是父级模块，完成子模块的页面展示。
 - cdk模块主要是展示cdk数据，和创建、删除操作。
 - CDK模型：ID、CreatedAt、Code、used（是否被使用）、used_user（如果使用，使用人）、库存ID（如果使用）、上传人ID、AppID、AppProductID
-- 列表页面：包含 ID、创建时间、Code、是否被使用、使用用户、库存ID、创建人ID、AppID、App产品ID
+- 列表页面：包含 ID、创建时间、Code、是否被使用、使用用户、库存ID、创建人ID、AppID、App应用商品
 - 列表项最后列：删除
-- 搜索框（模糊搜索）：CDK、AppID、App产品ID
+- 搜索框（模糊搜索）：CDK、AppID、App应用商品
 - 可能数据量很大，支持分页
 - 批量操作：
   1. 批量导出CDK：序列化为json文件下载

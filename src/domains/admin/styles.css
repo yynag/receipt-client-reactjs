@@ -107,6 +107,15 @@
     color: var(--admin-menu-item-selected-icon) !important;
   }
 
+  body.admin-domain :is(
+      .ant-dropdown-menu,
+      .ant-dropdown-menu-item
+    ) {
+    background-color: var(--admin-control-surface) !important;
+    border-color: var(--admin-control-border) !important;
+    color: var(--admin-control-text) !important;
+  }
+
   body.admin-domain.dark :is(
       .ant-card,
       .ant-card-head,

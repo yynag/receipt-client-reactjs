@@ -47,7 +47,7 @@ export const LoginPage: React.FC = () => {
           title={
             <Flex align="center" gap="small">
               <UserOutlined />
-              管理员登录
+              用户登录
             </Flex>
           }
           style={{ width: 400 }}
