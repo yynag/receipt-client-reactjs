@@ -1,4 +1,4 @@
-import { baseUrl, request } from "./shared";
+import { baseUrl, request, setToken } from "./shared";
 
 interface User {
   id: string;
@@ -54,10 +54,6 @@ export interface FilterOption {
 export interface UserFilterOptions {
   roles: FilterOption[];
 }
-
-const setToken = (token: string): void => {
-  localStorage.setItem("user_token", token);
-};
 
 export const userApi = {
   login: async (username: string, password: string): Promise<User> => {

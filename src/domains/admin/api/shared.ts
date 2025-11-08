@@ -18,6 +18,10 @@ export const buildFilterOptions = (data: string[]) => {
   });
 };
 
+export const setToken = (token: string): void => {
+  localStorage.setItem("user_token", token);
+};
+
 const getToken = (): string | null => {
   return localStorage.getItem("user_token");
 };
@@ -39,6 +43,9 @@ export const request = async (input: string | URL | Request, init?: RequestInit)
   } else {
     console.error("token not found.");
   }
+
+  console.error(1231231);
+
   const response = await fetch(input, init);
 
   if (response.status === 401) {

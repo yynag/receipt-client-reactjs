@@ -103,12 +103,17 @@ const AdminPage = () => {
     };
   }, []);
 
+  const hasToken = () => localStorage.getItem("user_token") != null;
+
   useEffect(() => {
-    if (user == null) {
+    if (!hasToken()) {
       return;
     }
     const fetchData = async () => {
-      const u = await userApi.get(user.user_id);
+      if (!hasToken()) {
+        return;
+      }
+      const u = await userApi.get(user!.user_id);
       setUser2(u);
     };
     fetchData();
@@ -123,7 +128,7 @@ const AdminPage = () => {
     return `${user2.user_id} (${user2.total_amount}/${user2.consumed_amount})`;
   }, [user2]);
 
-  if (localStorage.getItem("user_token") == null || user == null) {
+  if (!hasToken() || user == null) {
     return (
       <Flex align="center" justify="center" className="h-full">
         <LoginPage language={language} />
