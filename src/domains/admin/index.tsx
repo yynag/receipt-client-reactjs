@@ -16,7 +16,7 @@ import {
   GlobalOutlined
 } from "@ant-design/icons";
 const { Header, Footer, Content, Sider } = Layout;
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CDKPage } from "./pages/cdk";
 import { StockPage } from "./pages/stock";
 import { DashboardPage } from "./pages/dashboard";
@@ -25,6 +25,7 @@ import { getTranslation, type Language } from "./translation";
 import "./styles.css";
 import zhCN from "antd/locale/zh_CN";
 import enUS from "antd/locale/en_US";
+import { userApi, type UserDetail } from "./api/user";
 
 function AdminEntry() {
   return (
@@ -88,6 +89,7 @@ const AdminPage = () => {
   const { user, isAdmin, toggleTheme, logout, theme, language, toggleLanguage } = useStore();
   const [currentPage, setCurrentPage] = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
+  const [user2, setUser2] = useState<UserDetail>();
   const t = getTranslation(language);
 
   useEffect(() => {
@@ -100,6 +102,26 @@ const AdminPage = () => {
       body.classList.remove("admin-domain");
     };
   }, []);
+
+  useEffect(() => {
+    if (user == null) {
+      return;
+    }
+    const fetchData = async () => {
+      const u = await userApi.get(user.user_id);
+      setUser2(u);
+    };
+    fetchData();
+    const timer = setInterval(fetchData, 5000);
+    return () => clearInterval(timer);
+  }, [user]);
+
+  const buildUserText = useMemo(() => {
+    if (user2 == null) {
+      return "";
+    }
+    return `${user2.user_id} (${user2.total_amount}/${user2.consumed_amount})`;
+  }, [user2]);
 
   if (localStorage.getItem("user_token") == null || user == null) {
     return (
@@ -207,7 +229,7 @@ const AdminPage = () => {
             />
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
               <Button type="text" icon={<UserOutlined />}>
-                {user.user_id}
+                {buildUserText}
               </Button>
             </Dropdown>
           </Flex>

@@ -1,10 +1,17 @@
-import { baseUrl, sleep, request } from "./shared";
+import { baseUrl, request } from "./shared";
 
 interface User {
   id: string;
   user_id: string;
   token: string;
   role: string;
+}
+
+export interface UserDetail {
+  user_id: string;
+  role: string;
+  total_amount: number;
+  consumed_amount: number;
 }
 
 export interface ListUser {
@@ -72,15 +79,14 @@ export const userApi = {
     return user;
   },
 
-  loginMock: async (username: string, password: string): Promise<User> => {
-    console.log("Mock login", username, password);
-    await sleep(1000);
-    return {
-      id: "1",
-      user_id: username,
-      role: "admin",
-      token: "mock-token"
-    };
+  get: async (userId: string): Promise<UserDetail> => {
+    const response = await request(`${baseUrl}/users/${encodeURIComponent(userId)}`, {
+      method: "GET"
+    });
+    if (!response.ok) {
+      throw new Error("Failed to fetch user: " + (await response.text()));
+    }
+    return await response.json();
   },
 
   getFilterOptions: async (): Promise<UserFilterOptions> => {

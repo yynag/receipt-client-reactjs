@@ -83,15 +83,14 @@ export async function verifyCdk(code: string, product: ProductSlug): Promise<Cdk
   return await response.json();
 }
 
-export async function redeem(cdk: string, user: string, app: string, product: ProductSlug): Promise<boolean> {
+export async function redeem(cdk: string, user: string, product: ProductSlug): Promise<boolean> {
   cdk = cdk.trim();
   user = user.trim();
-  app = app.trim();
 
-  if (cdk === "mock_ok" && user === "mock_ok" && app === "mock_ok") {
+  if (cdk === "mock_ok" && user === "mock_ok") {
     return true;
   }
-  if (cdk === "mock_fail" || user === "mock_fail" || app === "mock_fail") {
+  if (cdk === "mock_fail" || user === "mock_fail") {
     throw new Error("兑换失败：请稍后重试");
   }
 
@@ -102,7 +101,7 @@ export async function redeem(cdk: string, user: string, app: string, product: Pr
   const response = await fetch(`${BASE_URL}/stocks/public/outstock`, {
     method: "POST",
     headers,
-    body: JSON.stringify({ cdk: cdk, user: user, app: app })
+    body: JSON.stringify({ cdk: cdk, user: user })
   });
 
   if (!response.ok) {

@@ -268,7 +268,7 @@ export default function RedeemForm({
 
     setRedeeming(true);
     try {
-      await redeem(rawCdk, rawToken, verifiedCdk?.app_name?.toLocaleLowerCase() ?? "", product);
+      await redeem(rawCdk, rawToken, product);
 
       const userId = verifiedUser
         ? (() => {
@@ -357,6 +357,8 @@ export default function RedeemForm({
     productDef
   ]);
 
+  const isMobile = /Mobi|Android|iPhone|iPad|iPod|Phone/i.test(navigator.userAgent);
+
   const callAntiShaking = (cb: () => void) => {
     if (validated) return;
     setValidated(true);
@@ -375,6 +377,7 @@ export default function RedeemForm({
   };
 
   const handleTokenBlur = () => {
+    if (!isMobile) return;
     callAntiShaking(() => {
       handleTokenValidation();
     });
@@ -390,6 +393,7 @@ export default function RedeemForm({
   };
 
   const handleCdkBlur = () => {
+    if (!isMobile) return;
     callAntiShaking(() => {
       handleCdkValidation();
     });
