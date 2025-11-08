@@ -66,9 +66,7 @@ function ProductNotFound({ product }: { product?: string }) {
     <div className="redeem-page">
       <div className="glass-card max-w-3xl w-full mx-auto p-6 mt-10 text-center space-y-4">
         <h1 className="text-3xl font-bold">404</h1>
-        <p className="text-base">
-          {product ? `Product "${product}" is not available.` : "Product not specified."}
-        </p>
+        <p className="text-base">{product ? `Product "${product}" is not available.` : "Product not specified."}</p>
         <p className="text-sm text-subtle">Available products: {supportedProducts.join(", ")}</p>
       </div>
     </div>
@@ -97,10 +95,11 @@ function RedeemProductView({ definition }: { definition: ProductDefinition }) {
     setThemeState(readStoredTheme(themeStorageKey));
   }, [historyStorageKey, languageStorageKey, themeStorageKey]);
 
-  const translation = useMemo(
-    () => getTranslation(language, translationOverrides[language]),
-    [language, translationOverrides]
-  );
+  const t = useMemo(() => getTranslation(language, translationOverrides[language]), [language, translationOverrides]);
+
+  useEffect(() => {
+    document.title = t.pageTitle;
+  }, [t.pageTitle]);
 
   useEffect(() => {
     if (!isBrowser) {
@@ -191,7 +190,7 @@ function RedeemProductView({ definition }: { definition: ProductDefinition }) {
   const handleToggleTheme = () => {
     setThemeState((prev) => ({
       theme: prev.theme === "dark" ? "light" : "dark",
-      manual: true,
+      manual: true
     }));
   };
 
@@ -212,8 +211,8 @@ function RedeemProductView({ definition }: { definition: ProductDefinition }) {
       <header className="glass-card max-w-5xl w-full mx-auto p-4 mt-4 mb-2">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold mb-1">{translation.pageTitle}</h1>
-            <p className="text-sm text-subtle">{translation.subTitle}</p>
+            <h1 className="text-2xl font-bold mb-1">{t.pageTitle}</h1>
+            <p className="text-sm text-subtle">{t.subTitle}</p>
           </div>
           <div className="flex items-center gap-3">
             <button type="button" className="language-toggle" onClick={handleToggleLanguage}>
@@ -230,18 +229,13 @@ function RedeemProductView({ definition }: { definition: ProductDefinition }) {
       <main className="max-w-5xl w-full mx-auto p-4 glass-card">
         <div className="flex flex-wrap lg:flex-nowrap gap-6">
           <div className="w-full lg:w-1/3">
-            <GuidePanel
-              title={translation.guideTitle}
-              sections={translation.guide}
-              onNotify={handleNotify}
-              okText={translation.buttons.confirm}
-            />
+            <GuidePanel title={t.guideTitle} sections={t.guide} onNotify={handleNotify} okText={t.buttons.confirm} />
           </div>
           <div className="w-full lg:w-2/3">
             <RedeemForm
               product={slug}
               language={language}
-              translation={translation}
+              translation={t}
               onNotify={handleNotify}
               onAddHistory={handleAddHistory}
               onOpenHistory={() => setHistoryOpen(true)}
@@ -251,16 +245,16 @@ function RedeemProductView({ definition }: { definition: ProductDefinition }) {
       </main>
 
       <footer className="glass-card max-w-5xl w-full mx-auto p-4 mt-2 text-center text-sm opacity-75">
-        {translation.footerStatement}
+        {t.footerStatement}
       </footer>
 
       <HistoryModal
         open={historyOpen}
         onClose={() => setHistoryOpen(false)}
         records={history}
-        title={translation.history.title}
-        emptyText={translation.history.empty}
-        columnLabels={translation.history.columns}
+        title={t.history.title}
+        emptyText={t.history.empty}
+        columnLabels={t.history.columns}
       />
 
       <ConfirmModal
@@ -269,7 +263,7 @@ function RedeemProductView({ definition }: { definition: ProductDefinition }) {
         title={confirmPayload?.title ?? ""}
         message={confirmPayload?.message ?? ""}
         description={confirmPayload?.description}
-        okText={confirmPayload?.okText ?? translation.buttons.close}
+        okText={confirmPayload?.okText ?? t.buttons.close}
         onClose={handleCloseConfirm}
         onOk={confirmPayload?.onOk}
       />

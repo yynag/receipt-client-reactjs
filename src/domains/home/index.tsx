@@ -20,6 +20,10 @@ function HomeEntry() {
   const navigate = useNavigate();
   const [theme, setTheme] = useState<"light" | "dark">(getDeviceTheme());
 
+  useEffect(() => {
+    document.title = "Home";
+  }, []);
+
   // Reset theme to device theme on page load
   useEffect(() => {
     if (!isBrowser) {

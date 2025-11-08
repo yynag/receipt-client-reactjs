@@ -41,6 +41,10 @@ export default function QueryPage() {
   const unused = results.filter((r) => r.status === "unused").length;
 
   useEffect(() => {
+    document.title = t.title;
+  }, [t.title]);
+
+  useEffect(() => {
     if (!isBrowser) return;
     window.localStorage.setItem(LANGUAGE_KEY, language);
   }, [language]);

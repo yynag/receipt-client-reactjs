@@ -93,6 +93,10 @@ const AdminPage = () => {
   const t = getTranslation(language);
 
   useEffect(() => {
+    document.title = t.layout.headerTitle;
+  }, [t.layout.headerTitle]);
+
+  useEffect(() => {
     if (typeof document === "undefined") {
       return;
     }
