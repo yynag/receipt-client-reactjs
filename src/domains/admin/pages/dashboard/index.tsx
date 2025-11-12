@@ -2,6 +2,7 @@ import { Card, Tabs } from "antd";
 import { TrendTab } from "./TrendTab";
 import { CDKStatsTab } from "./CDKStatsTab";
 import { StockStatsTab } from "./StockStatsTab";
+import "./styles.css";
 import { getTranslation, type Language } from "../../translation";
 
 export const DashboardPage = ({ language = "zh" }: { language?: Language }) => {

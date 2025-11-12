@@ -67,6 +67,14 @@ export interface StockStatResponse {
   unused: number;
 }
 
+export interface AppProductStockStatItem {
+  app_id: string;
+  product_id: string;
+  used: number;
+  unused: number;
+  user_id?: string;
+}
+
 export interface FilterOptionResponse {
   users: string[];
   app_ids: string[];
@@ -181,6 +189,31 @@ export const stockApi = {
         });
       }, 300);
     });
+  },
+
+  // Grouped by App-Product statistics for stacked bar chart
+  getStockAppProductStats: async (
+    app_id?: string,
+    product_id?: string,
+    user_id?: string
+  ): Promise<AppProductStockStatItem[]> => {
+    let url = `${baseUrl}/stocks/stats/used?a=b`;
+    if (app_id) {
+      url += `&app_id=${encodeURIComponent(app_id)}`;
+    }
+    if (product_id) {
+      url += `&product_id=${encodeURIComponent(product_id)}`;
+    }
+    if (user_id) {
+      url += `&user_id=${encodeURIComponent(user_id)}`;
+    }
+    const response = await request(url, {
+      method: "GET"
+    });
+    if (!response.ok) {
+      throw new Error("Failed to request stock app-product stats" + (await response.text()));
+    }
+    return await response.json();
   },
 
   batchDelete: async (ids: number[]): Promise<void> => {

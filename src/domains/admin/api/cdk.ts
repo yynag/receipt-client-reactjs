@@ -67,6 +67,14 @@ export interface CDKStatResponse {
   unused: number;
 }
 
+export interface AppProductStatItem {
+  app_id: string;
+  product_id: string;
+  user_id?: string;
+  used: number;
+  unused: number;
+}
+
 export interface FilterOptionResponse {
   users: string[];
   app_ids: string[];
@@ -192,6 +200,26 @@ export const cdkApi = {
         });
       }, 300);
     });
+  },
+
+  getCDKAppProductStats: async (appId?: string, productId?: string, userId?: string): Promise<AppProductStatItem[]> => {
+    let url = `${baseUrl}/cdks/stats/used?a=b`;
+    if (appId) {
+      url += `&app_id=${encodeURIComponent(appId)}`;
+    }
+    if (productId) {
+      url += `&product_id=${encodeURIComponent(productId)}`;
+    }
+    if (userId) {
+      url += `&user_id=${encodeURIComponent(userId)}`;
+    }
+    const response = await request(url, {
+      method: "GET"
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to request CDK app-product stats: ${await response.text()}`);
+    }
+    return await response.json();
   },
 
   getList: async (params: CDKListParams): Promise<CDKListResponse> => {

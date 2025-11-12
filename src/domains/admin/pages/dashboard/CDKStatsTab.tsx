@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { Card, Row, Col, Select, Button, Statistic, Space, Spin, message } from "antd";
-import { ReloadOutlined } from "@ant-design/icons";
-import { cdkApi, type FilterOptions, type CDKStatResponse } from "../../api/cdk";
+import { ReloadOutlined, LeftOutlined, RightOutlined } from "@ant-design/icons";
+import { cdkApi, type FilterOptions, type AppProductStatItem } from "../../api/cdk";
 import { useStore } from "../../store/hook";
 import { getTranslation, type Language } from "../../translation";
 
@@ -20,11 +20,13 @@ export const CDKStatsTab = ({ language = "zh" }: { language?: Language }) => {
     user_ids: []
   });
   const [messageApi, contextHolder] = message.useMessage();
-  const [statsData, setStatsData] = useState<CDKStatResponse | null>(null);
+  const [statsData, setStatsData] = useState<AppProductStatItem[] | null>(null);
   const [selectedApp, setSelectedApp] = useState<string>("");
   const [selectedProduct, setSelectedProduct] = useState<string>("");
   const [selectedUploader, setSelectedUploader] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const WINDOW_SIZE = 10;
+  const [viewStart, setViewStart] = useState(0);
 
   useEffect(() => {
     cdkApi
@@ -41,7 +43,7 @@ export const CDKStatsTab = ({ language = "zh" }: { language?: Language }) => {
   const fetchStatsData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await cdkApi.getCDKStats(
+      const response = await cdkApi.getCDKAppProductStats(
         selectedApp || undefined,
         selectedProduct || undefined,
         selectedUploader || undefined
@@ -58,67 +60,97 @@ export const CDKStatsTab = ({ language = "zh" }: { language?: Language }) => {
     fetchStatsData();
   }, [fetchStatsData]);
 
-  const getPieChartOption = () => {
-    if (!statsData) return {};
+  // Reset scroll window when data or filters change
+  useEffect(() => {
+    setViewStart(0);
+  }, [selectedApp, selectedProduct, selectedUploader, statsData]);
+
+  const aggregate = () => {
+    if (!statsData) return { labels: [], usedData: [], unusedData: [] };
+    const appLabel = (appId: string) => filterOptions.app_ids.find((a) => a.value === appId)?.label || appId;
+    const productLabel = (appId: string, productId: string) =>
+      filterOptions.product_ids.find((p) => p.value === `${appId}.${productId}`)?.label.split(".")[1] || productId;
+    const filtered = statsData.filter((item) => {
+      if (selectedApp && item.app_id !== selectedApp) return false;
+      if (selectedProduct && item.product_id !== selectedProduct) return false;
+      if (selectedUploader && item.user_id && item.user_id !== selectedUploader) return false;
+      return true;
+    });
+    const grouped = new Map<string, { used: number; unused: number }>();
+    filtered.forEach((item) => {
+      const label = `${appLabel(item.app_id)}\n${productLabel(item.app_id, item.product_id)}`;
+      if (!grouped.has(label)) grouped.set(label, { used: 0, unused: 0 });
+      const agg = grouped.get(label)!;
+      agg.used += item.used || 0;
+      agg.unused += item.unused || 0;
+    });
+    const labels = Array.from(grouped.keys());
+    const usedData = labels.map((l) => grouped.get(l)!.used);
+    const unusedData = labels.map((l) => grouped.get(l)!.unused);
+    return { labels, usedData, unusedData };
+  };
+
+  const getBarChartOption = () => {
+    const { labels, usedData, unusedData } = aggregate();
+    const windowSize = Math.min(labels.length, WINDOW_SIZE);
+    const maxStart = Math.max(0, labels.length - windowSize);
+    const start = Math.min(viewStart, maxStart);
+    const end = Math.min(start + windowSize, labels.length);
+    const pageLabels = labels.slice(start, end);
+    const pageUsedData = usedData.slice(start, end);
+    const pageUnusedData = unusedData.slice(start, end);
+    const gridBottom = 80;
 
     return {
-      title: {
-        text: t.dashboard.cdkStats.chart.title,
-        left: "center"
+      animation: false,
+      animationDuration: 0,
+      animationDurationUpdate: 0,
+      tooltip: { trigger: "axis", axisPointer: { type: "line", lineStyle: { width: 1 } } },
+      legend: { data: [t.dashboard.cdkStats.chart.used, t.dashboard.cdkStats.chart.unused] },
+      grid: { left: 40, right: 20, bottom: gridBottom, top: 30, containLabel: true },
+      xAxis: {
+        type: "category",
+        data: pageLabels,
+        axisLabel: { interval: 0, rotate: 0, fontSize: 14, lineHeight: 18, margin: 12 },
+        axisTick: { alignWithLabel: true }
       },
-      tooltip: {
-        trigger: "item",
-        formatter: "{a} <br/>{b}: {c} ({d}%)"
-      },
-      legend: {
-        orient: "vertical",
-        left: "left"
-      },
+      yAxis: { type: "value" },
       series: [
         {
-          name: t.dashboard.cdkStats.chart.seriesName,
-          type: "pie",
-          radius: ["40%", "70%"],
-          center: ["60%", "50%"],
-          avoidLabelOverlap: false,
-          itemStyle: {
-            borderRadius: 10,
-            borderColor: "#fff",
-            borderWidth: 2
-          },
-          label: {
-            show: false,
-            position: "center"
-          },
-          emphasis: {
-            label: {
-              show: true,
-              fontSize: "20",
-              fontWeight: "bold"
-            }
-          },
-          labelLine: {
-            show: false
-          },
-          data: [
-            {
-              value: statsData.used,
-              name: t.dashboard.cdkStats.chart.used,
-              itemStyle: {
-                color: "#ff4d4f"
-              }
-            },
-            {
-              value: statsData.unused,
-              name: t.dashboard.cdkStats.chart.unused,
-              itemStyle: {
-                color: "#1890ff"
-              }
-            }
-          ]
+          name: t.dashboard.cdkStats.chart.used,
+          type: "bar",
+          stack: "total",
+          animation: false,
+          itemStyle: { color: "#ff4d4f" },
+          barWidth: 36,
+          label: { show: true, position: "inside", color: "#fff", fontSize: 12 },
+          data: pageUsedData
+        },
+        {
+          name: t.dashboard.cdkStats.chart.unused,
+          type: "bar",
+          stack: "total",
+          animation: false,
+          itemStyle: { color: "#1890ff" },
+          barWidth: 36,
+          label: { show: true, position: "inside", color: "#fff", fontSize: 12 },
+          data: pageUnusedData
         }
       ]
     };
+  };
+
+  const totalLabels = () => aggregate().labels.length;
+  const handlePrev = () => {
+    const total = totalLabels();
+    const windowSize = Math.min(total, WINDOW_SIZE);
+    setViewStart((s) => Math.max(0, s - windowSize));
+  };
+  const handleNext = () => {
+    const total = totalLabels();
+    const windowSize = Math.min(total, WINDOW_SIZE);
+    const maxStart = Math.max(0, total - windowSize);
+    setViewStart((s) => Math.min(maxStart, s + windowSize));
   };
 
   const handleReset = () => {
@@ -197,17 +229,29 @@ export const CDKStatsTab = ({ language = "zh" }: { language?: Language }) => {
         <Row gutter={16} style={{ marginBottom: 16 }}>
           <Col span={8}>
             <Card>
-              <Statistic title={t.dashboard.cdkStats.stats.total} value={statsData.used + statsData.unused} valueStyle={{ color: "#1890ff" }} />
+              <Statistic
+                title={t.dashboard.cdkStats.stats.total}
+                value={statsData.reduce((sum, i) => sum + (i.used || 0) + (i.unused || 0), 0)}
+                valueStyle={{ color: "#1890ff" }}
+              />
             </Card>
           </Col>
           <Col span={8}>
             <Card>
-              <Statistic title={t.dashboard.cdkStats.stats.used} value={statsData.used} valueStyle={{ color: "#52c41a" }} />
+              <Statistic
+                title={t.dashboard.cdkStats.stats.used}
+                value={statsData.reduce((sum, i) => sum + (i.used || 0), 0)}
+                valueStyle={{ color: "#52c41a" }}
+              />
             </Card>
           </Col>
           <Col span={8}>
             <Card>
-              <Statistic title={t.dashboard.cdkStats.stats.unused} value={statsData.unused} valueStyle={{ color: "#faad14" }} />
+              <Statistic
+                title={t.dashboard.cdkStats.stats.unused}
+                value={statsData.reduce((sum, i) => sum + (i.unused || 0), 0)}
+                valueStyle={{ color: "#faad14" }}
+              />
             </Card>
           </Col>
         </Row>
@@ -217,8 +261,37 @@ export const CDKStatsTab = ({ language = "zh" }: { language?: Language }) => {
         <Suspense
           fallback={<Spin size="large" style={{ display: "block", textAlign: "center", padding: "100px 0" }} />}
         >
-          <ReactECharts option={getPieChartOption()} style={{ height: 400 }} notMerge={true} lazyUpdate={true} />
+          <ReactECharts option={getBarChartOption()} style={{ height: 400 }} notMerge={true} lazyUpdate={true} />
         </Suspense>
+        <div
+          className="dashboard-pager"
+          style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 12, marginTop: 8 }}
+        >
+          <span style={{ fontSize: 12, color: "#888" }}>
+            {(() => {
+              const total = totalLabels();
+              const totalPages = Math.max(1, Math.ceil(total / WINDOW_SIZE));
+              const current = Math.min(totalPages, Math.floor(viewStart / WINDOW_SIZE) + 1);
+              return `第 ${current} / ${totalPages} 页`;
+            })()}
+          </span>
+          <Space>
+            <Button icon={<LeftOutlined />} onClick={handlePrev} disabled={viewStart <= 0}>
+              上一页
+            </Button>
+            <Button
+              icon={<RightOutlined />}
+              onClick={handleNext}
+              disabled={(() => {
+                const total = totalLabels();
+                const windowSize = Math.min(total, WINDOW_SIZE);
+                return viewStart + windowSize >= total;
+              })()}
+            >
+              下一页
+            </Button>
+          </Space>
+        </div>
       </Card>
     </div>
   );

@@ -9,6 +9,7 @@ import { saveAs } from "file-saver";
 import { ProTable, type ActionType, type ProColumns } from "@ant-design/pro-components";
 import { useStore } from "../../store/hook";
 import { getTranslation, formatMessage, type Language } from "../../translation";
+import { externalApi } from "../../api/external";
 
 export const StockPage = ({ language = "zh" }: { language?: Language }) => {
   const { isAdmin } = useStore();
@@ -22,11 +23,14 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
   });
   const actionRef = useRef<ActionType>(null);
   const [importModalVisible, setImportModalVisible] = useState(false);
+  const [batchImportModalVisible, setBatchImportModalVisible] = useState(false);
   // const [detailDrawerVisible, setDetailDrawerVisible] = useState(false);
   // const [stockDetail, setStockDetail] = useState<Stock | null>(null);
   // const [detailLoading, setDetailLoading] = useState(false);
   const [uploadFileList, setUploadFileList] = useState<UploadFile[]>([]);
+  const [batchUploadFileList, setBatchUploadFileList] = useState<UploadFile[]>([]);
   const [importing, setImporting] = useState(false);
+  const [batchImporting, setBatchImporting] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const [selectedAppId, setSelectedAppId] = useState<string>();
   const t = getTranslation(language);
@@ -238,6 +242,18 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterOptions, handleDelete, handleSingleExport, selectedAppId]);
 
+  const handleBatchImport = async (list?: string[]) => {
+    if (!list) {
+      setBatchImportModalVisible(true);
+      return;
+    }
+    for (const item of list) {
+      await externalApi.importFromFM(item);
+    }
+    setBatchImportModalVisible(false);
+    setBatchUploadFileList([]);
+  };
+
   const handleBatchExport = async () => {
     if (selectedRowKeys.length === 0) {
       messageApi.warning(t.stock.messages.selectToExport);
@@ -321,6 +337,58 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
     }
   };
 
+  const batchUploadProps = {
+    multiple: true,
+    accept: ".json",
+    beforeUpload: (file: File) => {
+      // 阻止自动上传，加入列表
+      setBatchUploadFileList((prev) => [
+        ...prev,
+        {
+          uid: `${Date.now()}-${file.name}-${Math.random()}`,
+          name: file.name,
+          status: "done",
+          originFileObj: file
+        } as UploadFile
+      ]);
+      return false;
+    },
+    fileList: batchUploadFileList,
+    onRemove: (file: UploadFile) => {
+      setBatchUploadFileList((prev) => prev.filter((f) => f.uid !== file.uid));
+    }
+  };
+
+  const handleConfirmBatchImport = async () => {
+    if (batchUploadFileList.length === 0) {
+      messageApi.warning("请先选择要导入的 JSON 文件");
+      return;
+    }
+    console.error(11111);
+    setBatchImporting(true);
+    try {
+      const result: string[] = [];
+      for (const uf of batchUploadFileList) {
+        const file = uf.originFileObj as File | undefined;
+        if (!file) continue;
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        if (Array.isArray(parsed)) {
+          result.push(...parsed);
+        } else if (typeof parsed === "object") {
+          result.push(JSON.stringify(parsed));
+        } else {
+          throw new Error("Not a valid JSON array or string");
+        }
+      }
+      await handleBatchImport(result);
+    } catch (e) {
+      messageApi.error("批量导入失败: " + e);
+    } finally {
+      setBatchImporting(false);
+    }
+  };
+
   return (
     <Suspense fallback={<Spin size="large" style={{ display: "block", textAlign: "center", padding: "100px 0" }} />}>
       {contextHolder}
@@ -380,6 +448,9 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
             // <Button key="import" icon={<ImportOutlined />} onClick={() => setImportModalVisible(true)}>
             //   {t.stock.actions.importJson}
             // </Button>,
+            <Button key="batch-import-fm" icon={<UploadOutlined />} onClick={() => handleBatchImport()}>
+              批量导入FM
+            </Button>,
             isAdmin && (
               <Button
                 key="batch-export"
@@ -425,6 +496,31 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
               </p>
               <p className="ant-upload-text">{t.stock.upload.dragText}</p>
               <p className="ant-upload-hint">{t.stock.upload.dragHint}</p>
+            </Upload.Dragger>
+          </div>
+        </Modal>
+
+        <Modal
+          title="批量导入FM"
+          open={batchImportModalVisible}
+          onCancel={() => {
+            setBatchImportModalVisible(false);
+            setBatchUploadFileList([]);
+          }}
+          onOk={handleConfirmBatchImport}
+          confirmLoading={batchImporting}
+          okText="开始导入"
+          cancelText={t.common.cancel}
+          width="640px"
+        >
+          <div style={{ padding: "12px 0" }}>
+            <p style={{ marginBottom: 8, opacity: 0.85 }}>支持选择多个 .json 文件，解析为字符串数组后提交。</p>
+            <Upload.Dragger {...batchUploadProps} disabled={batchImporting}>
+              <p className="ant-upload-drag-icon">
+                <UploadOutlined />
+              </p>
+              <p className="ant-upload-text">点击或拖拽 JSON 文件到此处</p>
+              <p className="ant-upload-hint">可一次选择多个文件，内容将自动解析</p>
             </Upload.Dragger>
           </div>
         </Modal>
