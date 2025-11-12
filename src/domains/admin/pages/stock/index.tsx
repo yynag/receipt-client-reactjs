@@ -374,7 +374,7 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
         const text = await file.text();
         const parsed = JSON.parse(text);
         if (Array.isArray(parsed)) {
-          result.push(...parsed);
+          result.push(...parsed.map((it) => JSON.stringify(it)));
         } else if (typeof parsed === "object") {
           result.push(JSON.stringify(parsed));
         } else {
@@ -382,6 +382,7 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
         }
       }
       await handleBatchImport(result);
+      messageApi.success("批量导入成功");
     } catch (e) {
       messageApi.error("批量导入失败: " + e);
     } finally {
