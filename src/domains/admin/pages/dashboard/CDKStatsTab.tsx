@@ -38,6 +38,7 @@ export const CDKStatsTab = ({ language = "zh" }: { language?: Language }) => {
         messageApi.error(t.cdk.messages.getFilterOptionsError);
         console.error(error);
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messageApi]);
 
   const fetchStatsData = useCallback(async () => {

@@ -1,8 +1,15 @@
 import { baseUrl, request } from "./shared";
 
 export const externalApi = {
-  importFromFM: async (raw: string): Promise<void> => {
-    const response = await request(`${baseUrl}/external/in-stock/fm`, {
+  /**
+   * @param raw 需要注入country
+   * @returns
+   */
+  importFromRaw: async (raw: string): Promise<void> => {
+    if (!raw.includes("country")) {
+      throw new Error("country not found.");
+    }
+    const response = await request(`${baseUrl}/external/in-stock/raw`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

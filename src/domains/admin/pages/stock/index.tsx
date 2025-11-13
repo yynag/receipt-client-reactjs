@@ -255,7 +255,7 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
       return;
     }
     for (const item of list) {
-      await externalApi.importFromFM(item);
+      await externalApi.importFromRaw(item);
     }
     setBatchImportModalVisible(false);
     setBatchUploadFileList([]);
@@ -381,10 +381,16 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
         const text = (await file.text()).trim();
         if (text.charAt(0) === "#") {
           // 特殊处理
+          const sharp2 = text.indexOf("#", 1);
+          const country = text.substring(1, sharp2);
           const lines = text
-            .substring(1, text.length)
+            .substring(sharp2 + 1, text.length)
             .split("\n")
-            .map((a) => a.trim());
+            .map((a) => {
+              const b = JSON.parse(a.trim());
+              b["country"] = country;
+              return JSON.stringify(b);
+            });
           result.push(...lines);
         } else if (text.charAt(0) === "[") {
           // 数组
@@ -397,6 +403,7 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
           throw new Error("不支持的文件格式");
         }
       }
+      console.log("00000");
       await handleBatchImport(result);
       messageApi.success("批量导入成功");
     } catch (e) {
@@ -463,7 +470,7 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
             // <Button key="import" icon={<ImportOutlined />} onClick={() => setImportModalVisible(true)}>
             //   {t.stock.actions.importJson}
             // </Button>,
-            <Button key="batch-import-fm" icon={<UploadOutlined />} onClick={() => handleBatchImport()}>
+            <Button key="batch-import-fm" icon={<UploadOutlined />} onClick={() => setBatchImportModalVisible(true)}>
               批量导入FM
             </Button>,
             isAdmin && (
@@ -535,7 +542,7 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
               </p>
               <p className="ant-upload-text">点击或拖拽 JSON 文件到此处</p>
               <p className="ant-upload-hint">可一次选择多个文件，内容将自动解析</p>
-              <p className="ant-upload-hint">特殊处理：一个JSON文件里，凭证按行分割，最前面加个 #</p>
+              <p className="ant-upload-hint">特殊处理：一个JSON文件里，凭证按行分割，最前面加个 #mm# 或者 #tr#</p>
             </Upload.Dragger>
           </div>
         </Modal>
