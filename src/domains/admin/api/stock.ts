@@ -9,6 +9,7 @@ export interface ListStock {
   product_id: string;
   used: boolean;
   user_id?: string;
+  receipt_created_at: string;
 }
 
 export interface Stock {

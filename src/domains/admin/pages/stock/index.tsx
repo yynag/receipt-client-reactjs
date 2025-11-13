@@ -136,8 +136,15 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
         key: "CreatedAt",
         width: 140,
         valueType: "dateTime",
-        search: false,
-        sorter: true
+        search: false
+      },
+      {
+        title: t.stock.columns.receiptCreatedAt,
+        dataIndex: "receipt_created_at",
+        key: "receipt_created_at",
+        width: 140,
+        valueType: "dateTime",
+        search: false
       },
       {
         title: t.stock.columns.dateRange,
@@ -197,7 +204,7 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
         title: t.stock.columns.creator,
         dataIndex: "user_id",
         key: "user_id",
-        width: 120,
+        width: 80,
         valueType: "select",
         valueEnum: userOptions,
         hidden: !isAdmin,
@@ -407,9 +414,7 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
           columns={columns}
           actionRef={actionRef}
           rowKey="ID"
-          request={async (params, sort, filter) => {
-            console.log("请求参数:", params, sort, filter);
-
+          request={async (params) => {
             const response = await stockApi.getList({
               page: params.current || 1,
               page_size: params.pageSize || 20,

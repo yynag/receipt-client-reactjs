@@ -211,6 +211,7 @@ export interface AdminTranslationContent {
     columns: {
       id: string;
       createdAt: string;
+      receiptCreatedAt: string;
       dateRange: string;
       app: string;
       appProduct: string;
@@ -521,7 +522,8 @@ const baseTranslations: Record<Language, AdminTranslationContent> = {
       importTitle: "导入JSON文件",
       columns: {
         id: "ID",
-        createdAt: "创建日期时间",
+        createdAt: "入库时间",
+        receiptCreatedAt: "凭证创建时间",
         dateRange: "日期范围",
         app: "应用",
         appProduct: "应用商品",
@@ -830,7 +832,8 @@ const baseTranslations: Record<Language, AdminTranslationContent> = {
       importTitle: "Import JSON File",
       columns: {
         id: "ID",
-        createdAt: "Created At",
+        createdAt: "InStock At",
+        receiptCreatedAt: "Receipt Created At",
         dateRange: "Date Range",
         app: "App",
         appProduct: "App Product",
