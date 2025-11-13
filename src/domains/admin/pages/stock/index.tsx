@@ -371,14 +371,23 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
       for (const uf of batchUploadFileList) {
         const file = uf.originFileObj as File | undefined;
         if (!file) continue;
-        const text = await file.text();
-        const parsed = JSON.parse(text);
-        if (Array.isArray(parsed)) {
+        const text = (await file.text()).trim();
+        if (text.charAt(0) === "#") {
+          // 特殊处理
+          const lines = text
+            .substring(1, text.length)
+            .split("\n")
+            .map((a) => a.trim());
+          result.push(...lines);
+        } else if (text.charAt(0) === "[") {
+          // 数组
+          const parsed = JSON.parse(text) as Array<unknown>;
           result.push(...parsed.map((it) => JSON.stringify(it)));
-        } else if (typeof parsed === "object") {
-          result.push(JSON.stringify(parsed));
+        } else if (text.charAt(0) === "{") {
+          // 对象
+          result.push(text);
         } else {
-          throw new Error("Not a valid JSON array or string");
+          throw new Error("不支持的文件格式");
         }
       }
       await handleBatchImport(result);
@@ -515,13 +524,13 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
           width="640px"
         >
           <div style={{ padding: "12px 0" }}>
-            <p style={{ marginBottom: 8, opacity: 0.85 }}>支持选择多个 .json 文件，解析为字符串数组后提交。</p>
             <Upload.Dragger {...batchUploadProps} disabled={batchImporting}>
               <p className="ant-upload-drag-icon">
                 <UploadOutlined />
               </p>
               <p className="ant-upload-text">点击或拖拽 JSON 文件到此处</p>
               <p className="ant-upload-hint">可一次选择多个文件，内容将自动解析</p>
+              <p className="ant-upload-hint">特殊处理：一个JSON文件里，凭证按行分割，最前面加个 #</p>
             </Upload.Dragger>
           </div>
         </Modal>
