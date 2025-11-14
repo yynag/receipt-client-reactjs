@@ -6,6 +6,7 @@ import { LazyLoad } from "./components/LazyLoad";
 
 import "./main.css";
 import { redirect } from "react-router";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 const AdminEntry = lazy(() => import("./domains/admin"));
 const HomeEntry = lazy(() => import("./domains/home"));
@@ -32,7 +33,8 @@ const router = createBrowserRouter([
   },
   {
     path: "/admin",
-    element: LazyLoad(AdminEntry)
+    element: LazyLoad(AdminEntry),
+    errorElement: <ErrorBoundary />
   },
   {
     path: "/redeem/:product",

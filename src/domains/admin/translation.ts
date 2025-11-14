@@ -157,6 +157,7 @@ export interface AdminTranslationContent {
     columns: {
       id: string;
       createdAt: string;
+      usedAt: string;
       code: string;
       status: string;
       usedUser: string;
@@ -164,6 +165,7 @@ export interface AdminTranslationContent {
       app: string;
       appProduct: string;
       actions: string;
+      search: string;
     };
     status: {
       used: string;
@@ -211,6 +213,7 @@ export interface AdminTranslationContent {
     columns: {
       id: string;
       createdAt: string;
+      usedAt: string;
       receiptCreatedAt: string;
       dateRange: string;
       app: string;
@@ -469,13 +472,15 @@ const baseTranslations: Record<Language, AdminTranslationContent> = {
       columns: {
         id: "ID",
         createdAt: "创建时间",
+        usedAt: "使用时间",
         code: "CDK Code",
         status: "使用状态",
         usedUser: "使用用户",
         creator: "创建人",
         app: "应用",
         appProduct: "应用商品",
-        actions: "操作"
+        actions: "操作",
+        search: "搜索"
       },
       status: {
         used: "已使用",
@@ -523,6 +528,7 @@ const baseTranslations: Record<Language, AdminTranslationContent> = {
       columns: {
         id: "ID",
         createdAt: "入库时间",
+        usedAt: "使用时间",
         receiptCreatedAt: "凭证创建时间",
         dateRange: "日期范围",
         app: "应用",
@@ -779,13 +785,15 @@ const baseTranslations: Record<Language, AdminTranslationContent> = {
       columns: {
         id: "ID",
         createdAt: "Created At",
+        usedAt: "Used At",
         code: "CDK Code",
         status: "Status",
         usedUser: "Used By",
         creator: "Creator",
         app: "App",
         appProduct: "App Product",
-        actions: "Actions"
+        actions: "Actions",
+        search: "Search"
       },
       status: {
         used: "Used",
@@ -833,6 +841,7 @@ const baseTranslations: Record<Language, AdminTranslationContent> = {
       columns: {
         id: "ID",
         createdAt: "InStock At",
+        usedAt: "Used At",
         receiptCreatedAt: "Receipt Created At",
         dateRange: "Date Range",
         app: "App",

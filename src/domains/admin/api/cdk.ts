@@ -16,6 +16,7 @@ export interface CDK {
   user_id: string;
   app_id: string;
   app_product_id: string;
+  redeem_at: string;
 }
 
 export interface CreateCDKRequest {
@@ -38,6 +39,7 @@ export interface CDKListParams {
   user_id?: string;
   app_id?: string;
   app_product_id?: string;
+  code_search?: string;
 }
 
 export interface FilterOption {
@@ -236,6 +238,9 @@ export const cdkApi = {
     if (params.user_id) {
       url += `&user_id=${encodeURIComponent(params.user_id)}`;
     }
+    if (params.code_search) {
+      url += `&code_search=${encodeURIComponent(params.code_search)}`;
+    }
     const response = await request(url, {
       method: "GET"
     });
@@ -243,49 +248,6 @@ export const cdkApi = {
       throw new Error(`Failed to request CDK list: ${await response.text()}`);
     }
     return await response.json();
-  },
-
-  getListMock: async (params: CDKListParams): Promise<CDKListResponse> => {
-    const mockData: CDK[] = Array.from({ length: 100 }, (_, i) => ({
-      ID: i,
-      CreatedAt: new Date(Date.now() - i * 3600000).toISOString(),
-      code: `CDK-${Math.random().toString(36).substr(2, 16).toUpperCase()}`,
-      used: Math.random() > 0.7,
-      used_user: Math.random() > 0.7 ? `user_${Math.floor(Math.random() * 1000)}` : undefined,
-      stock_id: Math.random() > 0.7 ? `stock_${Math.floor(Math.random() * 100)}` : undefined,
-      user_id: `admin_${Math.floor(Math.random() * 10)}`,
-      app_id: `app_${Math.floor(Math.random() * 10)}`,
-      app_product_id: `product_${Math.floor(Math.random() * 50)}`
-    }));
-
-    let filteredData = mockData;
-
-    if (params.used !== undefined) {
-      filteredData = filteredData.filter((item) => item.used === params.used);
-    }
-
-    if (params.app_id) {
-      filteredData = filteredData.filter((item) => item.app_id === params.app_id);
-    }
-
-    if (params.app_product_id) {
-      filteredData = filteredData.filter((item) => item.app_product_id === params.app_product_id);
-    }
-
-    if (params.user_id) {
-      filteredData = filteredData.filter((item) => item.user_id === params.user_id);
-    }
-
-    const startIndex = (params.page - 1) * params.page_size;
-    const endIndex = startIndex + params.page_size;
-    const paginatedData = filteredData.slice(startIndex, endIndex);
-
-    return {
-      items: paginatedData,
-      total: filteredData.length,
-      current: params.page,
-      page_size: params.page_size
-    };
   },
 
   create: async (data: CreateCDKRequest): Promise<string[]> => {

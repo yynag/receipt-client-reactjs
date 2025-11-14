@@ -101,19 +101,34 @@ export const CDKPage = ({ language = "zh" }: { language?: Language }) => {
         title: t.cdk.columns.createdAt,
         dataIndex: "CreatedAt",
         key: "CreatedAt",
-        width: 160,
+        width: 100,
         valueType: "dateTime",
         search: false,
         sorter: true
       },
       {
-        title: "CDK Code",
+        title: t.cdk.columns.usedAt,
+        dataIndex: "redeem_at",
+        key: "redeem_at",
+        width: 100,
+        valueType: "dateTime",
+        search: false,
+        sorter: true
+      },
+      {
+        title: "Code",
         dataIndex: "code",
         key: "code",
-        width: 200,
+        width: 150,
         ellipsis: true,
         copyable: true,
         search: false
+      },
+      {
+        title: "搜索",
+        key: "search",
+        search: true,
+        hidden: true
       },
       {
         title: t.cdk.columns.status,
@@ -135,13 +150,13 @@ export const CDKPage = ({ language = "zh" }: { language?: Language }) => {
         key: "used_user",
         search: false,
         ellipsis: true,
-        width: 150
+        width: 100
       },
       {
         title: t.cdk.columns.creator,
         dataIndex: "user_id",
         key: "user_id",
-        width: 120,
+        width: 100,
         valueType: "select",
         valueEnum: userOptions,
         hidden: !isAdmin,
@@ -151,7 +166,7 @@ export const CDKPage = ({ language = "zh" }: { language?: Language }) => {
         title: t.cdk.columns.app,
         dataIndex: "app_id",
         key: "app_id",
-        width: 120,
+        width: 60,
         valueType: "select",
         valueEnum: appOptions,
         fieldProps: {
@@ -164,7 +179,7 @@ export const CDKPage = ({ language = "zh" }: { language?: Language }) => {
         title: t.cdk.columns.appProduct,
         dataIndex: "app_product_id",
         key: "app_product_id",
-        width: 140,
+        width: 60,
         valueType: "select",
         valueEnum: productOptions
       },
@@ -259,16 +274,15 @@ export const CDKPage = ({ language = "zh" }: { language?: Language }) => {
         columns={columns}
         actionRef={actionRef}
         rowKey="ID"
-        request={async (params, sort, filter) => {
-          console.log("请求参数:", params, sort, filter);
-
+        request={async (params) => {
           const response = await cdkApi.getList({
             page: params.current || 1,
             page_size: params.pageSize || 20,
             used: params.used !== undefined ? params.used === "true" : undefined,
             app_id: params.app_id,
             app_product_id: params.app_product_id,
-            user_id: params.user_id
+            user_id: params.user_id,
+            code_search: params.search
           });
 
           // 存储数据供复制功能使用

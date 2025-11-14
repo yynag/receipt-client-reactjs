@@ -131,18 +131,26 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
         hidden: true
       },
       {
-        title: t.stock.columns.createdAt,
-        dataIndex: "CreatedAt",
-        key: "CreatedAt",
-        width: 140,
+        title: t.stock.columns.receiptCreatedAt,
+        dataIndex: "receipt_created_at",
+        key: "receipt_created_at",
+        width: 90,
         valueType: "dateTime",
         search: false
       },
       {
-        title: t.stock.columns.receiptCreatedAt,
-        dataIndex: "receipt_created_at",
-        key: "receipt_created_at",
-        width: 140,
+        title: t.stock.columns.createdAt,
+        dataIndex: "CreatedAt",
+        key: "CreatedAt",
+        width: 90,
+        valueType: "dateTime",
+        search: false
+      },
+      {
+        title: t.stock.columns.usedAt,
+        dataIndex: "receipt_used_at",
+        key: "receipt_used_at",
+        width: 90,
         valueType: "dateTime",
         search: false
       },
@@ -166,7 +174,7 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
         title: t.stock.columns.app,
         dataIndex: "app_id",
         key: "app_id",
-        width: 100,
+        width: 80,
         valueType: "select",
         valueEnum: appOptions,
         fieldProps: {
@@ -179,7 +187,7 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
         title: t.stock.columns.appProduct,
         dataIndex: "product_id",
         key: "product_id",
-        width: 100,
+        width: 80,
         valueType: "select",
         valueEnum: productOptions
       },
@@ -187,7 +195,7 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
         title: t.stock.columns.status,
         dataIndex: "used",
         key: "used",
-        width: 100,
+        width: 30,
         valueType: "select",
         valueEnum: {
           true: { text: t.stock.status.used, status: "Success" },
