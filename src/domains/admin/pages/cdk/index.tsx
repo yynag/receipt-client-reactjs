@@ -103,8 +103,7 @@ export const CDKPage = ({ language = "zh" }: { language?: Language }) => {
         key: "CreatedAt",
         width: 100,
         valueType: "dateTime",
-        search: false,
-        sorter: true
+        search: false
       },
       {
         title: t.cdk.columns.usedAt,
@@ -112,14 +111,13 @@ export const CDKPage = ({ language = "zh" }: { language?: Language }) => {
         key: "redeem_at",
         width: 100,
         valueType: "dateTime",
-        search: false,
-        sorter: true
+        search: false
       },
       {
         title: "Code",
         dataIndex: "code",
         key: "code",
-        width: 150,
+        width: 120,
         ellipsis: true,
         copyable: true,
         search: false
@@ -134,7 +132,7 @@ export const CDKPage = ({ language = "zh" }: { language?: Language }) => {
         title: t.cdk.columns.status,
         dataIndex: "used",
         key: "used",
-        width: 120,
+        width: 60,
         valueType: "select",
         valueEnum: {
           true: { text: t.cdk.status.used, status: "Success" },
@@ -156,7 +154,7 @@ export const CDKPage = ({ language = "zh" }: { language?: Language }) => {
         title: t.cdk.columns.creator,
         dataIndex: "user_id",
         key: "user_id",
-        width: 100,
+        width: 60,
         valueType: "select",
         valueEnum: userOptions,
         hidden: !isAdmin,
@@ -166,7 +164,7 @@ export const CDKPage = ({ language = "zh" }: { language?: Language }) => {
         title: t.cdk.columns.app,
         dataIndex: "app_id",
         key: "app_id",
-        width: 60,
+        width: 50,
         valueType: "select",
         valueEnum: appOptions,
         fieldProps: {
@@ -179,14 +177,14 @@ export const CDKPage = ({ language = "zh" }: { language?: Language }) => {
         title: t.cdk.columns.appProduct,
         dataIndex: "app_product_id",
         key: "app_product_id",
-        width: 60,
+        width: 50,
         valueType: "select",
         valueEnum: productOptions
       },
       {
         title: t.cdk.columns.actions,
         key: "action",
-        width: 120,
+        width: 100,
         fixed: "right",
         search: false,
         render: (_, record) => [

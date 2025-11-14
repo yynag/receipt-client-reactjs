@@ -124,11 +124,10 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
         title: "ID",
         dataIndex: "ID",
         key: "ID",
-        width: 120,
+        width: 50,
         ellipsis: true,
-        copyable: true,
         search: false,
-        hidden: true
+        hidden: false
       },
       {
         title: t.stock.columns.receiptCreatedAt,

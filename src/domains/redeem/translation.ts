@@ -63,6 +63,7 @@ export interface TranslationContent {
     close: string;
   };
   errors: {
+    tokenIsEmpty: string;
     tokenInvalid: string;
     tokenIsPremium: string;
     tokenRequired: string;
@@ -106,16 +107,17 @@ const baseTranslations: Record<Language, TranslationContent> = {
       tokenPlaceholder: "粘贴浏览器中获取到的 Access Token",
       cdkPlaceholder: "输入 CDK 卡密",
       securityNote: "所有数据仅在您的浏览器中用于验证，我们不会存储。",
-      waitingForInput: "等待输入",
+      waitingForInput: "等待输入"
     },
     buttons: {
       startRedeem: "开始充值",
       viewHistory: "查看兑换记录",
       confirm: "知道了",
-      close: "关闭",
+      close: "关闭"
     },
     errors: {
-      tokenInvalid: "账号密钥无效或填写错误，请重试",
+      tokenIsEmpty: "请输入账号密钥",
+      tokenInvalid: "账号密钥不满足充值要求",
       tokenIsPremium: "当前账户已经是高级会员，无法再次兑换",
       tokenRequired: "请先验证账号密钥",
       tokenAlreadyRedeemed: "该账户已完成兑换，无法重复兑换",
@@ -123,7 +125,7 @@ const baseTranslations: Record<Language, TranslationContent> = {
       cdkUsed: "该 CDK 已被使用，无法再次兑换",
       cdkRequired: "请输入 CDK 卡密",
       cdkAlreadyRedeemed: "该 CDK 已在本地记录中使用，不能重复提交",
-      network: "网络异常，请稍后重试",
+      network: "网络异常，请稍后重试"
     },
     result: {
       successTitle: "充值成功",
@@ -131,7 +133,7 @@ const baseTranslations: Record<Language, TranslationContent> = {
       again: "继续兑换",
       currentUserTitle: "当前用户信息",
       noUserDetail: "未获取到用户详情",
-      failureTitle: "兑换失败",
+      failureTitle: "兑换失败"
     },
     history: {
       title: "兑换记录",
@@ -139,12 +141,11 @@ const baseTranslations: Record<Language, TranslationContent> = {
       columns: {
         user: "用户",
         cdk: "CDK",
-        time: "兑换时间",
-      },
+        time: "兑换时间"
+      }
     },
-    footerStatement:
-      "© 2025 官方代理储值系统. 保留所有权利. 使用本服务即表示您同意我们的服务条款和隐私政策。",
-    guide: [],
+    footerStatement: "© 2025 官方代理储值系统. 保留所有权利. 使用本服务即表示您同意我们的服务条款和隐私政策。",
+    guide: []
   },
   en: {
     pageTitle: "Redeem CDK",
@@ -157,16 +158,17 @@ const baseTranslations: Record<Language, TranslationContent> = {
       tokenPlaceholder: "Paste the access token retrieved from the browser",
       cdkPlaceholder: "Enter the CDK code",
       securityNote: "Data stays within your browser for verification and is never stored on our servers.",
-      waitingForInput: "Waiting for input",
+      waitingForInput: "Waiting for input"
     },
     buttons: {
       startRedeem: "Start recharge",
       viewHistory: "View redeem history",
       confirm: "Got it",
-      close: "Close",
+      close: "Close"
     },
     errors: {
-      tokenInvalid: "Invalid access token, please try again",
+      tokenIsEmpty: "Access token is empty.",
+      tokenInvalid: "Access token does not meet the requirements for recharge",
       tokenIsPremium: "Can't redeem, user is already a premium member",
       tokenRequired: "Please validate the access token first",
       tokenAlreadyRedeemed: "This account has already redeemed, cannot redeem again",
@@ -174,7 +176,7 @@ const baseTranslations: Record<Language, TranslationContent> = {
       cdkUsed: "This CDK has already been used",
       cdkRequired: "Please enter the CDK code",
       cdkAlreadyRedeemed: "This CDK exists in local records and cannot be reused",
-      network: "Network error, please try again later",
+      network: "Network error, please try again later"
     },
     result: {
       successTitle: "Recharge successful",
@@ -182,7 +184,7 @@ const baseTranslations: Record<Language, TranslationContent> = {
       again: "Redeem another",
       currentUserTitle: "Current user",
       noUserDetail: "No user detail available",
-      failureTitle: "Redeem failed",
+      failureTitle: "Redeem failed"
     },
     history: {
       title: "Redeem history",
@@ -190,13 +192,13 @@ const baseTranslations: Record<Language, TranslationContent> = {
       columns: {
         user: "User",
         cdk: "CDK",
-        time: "Redeemed at",
-      },
+        time: "Redeemed at"
+      }
     },
     footerStatement:
       "© 2025 Official Agent stored-value system. All rights reserved. By using this service, you agree to our terms of service and privacy policy.",
-    guide: [],
-  },
+    guide: []
+  }
 };
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -208,9 +210,7 @@ function deepMerge<T>(base: T, override?: DeepPartial<T>): T {
     return base;
   }
 
-  const result = Array.isArray(base)
-    ? [...(base as unknown[])]
-    : { ...(base as Record<string, unknown>) };
+  const result = Array.isArray(base) ? [...(base as unknown[])] : { ...(base as Record<string, unknown>) };
 
   const target = result as Record<keyof T, unknown>;
   const source = base as Record<keyof T, unknown>;
