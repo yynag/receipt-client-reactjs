@@ -261,8 +261,17 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
       setBatchImportModalVisible(true);
       return;
     }
-    for (const item of list) {
-      await externalApi.importFromRaw(item);
+    for (let i = 0; i < list.length; i++) {
+      const item = list[i];
+      const result = await externalApi.importFromRaw(item);
+      switch (result) {
+        case "duplicate":
+          messageApi.success(`重复导入第${i + 1}个，跳过处理，共${list.length}个。`);
+          break;
+        case "success":
+          messageApi.success(`成功导入第${i + 1}个，共${list.length}个。`);
+          break;
+      }
     }
     setBatchImportModalVisible(false);
     setBatchUploadFileList([]);
@@ -478,7 +487,7 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
             //   {t.stock.actions.importJson}
             // </Button>,
             <Button key="batch-import-fm" icon={<UploadOutlined />} onClick={() => setBatchImportModalVisible(true)}>
-              批量导入FM
+              批量导入Raw
             </Button>,
             isAdmin && (
               <Button
@@ -530,7 +539,7 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
         </Modal>
 
         <Modal
-          title="批量导入FM"
+          title="批量导入Raw"
           open={batchImportModalVisible}
           onCancel={() => {
             setBatchImportModalVisible(false);

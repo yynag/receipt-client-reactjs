@@ -1,11 +1,13 @@
 import { baseUrl, request } from "./shared";
 
+export type ImportFromRawStatus = "success" | "duplicate";
+
 export const externalApi = {
   /**
    * @param raw 需要注入country
    * @returns
    */
-  importFromRaw: async (raw: string): Promise<void> => {
+  importFromRaw: async (raw: string): Promise<ImportFromRawStatus> => {
     if (!raw.includes("country")) {
       throw new Error("country not found.");
     }
@@ -16,9 +18,12 @@ export const externalApi = {
       },
       body: raw
     });
+    if (response.status === 304) {
+      return "duplicate";
+    }
     if (!response.ok) {
       throw new Error(`Failed to import stocks: ${await response.text()}`);
     }
-    return;
+    return "success";
   }
 };
