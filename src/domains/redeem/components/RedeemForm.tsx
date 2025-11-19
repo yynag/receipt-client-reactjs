@@ -445,10 +445,11 @@ export default function RedeemForm({
               className={tokenInputClass.join(" ")}
             />
             <Button
-              type="primary"
+              variant="link"
+              color="primary"
               htmlType="button"
               disabled={tokenLoading}
-              loading={tokenLoading}
+              style={{ paddingLeft: "5px" }}
               onClick={() =>
                 callAntiShaking(() => {
                   void handleTokenValidation();
@@ -492,10 +493,11 @@ export default function RedeemForm({
               className={cdkInputClass.join(" ")}
             />
             <Button
-              type="primary"
+              variant="link"
+              color="primary"
               htmlType="button"
               disabled={cdkLoading}
-              loading={cdkLoading}
+              style={{ paddingLeft: "5px" }}
               onClick={() =>
                 callAntiShaking(() => {
                   void handleCdkValidation();
