@@ -285,3 +285,29 @@
     color: var(--redeem-text-secondary);
   }
 }
+
+/* Ensure Ant Design primary buttons render correctly under redeem theme */
+@layer components {
+  .redeem-page .ant-btn-primary {
+    background-color: var(--redeem-accent) !important;
+    border-color: var(--redeem-accent) !important;
+    color: #ffffff !important;
+    box-shadow: var(--shadow-elevated);
+  }
+
+  .redeem-page .ant-btn-primary:hover:not(:disabled) {
+    background-color: var(--redeem-accent-hover) !important;
+    border-color: var(--redeem-accent-hover) !important;
+    color: #ffffff !important;
+    box-shadow: var(--shadow-elevated-hover);
+  }
+
+  .redeem-page .ant-btn-primary:disabled,
+  .redeem-page .ant-btn-primary[disabled] {
+    opacity: 0.6;
+    background-color: var(--redeem-accent) !important;
+    border-color: var(--redeem-accent) !important;
+    color: #ffffff !important;
+    box-shadow: none;
+  }
+}

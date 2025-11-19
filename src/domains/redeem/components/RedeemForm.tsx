@@ -1,6 +1,6 @@
-import { useCallback, useMemo, useState, type KeyboardEvent } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { HistoryOutlined, RocketOutlined } from "@ant-design/icons";
-import { Spin } from "antd";
+import { Button, Spin } from "antd";
 import { redeem, verifyCdk, verifyUser } from "../api";
 import type { ConfirmPayload, HistoryRecord, ProductSlug, VerifiedCdk, VerifiedUser } from "../types";
 import type { Language, TranslationContent } from "../translation";
@@ -357,46 +357,12 @@ export default function RedeemForm({
     productDef
   ]);
 
-  const isMobile = /Mobi|Android|iPhone|iPad|iPod|Phone/i.test(navigator.userAgent);
-
   const callAntiShaking = (cb: () => void) => {
     if (validated) return;
     setValidated(true);
     cb();
     // 1000ms 后允许再次验证（防抖）
     setTimeout(() => setValidated(false), 1000);
-  };
-
-  const handleTokenKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      callAntiShaking(() => {
-        handleTokenValidation();
-      });
-    }
-  };
-
-  const handleTokenBlur = () => {
-    if (!isMobile) return;
-    callAntiShaking(() => {
-      handleTokenValidation();
-    });
-  };
-
-  const handleCdkKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      callAntiShaking(() => {
-        handleCdkValidation();
-      });
-    }
-  };
-
-  const handleCdkBlur = () => {
-    if (!isMobile) return;
-    callAntiShaking(() => {
-      handleCdkValidation();
-    });
   };
 
   const renderStatus = (status: Status | null) => {
@@ -411,7 +377,7 @@ export default function RedeemForm({
     );
   };
 
-  const renderHelperText = (value: string, status: Status | null, loading: boolean) => {
+  const renderHelperText = (status: Status | null, loading: boolean) => {
     if (loading) {
       return <Spin size="small" />;
     }
@@ -419,20 +385,17 @@ export default function RedeemForm({
     if (statusNode) {
       return statusNode;
     }
-    if (!value.trim()) {
-      return <span>{translation.form.waitingForInput}</span>;
-    }
-    return null;
+    return <span>{translation.form.waitingForInput}</span>;
   };
 
-  const tokenInputClass = ["input-field", "mt-2"];
+  const tokenInputClass = ["input-field"];
   if (tokenStatus?.type === "success") {
     tokenInputClass.push("success");
   } else if (tokenStatus?.type === "error") {
     tokenInputClass.push("error");
   }
 
-  const cdkInputClass = ["input-field", "mt-2"];
+  const cdkInputClass = ["input-field"];
   if (cdkStatus?.type === "success") {
     cdkInputClass.push("success");
   } else if (cdkStatus?.type === "error") {
@@ -446,31 +409,57 @@ export default function RedeemForm({
         {translation.redeemTitle}
       </h2>
 
-      <form className="space-y-6">
+      <form
+        className="space-y-6"
+        onSubmit={(e) => {
+          e.preventDefault();
+        }}
+      >
         <div>
           <div className="step-indicator">
             <div className="step-number">1</div>
             <label className="font-medium">{translation.form.step1}</label>
           </div>
-          <input
-            value={tokenInput}
-            onChange={(event) => {
-              const value = event.target.value;
-              setTokenInput(value);
-              if (validatedTokenValue && value.trim() !== validatedTokenValue) {
-                setValidatedTokenValue(null);
-                setVerifiedUser(null);
-                setTokenStatus(null);
-                resetCdkValidation();
+          <div className="flex items-center gap-2 mt-2">
+            <input
+              value={tokenInput}
+              onChange={(event) => {
+                const value = event.target.value;
+                setTokenInput(value);
+                if (validatedTokenValue && value.trim() !== validatedTokenValue) {
+                  setValidatedTokenValue(null);
+                  setVerifiedUser(null);
+                  setTokenStatus(null);
+                  resetCdkValidation();
+                }
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  callAntiShaking(() => {
+                    handleTokenValidation();
+                  });
+                }
+              }}
+              placeholder={translation.form.tokenPlaceholder}
+              className={tokenInputClass.join(" ")}
+            />
+            <Button
+              type="primary"
+              htmlType="button"
+              disabled={tokenLoading}
+              loading={tokenLoading}
+              onClick={() =>
+                callAntiShaking(() => {
+                  void handleTokenValidation();
+                })
               }
-            }}
-            onKeyDown={handleTokenKeyDown}
-            onBlur={handleTokenBlur}
-            placeholder={translation.form.tokenPlaceholder}
-            className={tokenInputClass.join(" ")}
-          />
+            >
+              <span>{translation.buttons.validate}</span>
+            </Button>
+          </div>
           <div className="mt-2 text-sm text-subtle flex items-center gap-2 min-h-6">
-            {renderHelperText(tokenInput, tokenStatus, tokenLoading)}
+            {renderHelperText(tokenStatus, tokenLoading)}
           </div>
         </div>
 
@@ -479,24 +468,45 @@ export default function RedeemForm({
             <div className="step-number">2</div>
             <label className="font-medium">{translation.form.step2}</label>
           </div>
-          <input
-            value={cdkInput}
-            onChange={(event) => {
-              const value = event.target.value;
-              setCdkInput(value);
-              if (validatedCdkValue && value.trim().toUpperCase() !== validatedCdkValue) {
-                setValidatedCdkValue(null);
-                setVerifiedCdk(null);
-                setCdkStatus(null);
+          <div className="flex items-center gap-2 mt-2">
+            <input
+              value={cdkInput}
+              onChange={(event) => {
+                const value = event.target.value;
+                setCdkInput(value);
+                if (validatedCdkValue && value.trim().toUpperCase() !== validatedCdkValue) {
+                  setValidatedCdkValue(null);
+                  setVerifiedCdk(null);
+                  setCdkStatus(null);
+                }
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  callAntiShaking(() => {
+                    handleCdkValidation();
+                  });
+                }
+              }}
+              placeholder={translation.form.cdkPlaceholder}
+              className={cdkInputClass.join(" ")}
+            />
+            <Button
+              type="primary"
+              htmlType="button"
+              disabled={cdkLoading}
+              loading={cdkLoading}
+              onClick={() =>
+                callAntiShaking(() => {
+                  void handleCdkValidation();
+                })
               }
-            }}
-            onKeyDown={handleCdkKeyDown}
-            onBlur={handleCdkBlur}
-            placeholder={translation.form.cdkPlaceholder}
-            className={cdkInputClass.join(" ")}
-          />
+            >
+              <span>{translation.buttons.validate}</span>
+            </Button>
+          </div>
           <div className="mt-2 text-sm text-subtle flex items-center gap-2 min-h-6">
-            {renderHelperText(cdkInput, cdkStatus, cdkLoading)}
+            {renderHelperText(cdkStatus, cdkLoading)}
           </div>
         </div>
 
@@ -508,17 +518,18 @@ export default function RedeemForm({
         </div>
 
         <div className="flex items-center justify-between flex-wrap gap-4 pt-2">
-          <button
-            type="button"
-            className="btn-primary"
+          <Button
+            type="primary"
+            htmlType="button"
             onClick={() => {
               void handleRedeem();
             }}
+            size="large"
+            loading={redeeming}
             disabled={redeeming || !verifiedUser || !verifiedCdk}
           >
-            {redeeming ? <Spin size="small" /> : <RocketOutlined />}
             <span>{translation.buttons.startRedeem}</span>
-          </button>
+          </Button>
 
           <button type="button" className="btn-outline flex items-center gap-2" onClick={onOpenHistory}>
             <HistoryOutlined />

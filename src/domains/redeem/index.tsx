@@ -50,13 +50,10 @@ function getDeviceTheme(): ThemePreference {
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
-function readStoredTheme(key: string): { theme: ThemePreference; manual: boolean } {
+function readStoredTheme(_key: string): { theme: ThemePreference; manual: boolean } {
+  // Always follow the device theme on load for redeem pages
   if (!isBrowser) {
     return { theme: "light", manual: false };
-  }
-  const stored = window.localStorage.getItem(key);
-  if (stored === "light" || stored === "dark") {
-    return { theme: stored, manual: true };
   }
   return { theme: getDeviceTheme(), manual: false };
 }
@@ -161,9 +158,6 @@ function RedeemProductView({ definition }: { definition: ProductDefinition }) {
   useEffect(() => {
     if (!isBrowser) {
       return;
-    }
-    if (manual) {
-      window.localStorage.setItem(themeStorageKey, theme);
     }
     document.body.classList.remove("light", "dark");
     document.body.classList.add(theme);

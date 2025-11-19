@@ -59,6 +59,7 @@ export interface TranslationContent {
   buttons: {
     startRedeem: string;
     viewHistory: string;
+    validate: string;
     confirm: string;
     close: string;
   };
@@ -107,11 +108,12 @@ const baseTranslations: Record<Language, TranslationContent> = {
       tokenPlaceholder: "粘贴浏览器中获取到的 Access Token",
       cdkPlaceholder: "输入 CDK 卡密",
       securityNote: "所有数据仅在您的浏览器中用于验证，我们不会存储。",
-      waitingForInput: "等待输入"
+      waitingForInput: "输入完请点击验证按钮。"
     },
     buttons: {
       startRedeem: "开始充值",
       viewHistory: "查看兑换记录",
+      validate: "验证",
       confirm: "知道了",
       close: "关闭"
     },
@@ -158,11 +160,12 @@ const baseTranslations: Record<Language, TranslationContent> = {
       tokenPlaceholder: "Paste the access token retrieved from the browser",
       cdkPlaceholder: "Enter the CDK code",
       securityNote: "Data stays within your browser for verification and is never stored on our servers.",
-      waitingForInput: "Waiting for input"
+      waitingForInput: "Input and then click check button."
     },
     buttons: {
       startRedeem: "Start recharge",
       viewHistory: "View redeem history",
+      validate: "Check",
       confirm: "Got it",
       close: "Close"
     },

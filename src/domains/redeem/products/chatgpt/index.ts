@@ -26,7 +26,7 @@ export const chatgptProduct: ProductDefinition = {
       form: {
         step1: "输入账号密钥（Access Token）",
         step2: "输入 CDK 卡密",
-        tokenPlaceholder: "粘贴在 ChatGPT 中获取到的 Access Token",
+        tokenPlaceholder: "输入 Access Token",
         cdkPlaceholder: "输入 CDK 卡密",
         securityNote: "Access Token 仅用于本地验证，不会上传到服务器。"
       },
@@ -67,7 +67,7 @@ export const chatgptProduct: ProductDefinition = {
       form: {
         step1: "Enter access token",
         step2: "Enter CDK code",
-        tokenPlaceholder: "Paste the access token from ChatGPT",
+        tokenPlaceholder: "Paste the Access Token",
         cdkPlaceholder: "Enter the CDK code",
         securityNote: "Access tokens only stay in your browser for verification."
       },
