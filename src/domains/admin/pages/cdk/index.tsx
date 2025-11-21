@@ -120,7 +120,8 @@ export const CDKPage = ({ language = "zh" }: { language?: Language }) => {
         width: 120,
         ellipsis: true,
         copyable: true,
-        search: false
+        search: false,
+        renderText: (text) => <span style={{ fontFamily: "monospace" }}>{text}</span>
       },
       {
         title: "搜索",

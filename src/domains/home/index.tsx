@@ -112,6 +112,7 @@ function HomeEntry() {
         <Flex vertical={false} justify="center" align="center" style={{ height: "100%" }} gap="middle">
           {apps.map((app) => (
             <Card
+              key={app.name}
               hoverable
               style={{
                 width: 240,

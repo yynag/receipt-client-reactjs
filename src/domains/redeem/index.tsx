@@ -202,7 +202,7 @@ function RedeemProductView({ definition }: { definition: ProductDefinition }) {
 
   return (
     <div className="redeem-page">
-      <header className="glass-card max-w-5xl w-full mx-auto p-4 mt-4 mb-2">
+      <header className="glass-card max-w-5xl w-full mx-auto p-4 mt-6 mb-2">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold mb-1">{t.pageTitle}</h1>
