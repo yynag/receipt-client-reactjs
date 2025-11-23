@@ -100,7 +100,7 @@ export default function RedeemForm({
         const user = await verifyUser(rawToken, product);
 
         if (!user.verified) {
-          const message = translation.errors.tokenInvalid;
+          const message = translation.errors.tokenInvalid + ": " + user.reason;
           setTokenStatus({ type: "error", message });
           onNotify({
             type: "error",

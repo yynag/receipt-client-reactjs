@@ -26,7 +26,7 @@ export const chatgptProduct: ProductDefinition = {
       form: {
         step1: "输入账号密钥（Access Token）",
         step2: "输入 CDK 卡密",
-        tokenPlaceholder: "输入 Access Token",
+        tokenPlaceholder: "输入复制的数据",
         cdkPlaceholder: "输入 CDK 卡密",
         securityNote: "Access Token 仅用于本地验证，不会上传到服务器。"
       },
@@ -46,7 +46,7 @@ export const chatgptProduct: ProductDefinition = {
           type: "link",
           accent: "green",
           title: "步骤2：获取账号密钥（Access Token）",
-          description: "打开并复制 accessToken 字段",
+          description: "打开网页并复制全部数据",
           link: {
             url: sessionUrl,
             label: "打开 token 页面"
@@ -67,7 +67,7 @@ export const chatgptProduct: ProductDefinition = {
       form: {
         step1: "Enter access token",
         step2: "Enter CDK code",
-        tokenPlaceholder: "Paste the Access Token",
+        tokenPlaceholder: "Paste the copied Data",
         cdkPlaceholder: "Enter the CDK code",
         securityNote: "Access tokens only stay in your browser for verification."
       },
@@ -76,7 +76,7 @@ export const chatgptProduct: ProductDefinition = {
           type: "link",
           accent: "blue",
           title: "Step 1: Sign in to ChatGPT",
-          description: "Open and sign in to ChatGPT",
+          description: "Open and sign in to ChatGPT.",
           link: {
             url: loginUrl,
             label: "Open ChatGPT"
@@ -87,7 +87,7 @@ export const chatgptProduct: ProductDefinition = {
           type: "link",
           accent: "green",
           title: "Step 2: Get Access Token",
-          description: "Open and copy the accessToken field",
+          description: "Open page and copy the user data",
           link: {
             url: sessionUrl,
             label: "Open token page"

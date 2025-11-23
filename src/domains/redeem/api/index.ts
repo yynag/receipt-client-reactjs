@@ -5,6 +5,7 @@ const BASE_URL = import.meta.env.DEV ? "http://localhost:3000" : "https://receip
 interface UserResponse {
   user: string;
   verified: boolean;
+  reason: string;
   extra: Record<string, unknown>;
 }
 
@@ -17,21 +18,6 @@ interface CdkResponse {
 
 export async function verifyUser(user: string, product: ProductSlug): Promise<UserResponse> {
   user = user.trim();
-  if (user === "mock_ok") {
-    return {
-      user: "mock_user",
-      verified: true,
-      extra: {
-        global_name: "Mock User",
-        email: "mock@example.com",
-        phone: "+1234567890",
-        locale: "en-US"
-      }
-    };
-  }
-  if (user === "mock_fail") {
-    throw new Error("User is invalid");
-  }
 
   const headers: HeadersInit = {
     "X-Product-ID": product
