@@ -263,7 +263,7 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
       return;
     }
 
-    const steps = Math.floor(list.length / batchUploadCount); // 基本每份大小
+    const steps = Math.floor(list.length / batchUploadCount) + 1; // 基本每份大小
     const result = [];
     for (let i = 0; i < steps; i++) {
       const start = i * batchUploadCount;
