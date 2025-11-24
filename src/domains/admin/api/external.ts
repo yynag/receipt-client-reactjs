@@ -25,5 +25,20 @@ export const externalApi = {
       throw new Error(`Failed to import stocks: ${await response.text()}`);
     }
     return "success";
+  },
+
+  importFromRaws: async (raws: string[]): Promise<void> => {
+    const body = JSON.stringify(raws);
+    const response = await request(`${baseUrl}/external/in-stock/raws`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: body
+    });
+    if (!response.ok) {
+      throw new Error(`Import error: ${await response.text()}`);
+    }
+    return;
   }
 };

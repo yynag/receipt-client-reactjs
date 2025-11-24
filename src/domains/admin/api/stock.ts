@@ -249,18 +249,6 @@ export const stockApi = {
     return;
   },
 
-  importFromLiNiuJsonMock: async (jsonData: unknown[]): Promise<{ success: number; failed: number }> => {
-    console.log("导入数据:", jsonData);
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          success: jsonData.length,
-          failed: 0
-        });
-      }, 1000);
-    });
-  },
-
   getStockDetail: async (id: number): Promise<Stock> => {
     const response = await request(`${baseUrl}/stocks/${id}`, {
       method: "GET"

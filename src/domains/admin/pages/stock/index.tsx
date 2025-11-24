@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, Suspense, useMemo, useCallback } from "react";
-import { Button, message, Popconfirm, Tag, notification, Upload, Modal, Spin } from "antd";
+import { Button, message, Popconfirm, Tag, notification, Upload, Modal, Spin, InputNumber } from "antd";
 import { DeleteOutlined, ExportOutlined, DownloadOutlined, UploadOutlined } from "@ant-design/icons";
 import type { UploadFile } from "antd/es/upload/interface";
 import { type ListStock, stockApi, type FilterOptions } from "../../api/stock";
@@ -31,6 +31,7 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
   const [batchUploadFileList, setBatchUploadFileList] = useState<UploadFile[]>([]);
   const [importing, setImporting] = useState(false);
   const [batchImporting, setBatchImporting] = useState(false);
+  const [batchUploadCount, setBatchUploadCount] = useState<number>(50);
   const [messageApi, contextHolder] = message.useMessage();
   const [selectedAppId, setSelectedAppId] = useState<string>();
   const t = getTranslation(language);
@@ -261,18 +262,32 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
       setBatchImportModalVisible(true);
       return;
     }
-    for (let i = 0; i < list.length; i++) {
-      const item = list[i];
-      const result = await externalApi.importFromRaw(item);
-      switch (result) {
-        case "duplicate":
-          messageApi.success(`重复导入第${i + 1}个，跳过处理，共${list.length}个。`);
-          break;
-        case "success":
-          messageApi.success(`成功导入第${i + 1}个，共${list.length}个。`);
-          break;
-      }
+
+    const steps = Math.floor(list.length / batchUploadCount); // 基本每份大小
+    const result = [];
+    for (let i = 0; i < steps; i++) {
+      const start = i * batchUploadCount;
+      const end =
+        i === batchUploadCount - 1
+          ? list.length // 最后一份拿剩余全部
+          : (i + 1) * batchUploadCount;
+
+      result.push(list.slice(start, end));
     }
+
+    messageApi.info("开始导入，会自动跳过重复...");
+
+    for (const batch of result) {
+      await externalApi
+        .importFromRaws(batch)
+        .catch((e: Error) => {
+          messageApi.error(`导入出现错误：${e.message}`);
+        })
+        .finally(() => {
+          messageApi.success(`成功处理：${batch.length}条`);
+        });
+    }
+
     setBatchImportModalVisible(false);
     setBatchUploadFileList([]);
   };
@@ -419,7 +434,6 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
           throw new Error("不支持的文件格式");
         }
       }
-      console.log("00000");
       await handleBatchImport(result);
       messageApi.success("批量导入成功");
     } catch (e) {
@@ -552,6 +566,15 @@ export const StockPage = ({ language = "zh" }: { language?: Language }) => {
           width="640px"
         >
           <div style={{ padding: "12px 0" }}>
+            <div style={{ marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+              <span>单次批量上传个数</span>
+              <InputNumber
+                min={1}
+                style={{ width: 160 }}
+                value={batchUploadCount}
+                onChange={(val) => setBatchUploadCount(typeof val === "number" ? val : 50)}
+              />
+            </div>
             <Upload.Dragger {...batchUploadProps} disabled={batchImporting}>
               <p className="ant-upload-drag-icon">
                 <UploadOutlined />
