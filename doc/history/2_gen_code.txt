@@ -1,0 +1,79 @@
+目标：将 prompts/query.html 的“CDK 批量查询工具”页面收编为 React 子域，输出到 src/domains/query，使用 tailwindcss + react 实现，不依赖 Ant Design；提供中英双语（加载时自动匹配设备语言，且有切换按钮）、提供白天/夜晚主题切换；API 留空由我后续实现。若上下文大小受限，可使用 prompts/context.txt 作为上下文页面交换。
+
+重要约束：
+- 技术栈：React + Tailwind（已全局启用，通过 src/main.css @import tailwindcss）；不使用 antd。
+- 风格与组织：代码组织与 src/domains/ 其他子域一致（包含 index.tsx、translation.ts、styles.css、api/、components/、types.ts）。
+- 主题：沿用现有主题约定，通过 body 上的 light/dark 类名切换，使用 src/styles/tokens.css 中的设计变量。主题初始值跟随系统，允许手动切换并持久化到 localStorage（键名建议为 query_theme）。
+- 语言：仅中英文（zh/en）。加载时根据设备语言自动选择，提供切换按钮，语言持久化到 localStorage（键名建议为 query_language）。
+- API：接口占位，暂不调用真实后端。暴露方法签名，内部返回 Promise.reject(new Error('Not implemented'))，由我后续填充。不要引入网络库。
+- 路由：只需提供默认导出组件（域入口），是否接入路由由我后续处理。
+
+页面与交互（参考 prompts/query.html，但用 React + Tailwind 重写）：
+- 头部：
+  - 标题：CDK批量查询工具 / CDK Batch Query Tool。
+  - 副标题：批量查询多个CDK的权限信息 / Batch check permissions for multiple CDKs。
+  - 右上角：语言切换（中文/EN）、主题切换（🌞/🌜）。
+- 输入区：
+  - 多行文本框（placeholder：请输入CDK，每行一个 / Enter CDKs, one per line）。
+  - 下方辅助文字：等待输入（无输入时）/ 等提示（有输入时提示支持的格式）。
+  - 两个按钮：
+    1) 开始查询 / Start Query（加载中显示 loading 动画，禁用双击）；
+    2) 清空输入 / Clear。
+  - 进度条：展示当前进度（0-100%），未查询时隐藏。
+- 统计区：
+  - 总数量、已使用 数量（后续可扩展 有效/无效）。
+- 结果区：
+  - 顶部复制功能：复制全部、复制已使用（后续可扩展有效/无效）。
+  - 标签切换：全部、已使用；列表项包含：CDK、状态徽标（已使用/未使用/无效），以及单条复制按钮。
+  - 空状态：大图标 + 标题/说明（支持多语言）。
+
+数据与类型：
+- types.ts：
+  - export type Language = 'zh' | 'en'
+  - export type ThemePreference = 'light' | 'dark'
+  - export type CdkStatus = 'used' | 'unused' | 'invalid'
+  - export interface CdkResult { code: string; status: CdkStatus }
+- translation.ts：
+  - 导出 getTranslation(lang) 与 fallbackLanguage='zh'；包含所有 UI 文案键值（title/subtitle/inputs/buttons/stats/tabs/empty/copy 等）。
+
+API（占位）：src/domains/query/api/index.ts
+- export async function checkCdk(code: string): Promise<CdkStatus>
+- 默认实现：return Promise.reject(new Error('Not implemented'))
+- 由我后续替换成真实实现（例如批量/并发、节流、错误提示映射等）。
+
+组件建议：
+- components/QueryForm.tsx：
+  - 接收 props：translation、onResults(results: CdkResult[]) 回传结果、onProgress(0-1) 回传进度。
+  - 内部管理输入、查询/清空、loading、进度计算；调用 API 占位方法。
+- components/ResultsPanel.tsx：
+  - 接收 props：translation、results、activeTab、onTabChange；
+  - 提供复制全部/复制已使用、列表渲染、空状态展示。
+
+入口：src/domains/query/index.tsx
+- 组合头部（标题/副标题 + 语言/主题切换）、QueryForm、ResultsPanel、统计区；
+- 语言与主题：
+  - 初始：语言根据 navigator.language 自动判定（zh 开头 => zh，否则 en）；主题根据 matchMedia('(prefers-color-scheme: dark)')。
+  - 响应：系统主题变化时，若用户未手动设置，自动同步；用户手动切换后，记为 manual。
+  - 生效：切换时为 document.body 切换 light/dark 类。
+
+样式：src/domains/query/styles.css
+- 复用 redeem 域的“玻璃卡片”“按钮”“输入框”风格命名（glass-card、btn-primary、btn-outline、input-field 等），但用域内样式重新定义，底层用 tokens.css 变量，确保不依赖 antd。
+- 其余布局与间距优先使用 Tailwind 原子类。
+
+注意事项：
+- 不引入外部字体库/图标库；图标可用 Unicode 或纯文本（或省略）。
+- 不操纵全局样式，除 body.light/body.dark 切换；所有域内样式前缀保持简洁，不污染其他域。
+- 仅中文/英文，不加入繁体。
+- 代码简洁、直白、易读。
+
+交付物：
+- src/domains/query/
+  - index.tsx（默认导出域入口）
+  - translation.ts
+  - styles.css
+  - types.ts
+  - api/index.ts
+  - components/QueryForm.tsx
+  - components/ResultsPanel.tsx
+
+备注：若生成上下文超限，请将 prompts/query.html 按需分块放入 prompts/context.txt 进行页面交换；完成后按上述结构与约束输出代码。

@@ -1,0 +1,1138 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChatGPT Account Recharge System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Poppins', sans-serif;
+      }
+
+      body {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 50%, #f0fcff 100%);
+        color: #2d3748;
+        min-height: 100vh;
+        padding: 15px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 100%;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        box-shadow: 0 10px 25px rgba(0, 105, 165, 0.1);
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+      }
+
+      header {
+        background: linear-gradient(to right, #4f46e5, #7c3aed);
+        color: white;
+        padding: 10px 30px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .header-pattern {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        opacity: 0.05;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      }
+
+      .language-switcher {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        display: flex;
+        gap: 8px;
+        z-index: 10;
+      }
+
+      .lang-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 16px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.3s;
+        position: relative;
+        z-index: 10;
+      }
+
+      .lang-btn:hover,
+      .lang-btn.active {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0px;
+        position: relative;
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .logo-icon {
+        font-size: 26px;
+        margin-right: 0;
+        margin-bottom: 2px;
+        color: #10b981;
+        background: white;
+        width: 42px;
+        height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        font-size: 18px;
+        margin-bottom: 0px;
+        font-weight: 700;
+      }
+
+      .subtitle {
+        font-size: 12px;
+        opacity: 0.9;
+        font-weight: 300;
+      }
+
+      .content {
+        padding: 15px 20px;
+      }
+
+      .section-title {
+        font-size: 18px;
+        color: #4f46e5;
+        margin-bottom: 12px;
+        padding-bottom: 6px;
+        border-bottom: 2px solid #e1effe;
+        position: relative;
+        font-weight: 600;
+      }
+
+      .section-title:after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 60px;
+        height: 2px;
+        background: #4f46e5;
+      }
+
+      .process-steps {
+        display: flex;
+        flex-direction: column;
+        margin: 15px 0;
+        gap: 10px;
+      }
+
+      .step {
+        width: 100%;
+        text-align: center;
+        padding: 12px 15px;
+        background: #f7fafc;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+        transition: all 0.3s ease;
+        border: 1px solid #e2e8f0;
+        position: relative;
+        overflow: hidden;
+        text-decoration: none;
+        color: inherit;
+      }
+
+      .step:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(to right, #4f46e5, #7c3aed);
+        border-radius: 8px 8px 0 0;
+      }
+
+      .step:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(79, 70, 229, 0.15);
+        text-decoration: none;
+      }
+
+      .step-number {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 20px;
+        height: 20px;
+        background: #4f46e5;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 10px;
+      }
+
+      .step-icon {
+        font-size: 24px;
+        color: #4f46e5;
+        margin-bottom: 8px;
+        background: rgba(79, 70, 229, 0.1);
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        margin: 0 auto 8px;
+      }
+
+      .step-title {
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: #2d3748;
+        font-size: 14px;
+      }
+
+      .step p {
+        color: #718096;
+        line-height: 1.3;
+        font-size: 11px;
+      }
+
+      .account-info {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 15px;
+      }
+
+      .info-box {
+        width: 100%;
+        background: #f7fafc;
+        padding: 10px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+        border: 1px solid #e2e8f0;
+      }
+
+      .info-title {
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: #4f46e5;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+      }
+
+      .info-title i {
+        margin-right: 8px;
+        font-size: 16px;
+      }
+
+      .info-value {
+        font-size: 16px;
+        color: #2d3748;
+        font-weight: 500;
+      }
+
+      .form-group {
+        margin-bottom: 10px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 4px;
+        font-weight: 600;
+        color: #4a5568;
+        font-size: 15px;
+      }
+
+      input {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 13px;
+        transition: all 0.3s;
+        background: #f7fafc;
+      }
+
+      input:focus {
+        border-color: #4f46e5;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+      }
+
+      .warning {
+        background: #fffbeb;
+        color: #b45309;
+        padding: 8px;
+        border-radius: 8px;
+        margin: 10px 0;
+        border-left: 4px solid #f59e0b;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        font-size: 11px;
+      }
+
+      .warning-title {
+        font-weight: 700;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        font-size: 13px;
+      }
+
+      .warning-title i {
+        margin-right: 8px;
+      }
+
+      .btn {
+        display: block;
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(to right, #4f46e5, #7c3aed);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 6px 15px rgba(79, 70, 229, 0.3);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn:after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: rgba(255, 255, 255, 0.1);
+        transform: rotate(30deg);
+        transition: all 0.5s;
+      }
+
+      .btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4);
+      }
+
+      .btn:hover:after {
+        transform: rotate(30deg) translate(10%, 10%);
+      }
+
+      .btn:active {
+        transform: translateY(0);
+      }
+
+      .btn:disabled {
+        background: #9ca3af !important;
+        color: #e5e7eb !important;
+        cursor: not-allowed !important;
+        transform: none !important;
+        box-shadow: none !important;
+        opacity: 0.6;
+      }
+
+      .btn:disabled:hover {
+        background: #9ca3af !important;
+        transform: none !important;
+        box-shadow: none !important;
+      }
+
+      .view-records {
+        text-align: center;
+        margin-top: 15px;
+      }
+
+      .view-records a {
+        color: #4f46e5;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 12px;
+        border-radius: 8px;
+        background: #f7fafc;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        font-size: 12px;
+      }
+
+      .view-records a:hover {
+        color: #7c3aed;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .view-records a i {
+        margin-right: 8px;
+      }
+
+      footer {
+        text-align: center;
+        padding: 12px;
+        color: #718096;
+        font-size: 11px;
+        background: #f7fafc;
+        border-top: 1px solid #e2e8f0;
+        flex-shrink: 0;
+      }
+
+      /* 平板设备适配 */
+      @media (min-width: 768px) {
+        .container {
+          max-width: 90%;
+        }
+
+        .process-steps {
+          flex-direction: row;
+        }
+
+        .step {
+          min-width: 30%;
+        }
+
+        .account-info {
+          flex-direction: row;
+        }
+
+        .info-box {
+          min-width: 45%;
+        }
+
+        .language-switcher {
+          position: absolute;
+          top: 15px;
+          right: 15px;
+          z-index: 20;
+        }
+      }
+
+      @media (max-width: 767px) {
+        .language-switcher {
+          position: relative;
+          top: 0;
+          right: 0;
+          justify-content: center;
+          margin-bottom: 15px;
+        }
+      }
+
+      /* 桌面设备适配 */
+      @media (min-width: 1024px) {
+        .container {
+          max-width: 1000px;
+        }
+
+        .content {
+          padding: 30px;
+        }
+
+        header {
+          padding: 20px 30px;
+        }
+
+        .logo {
+          flex-direction: row;
+          text-align: left;
+        }
+
+        .logo-icon {
+          margin-right: 15px;
+          margin-bottom: 0;
+        }
+
+        h1 {
+          font-size: 25px;
+        }
+
+        .subtitle {
+          font-size: 14px;
+        }
+      }
+
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.75);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        backdrop-filter: blur(4px);
+      }
+
+      .modal {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        padding: 30px;
+        width: 90%;
+        max-width: 600px;
+        max-height: 80vh;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 25px rgba(0, 105, 165, 0.2);
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e1effe;
+      }
+
+      .modal-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #4f46e5;
+      }
+
+      .modal-close {
+        background: none;
+        border: none;
+        color: #718096;
+        cursor: pointer;
+        font-size: 24px;
+        padding: 4px;
+        transition: color 0.2s ease;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal-close:hover {
+        color: #4f46e5;
+        background: #f7fafc;
+      }
+
+      .modal-content {
+        overflow-y: auto;
+        max-height: calc(80vh - 120px);
+      }
+
+      .history-header {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr 2fr 1.5fr;
+        gap: 12px;
+        padding: 15px;
+        border-bottom: 2px solid #e1effe;
+        margin-bottom: 15px;
+        position: sticky;
+        top: 0;
+        background: rgba(255, 255, 255, 0.95);
+        z-index: 1;
+        border-radius: 10px;
+      }
+
+      .history-header-item {
+        font-weight: 600;
+        color: #4f46e5;
+        font-size: 14px;
+      }
+
+      .history-item {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr 2fr 1.5fr;
+        gap: 12px;
+        padding: 15px;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        margin-bottom: 12px;
+        background: #f7fafc;
+        transition: all 0.3s ease;
+      }
+
+      .history-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .history-item.history-empty {
+        grid-template-columns: 1fr;
+        text-align: center;
+        color: #718096;
+        padding: 40px 16px;
+        background: #f7fafc;
+      }
+
+      .history-item:last-child {
+        margin-bottom: 0;
+      }
+
+      .history-label {
+        font-size: 12px;
+        color: #718096;
+        margin-bottom: 4px;
+        font-weight: 500;
+      }
+
+      .history-value {
+        font-size: 14px;
+        color: #2d3748;
+        word-break: break-all;
+        display: flex;
+        align-items: center;
+        font-weight: 500;
+      }
+
+      .history-result {
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 6px;
+        font-family: 'Poppins', sans-serif;
+        white-space: pre-wrap;
+        font-size: 13px;
+        color: #2d3748;
+        border: 1px solid #e2e8f0;
+      }
+
+      .alert {
+        padding: 16px;
+        border-radius: 10px;
+        margin: 25px 0;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .alert-success {
+        background: #ecfdf5;
+        color: #065f46;
+        border-left: 4px solid #10b981;
+      }
+
+      .alert-error {
+        background: #fef2f2;
+        color: #991b1b;
+        border-left: 4px solid #ef4444;
+      }
+
+      .alert-warning {
+        background: #fffbeb;
+        color: #b45309;
+        border-left: 4px solid #f59e0b;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="header-pattern"></div>
+        <div class="language-switcher">
+          <button class="lang-btn active" onclick="setLang('zh-CN')">简体</button>
+          <button class="lang-btn" onclick="setLang('zh-TW')">繁體</button>
+          <button class="lang-btn" onclick="setLang('en')">EN</button>
+        </div>
+        <div class="logo">
+          <i class="fas fa-robot logo-icon"></i>
+          <div>
+            <h1 id="sysTitle">ChatGPT 账号充值系统</h1>
+            <p class="subtitle" id="sysDesc">安全、快捷的账号充值服务</p>
+          </div>
+        </div>
+      </header>
+
+      <div class="content">
+        <h2 class="section-title" id="stepsTitle">账号充值流程</h2>
+
+        <div class="process-steps">
+          <a href="https://chat.openai.com" target="_blank" class="step">
+            <div class="step-number">1</div>
+            <i class="fas fa-sign-in-alt step-icon"></i>
+            <div class="step-title" id="step1">登录您的ChatGPT账号</div>
+            <p id="stepDesc1">使用您的账号凭证登录系统</p>
+          </a>
+
+          <a href="https://chat.openai.com/api/auth/session" target="_blank" class="step">
+            <div class="step-number">2</div>
+            <i class="fas fa-key step-icon"></i>
+            <div class="step-title" id="step2">获取账号密钥(Access Token)</div>
+            <p id="stepDesc2">从账号设置中获取您的访问令牌</p>
+          </a>
+
+          <a href="#cdkInput" onclick="focusCDKInput()" class="step">
+            <div class="step-number">3</div>
+            <i class="fas fa-credit-card step-icon"></i>
+            <div class="step-title" id="step3">输入CDK卡密并完成充值</div>
+            <p id="stepDesc3">输入卡密信息完成充值过程</p>
+          </a>
+        </div>
+
+        <div class="account-info">
+          <div class="info-box">
+            <div class="info-title"><i class="fas fa-user-check"></i> <span id="emailLabel">邮箱账号</span></div>
+            <div class="info-value" id="emailValue">-</div>
+          </div>
+
+          <div class="info-box">
+            <div class="info-title"><i class="fas fa-database"></i> <span id="planLabel">订阅状态</span></div>
+            <div class="info-value" id="planValue">免费用户</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="tokenInput"
+            ><i class="fas fa-key"></i> <span id="tokenLabel">账号密钥 (Access Token)</span></label
+          >
+          <input type="text" id="tokenInput" placeholder="请输入accessToken" data-i18n-placeholder="tokenPlaceholder" />
+        </div>
+
+        <div class="form-group">
+          <label for="cdkInput"><i class="fas fa-gift"></i> <span id="cdkLabel">CDK卡密</span></label>
+          <input type="text" id="cdkInput" placeholder="请输入CDK卡密" data-i18n-placeholder="cdkPlaceholder" />
+        </div>
+
+        <div class="warning">
+          <div class="warning-title">
+            <i class="fas fa-exclamation-circle"></i> <span id="warningTitle">重要提醒</span>
+          </div>
+          <p id="warningText">Plus或Pro会员未到期会导致充值失败！请确保您的订阅已到期后再进行充值操作。</p>
+        </div>
+
+        <div id="resultMsg"></div>
+
+        <button class="btn" onclick="verifyAndRecharge()" id="submitBtn">验证并充值</button>
+
+        <div class="view-records">
+          <a href="#" onclick="showHistory()"
+            ><i class="fas fa-history"></i> <span id="historyBtn">查看充值记录</span></a
+          >
+        </div>
+      </div>
+
+      <footer>
+        <p id="footerText">© 2025 ChatGPT账号充值系统 | 提供安全可靠的充值服务</p>
+      </footer>
+    </div>
+
+    <!-- 充值记录模态框 -->
+    <div class="modal-overlay" id="historyModal">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-title" id="historyTitle">充值记录</div>
+          <button class="modal-close" onclick="hideHistory()">&times;</button>
+        </div>
+        <div class="modal-content" id="historyContent">
+          <!-- 历史记录将通过JavaScript动态插入 -->
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const langData = {
+        'zh-CN': {
+          sysTitle: 'ChatGPT 账号充值系统',
+          sysDesc: '安全、快捷的账号充值服务',
+          stepsTitle: '账号充值流程',
+          step1: '登录您的ChatGPT账号',
+          step2: '获取账号密钥(Access Token)',
+          step3: '输入CDK卡密并完成充值',
+          stepDesc1: '使用您的账号凭证登录系统',
+          stepDesc2: '从账号设置中获取您的访问令牌',
+          stepDesc3: '输入卡密信息完成充值过程',
+          emailLabel: '邮箱账号',
+          planLabel: '订阅状态',
+          tokenLabel: '账号密钥 (Access Token)',
+          cdkLabel: 'CDK卡密',
+          tokenPlaceholder: '请输入accessToken',
+          cdkPlaceholder: '请输入CDK卡密',
+          warningTitle: '重要提醒：',
+          warningText: 'Plus或Pro会员未到期！会导致充值失败！',
+          submitBtn: '验证并充值',
+          historyBtn: '查看充值记录',
+          historyTitle: '充值记录',
+          historyEmailLabel: '充值账号',
+          historyCdkLabel: 'CDK卡密',
+          historyResultLabel: '充值结果',
+          historyTimeLabel: '充值时间',
+          noHistory: '暂无充值记录',
+          tokenHelp:
+            '如何获取？请先<a href="https://chatgpt.com/auth/login" target="_blank">登录ChatGPT</a>，然后<a href="https://chatgpt.com/api/auth/session" target="_blank">点击获取</a>，并复制全部内容粘贴到上方输入框',
+          footerText: '© 2025 官方代理储值系统. 保留所有权利.<br>使用本服务即表示您同意我们的服务条款和隐私政策',
+          token_empty: '请输入账号密钥',
+          cdk_empty: '请输入CDK卡密',
+          token_invalid: '密钥格式无效，请检查后重试',
+          cdk_invalid: 'CDK无效，请检查后重试',
+          cdk_used: (email) => `此CDK已为${email.email}账户于${email.updated_at}充值`,
+          cdk_plus: '您的账号已是PLUS会员，无需重复充值',
+          recharge_success: '充值成功！您的账号已升级为PLUS会员',
+          recharge_fail: '充值失败，请稍后再试',
+          network_error: '网络请求失败，请稍后再试',
+          recharging: '充值中，请稍等...',
+          subStatus: { free: '免费用户', plus: 'PLUS会员' },
+        },
+        'zh-TW': {
+          sysTitle: 'ChatGPT 帳號充值系統',
+          sysDesc: '安全、快捷的帳號充值服務',
+          stepsTitle: '帳號充值流程',
+          step1: '登錄您的ChatGPT帳號',
+          step2: '獲取帳號密鑰(Access Token)',
+          step3: '輸入CDK卡密並完成充值',
+          stepDesc1: '使用您的帳號憑證登錄系統',
+          stepDesc2: '從帳號設置中獲取您的訪問令牌',
+          stepDesc3: '輸入卡密信息完成充值過程',
+          emailLabel: '郵箱帳號',
+          planLabel: '訂閱狀態',
+          tokenLabel: '帳號密鑰 (Access Token)',
+          cdkLabel: 'CDK卡密',
+          tokenPlaceholder: '請輸入accessToken',
+          cdkPlaceholder: '請輸入CDK卡密',
+          warningTitle: '重要提醒：',
+          warningText: 'Plus或Pro會員未到期！會導致充值失敗！',
+          submitBtn: '驗證並充值',
+          historyBtn: '查看充值記錄',
+          historyTitle: '充值記錄',
+          historyEmailLabel: '充值帳號',
+          historyCdkLabel: 'CDK卡密',
+          historyResultLabel: '充值結果',
+          historyTimeLabel: '充值時間',
+          noHistory: '暫無充值記錄',
+          tokenHelp:
+            '如何獲取？請先<a href="https://chatgpt.com/auth/login" target="_blank">登錄ChatGPT</a>，然後<a href="https://chatgpt.com/api/auth/session" target="_blank">點擊獲取</a>，並複製全部內容粘貼到上方輸入框',
+          footerText: '© 2025 官方代理儲值系統. 保留所有權利.<br>使用本服務即表示您同意我們的服務條款和隱私政策',
+          token_empty: '請輸入帳號密鑰',
+          cdk_empty: '請輸入CDK卡密',
+          token_invalid: '密鑰格式無效，請檢查後重試',
+          cdk_invalid: 'CDK無效，請檢查後重試',
+          cdk_used: (email) => `此CDK已為${email.email}帳戶於${email.updated_at}充值`,
+          cdk_plus: '您的帳號已是PLUS會員，無需重複充值',
+          recharge_success: '充值成功！您的帳號已升級為PLUS會員',
+          recharge_fail: '充值失敗，請稍後再試',
+          network_error: '網絡請求失敗，請稍後再試',
+          recharging: '充值中，請稍等...',
+          subStatus: { free: '免費用戶', plus: 'PLUS會員' },
+        },
+        en: {
+          sysTitle: 'ChatGPT Account Recharge System',
+          sysDesc: 'Safe and fast account recharge service',
+          stepsTitle: 'Recharge Process',
+          step1: 'Login to ChatGPT Account',
+          step2: 'Get Access Token',
+          step3: 'Enter CDK Code and Complete',
+          stepDesc1: 'Use your account credentials to login',
+          stepDesc2: 'Get your access token from account settings',
+          stepDesc3: 'Enter CDK code to complete recharge',
+          emailLabel: 'Email',
+          planLabel: 'Subscription',
+          tokenLabel: 'Account Token (Access Token)',
+          cdkLabel: 'CDK Code',
+          tokenPlaceholder: 'Please enter accessToken',
+          cdkPlaceholder: 'Please enter CDK code',
+          warningTitle: 'Important:',
+          warningText: 'Plus or Pro membership has not expired! It will cause recharge failure!',
+          submitBtn: 'Verify and Recharge',
+          historyBtn: 'View Recharge History',
+          historyTitle: 'Recharge History',
+          historyEmailLabel: 'Account',
+          historyCdkLabel: 'CDK Code',
+          historyResultLabel: 'Result',
+          historyTimeLabel: 'Time',
+          noHistory: 'No recharge history',
+          tokenHelp:
+            'How to get? Please <a href="https://chatgpt.com/auth/login" target="_blank">login ChatGPT</a> first, then <a href="https://chatgpt.com/api/auth/session" target="_blank">click here</a> to get it, and copy all content to the input box above',
+          footerText:
+            '© 2025 Official Recharge System. All rights reserved.<br>By using this service, you agree to our Terms of Service and Privacy Policy',
+          token_empty: 'Please enter access token',
+          cdk_empty: 'Please enter CDK code',
+          token_invalid: 'Invalid token format, please check and retry',
+          cdk_invalid: 'Invalid CDK, please check and retry',
+          cdk_used: (email) => `This CDK was used by ${email.email} at ${email.updated_at}`,
+          cdk_plus: 'Your account is already PLUS member, no need to recharge',
+          recharge_success: 'Recharge successful! Your account has been upgraded to PLUS',
+          recharge_fail: 'Recharge failed, please try again later',
+          network_error: 'Network error, please try again later',
+          recharging: 'Recharging, please wait...',
+          subStatus: { free: 'Free User', plus: 'PLUS Member' },
+        },
+      };
+
+      let lang = 'en';
+      let userEmail = '-';
+      let userPlan = 'free';
+
+      // 初始化页面文本
+      function initializeText() {
+        const t = langData['en'];
+        // 更新所有文本
+        Object.keys(t).forEach((key) => {
+          const element = document.getElementById(key);
+          if (element) {
+            if (key.includes('Help') || key === 'footerText') {
+              element.innerHTML = t[key];
+            } else {
+              element.textContent = t[key];
+            }
+          }
+        });
+
+        // 更新步骤文本
+        document.getElementById('step1').textContent = t.step1;
+        document.getElementById('step2').textContent = t.step2;
+        document.getElementById('step3').textContent = t.step3;
+
+        // 更新步骤描述文本
+        document.getElementById('stepDesc1').textContent = t.stepDesc1;
+        document.getElementById('stepDesc2').textContent = t.stepDesc2;
+        document.getElementById('stepDesc3').textContent = t.stepDesc3;
+
+        // 更新输入框placeholder
+        document.getElementById('tokenInput').placeholder = t.tokenPlaceholder;
+        document.getElementById('cdkInput').placeholder = t.cdkPlaceholder;
+
+        // 更新订阅状态显示
+        document.getElementById('planValue').textContent = t.subStatus[userPlan] || userPlan;
+      }
+
+      // 设置语言
+      function setLang(l) {
+        lang = l;
+        const t = langData[lang];
+
+        // 更新语言按钮状态
+        document.querySelectorAll('.lang-btn').forEach((btn) => btn.classList.remove('active'));
+        event.target.classList.add('active');
+
+        // 更新所有文本
+        Object.keys(t).forEach((key) => {
+          const element = document.getElementById(key);
+          if (element) {
+            if (key.includes('Help') || key === 'footerText') {
+              element.innerHTML = t[key];
+            } else {
+              element.textContent = t[key];
+            }
+          }
+        });
+
+        // 更新步骤文本
+        document.getElementById('step1').textContent = t.step1;
+        document.getElementById('step2').textContent = t.step2;
+        document.getElementById('step3').textContent = t.step3;
+
+        // 更新步骤描述文本
+        document.getElementById('stepDesc1').textContent = t.stepDesc1;
+        document.getElementById('stepDesc2').textContent = t.stepDesc2;
+        document.getElementById('stepDesc3').textContent = t.stepDesc3;
+
+        // 更新输入框placeholder
+        document.getElementById('tokenInput').placeholder = t.tokenPlaceholder;
+        document.getElementById('cdkInput').placeholder = t.cdkPlaceholder;
+
+        // 更新订阅状态显示
+        document.getElementById('planValue').textContent = t.subStatus[userPlan] || userPlan;
+      }
+
+      // 验证并充值
+      function verifyAndRecharge() {
+        const token = document.getElementById('tokenInput').value.trim();
+        const cdk = document.getElementById('cdkInput').value.trim();
+        const t = langData[lang];
+        const resultMsg = document.getElementById('resultMsg');
+        const btn = document.getElementById('submitBtn');
+
+        resultMsg.innerHTML = '';
+
+        if (!token) {
+          resultMsg.innerHTML = `<div class="alert alert-error">${t.token_empty}</div>`;
+          return;
+        }
+        if (!cdk) {
+          resultMsg.innerHTML = `<div class="alert alert-error">${t.cdk_empty}</div>`;
+          return;
+        }
+
+        btn.disabled = true;
+        const originalText = btn.textContent;
+        btn.textContent = t.recharging;
+
+        document.getElementById('emailValue').textContent = userEmail;
+
+        // STEP 1 — KIỂM TRA CDK
+        fetch('https://receipt-api.nitro.xin/cdks/public/check', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Product-ID': 'chatgpt',
+          },
+          body: JSON.stringify({ code: cdk }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            // CDK đã dùng
+            if (data.used) {
+              resultMsg.innerHTML = `<div class="alert alert-error">${t.cdk_used({
+                email: data.user || '-',
+                updated_at: data.redeem_time || '-',
+              })}</div>`;
+              throw new Error('CDK already used');
+            }
+
+            // STEP 2 — OUTSTOCK (NẠP CDK)
+            return fetch('https://receipt-api.nitro.xin/stocks/public/outstock', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Product-ID': 'chatgpt',
+              },
+              body: JSON.stringify({
+                cdk: cdk,
+                user: token,
+              }),
+            });
+          })
+          .then((res) => {
+            if (!res.ok) throw new Error('Outstock failed');
+
+            // Thành công
+            const timestamp = new Date().toLocaleString('zh-CN', { hour12: false });
+            const result = t.recharge_success;
+
+            // Lưu lịch sử
+            const history = JSON.parse(localStorage.getItem('rechargeHistory') || '[]');
+            history.unshift({
+              email: userEmail,
+              cdk: cdk,
+              result: result,
+              timestamp: timestamp,
+            });
+            localStorage.setItem('rechargeHistory', JSON.stringify(history));
+
+            resultMsg.innerHTML = `<div class="alert alert-success">${result}</div>`;
+          })
+          .catch((err) => {
+            console.error(err);
+            resultMsg.innerHTML = `<div class="alert alert-error">${t.recharge_fail}</div>`;
+          })
+          .finally(() => {
+            btn.disabled = false;
+            btn.textContent = originalText;
+          });
+      }
+
+      // 聚焦到CDK输入框
+      function focusCDKInput() {
+        setTimeout(() => {
+          const cdkInput = document.getElementById('cdkInput');
+          cdkInput.focus();
+          cdkInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+      }
+
+      // 显示充值记录
+      function showHistory() {
+        const modal = document.getElementById('historyModal');
+        const content = document.getElementById('historyContent');
+        const t = langData[lang];
+
+        // 从localStorage获取充值记录
+        const history = JSON.parse(localStorage.getItem('rechargeHistory') || '[]');
+
+        // 创建表头和内容
+        content.innerHTML = `
+                <div class="history-header">
+                    <div class="history-header-item">
+                        <div class="history-label">${t.historyEmailLabel}</div>
+                    </div>
+                    <div class="history-header-item">
+                        <div class="history-label">${t.historyCdkLabel}</div>
+                    </div>
+                    <div class="history-header-item">
+                        <div class="history-label">${t.historyResultLabel}</div>
+                    </div>
+                    <div class="history-header-item">
+                        <div class="history-label">${t.historyTimeLabel}</div>
+                    </div>
+                </div>
+            `;
+
+        if (history.length === 0) {
+          content.innerHTML += `
+                    <div class="history-item history-empty">
+                        <div class="history-value">${t.noHistory}</div>
+                    </div>
+                `;
+        } else {
+          content.innerHTML += history
+            .map(
+              (item) => `
+                    <div class="history-item">
+                        <div class="history-value">${item.email || '-'}</div>
+                        <div class="history-value">${item.cdk || '-'}</div>
+                        <div class="history-result">${item.result || '-'}</div>
+                        <div class="history-value">${item.timestamp || '-'}</div>
+                    </div>
+                `,
+            )
+            .join('');
+        }
+
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+
+      // 隐藏充值记录
+      function hideHistory() {
+        const modal = document.getElementById('historyModal');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+
+      // 初始化
+      document.addEventListener('DOMContentLoaded', function () {
+        // 先初始化文本内容
+        initializeText();
+        // 设置默认语言为简体中文
+        const zhCNBtn = document.querySelector('.lang-btn:first-child');
+        if (zhCNBtn) zhCNBtn.classList.add('active');
+
+        // 点击模态框外部关闭
+        const modal = document.getElementById('historyModal');
+        modal.addEventListener('click', function (e) {
+          if (e.target === modal) {
+            hideHistory();
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

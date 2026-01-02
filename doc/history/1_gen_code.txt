@@ -1,0 +1,226 @@
+目标：重构并新增兑换子域。将现有 redeem-discord 模块抽象成通用 redeem 模块，通过 /redeem/:product 路由访问，当前需要支持两种商品：discord 与 chatgpt。chatgpt 与 discord 的主要差异仅在引导指南与文案，表单与流程保持一致；历史记录中使用用户名（邮箱）替代 Access Token。
+
+重要约束：
+- 不引入新依赖，沿用现有 React + antd + 路由与样式体系。
+- 参考并保持 src/domains/redeem-discord 的视觉风格与交互，不做大规模设计重构。
+- API 对 chatgpt 使用 mock，discord 仍按现有接口调用；保持与现有 BASE_URL 的实现一致。
+- 所有变更聚焦 redeem 相关，避免影响其他域。
+
+最终效果概览：
+- 新路径：/redeem/discord 与 /redeem/chatgpt。
+- 页面结构两列：左侧商品引导（商品不同），右侧统一表单（两个输入：账号密钥 Access Token、CDK 卡密）。
+- 表单提交后弹窗展示“当前用户信息”。
+- 历史记录列为：用户 / CDK / 时间（用户可为邮箱/用户名/其他标识，统一展示为 user 字段）。
+- chatgpt 的引导三步：
+  1) 登录 ChatGPT：https://chatgpt.com/
+  2) 获取账号密钥：https://chatgpt.com/api/auth/session
+  3) 输入 CDK 并完成充值（“点击无响应”为说明文，不可点击）
+
+实施步骤：
+1) 目录结构与抽象
+- 将 src/domains/redeem-discord 重构为通用模块 src/domains/redeem，抽出“共用部分”（表单、弹窗、历史记录、主题/语言切换、样式框架）与“商品特化部分”（引导与部分文案）。
+- 建议结构：
+  src/domains/redeem/
+  ├── api/                # API 适配层（按 product 分流）
+  ├── components/         # 通用组件（RedeemForm/ConfirmModal/HistoryModal/Guide 容器）
+  ├── products/           # 商品特化（discord/chatgpt 各自的引导与文案配置）
+  │   ├── discord/
+  │   └── chatgpt/
+  ├── index.tsx           # 根据路由参数 product 渲染对应商品
+  ├── styles.css          # 延用原样式
+  ├── translation.ts      # 基础通用翻译 + 每商品可增量覆盖
+  └── types.ts            # 统一类型（HistoryRecord/ConfirmPayload/Product 等）
+
+2) 路由改造（不保留旧路径，错误拼写给 404）
+- 修改 src/main.tsx：
+  - 将原懒加载入口从 "./domains/redeem-discord" 替换为 "./domains/redeem"。
+  - 新增基于路由参数访问：/redeem/:product（仅支持 `discord` 与 `chatgpt`）。
+  - 移除旧路径 /redeem-discord 的路由，不做任何兼容与重定向。
+  - 当 :product 不在白名单时，显示 404（可使用应用全局的 NotFound，或在 redeem 内部渲染简单的 404 文案）。
+
+3) 通用组件与表单
+- RedeemForm：
+  - 输入字段：
+    1. 账号密钥（Access Token）
+    2. CDK 卡密
+  - 验证与交互沿用当前逻辑：
+    - 输入框状态（loading/success/error）
+    - 提交按钮禁用条件：两个输入都已通过校验
+    - 成功后弹窗与表单重置逻辑保持一致
+  - 提交成功后向历史记录添加记录。
+- ConfirmModal / HistoryModal：
+  - 沿用现有实现，适配字段名变化（见“历史记录”）。
+  - HistoryModal 的列改为：user（邮箱）/ cdk / time。
+
+4) 历史记录与类型（采用新的本地存储 Key；不迁移旧数据）
+- 统一使用 user 字段承载用户展示标识（可能是邮箱/用户名/其他），不直接以 email 命名：
+  interface HistoryRecord {
+    id: string;
+    userId?: string;
+    user: string;   // 用户显示标识（email/username/其他）
+    cdk: string;
+    appId: string;
+    redeemedAt: string;
+  }
+- 历史记录表头翻译：
+  - zh: 用户 / CDK / 兑换时间
+  - en: User / CDK / Redeemed at
+- 本地存储建议按商品区分 key，避免两个商品混淆：
+  - redeem_{product}_history
+  - redeem_{product}_language
+  - redeem_{product}_theme
+- 初始化时清理旧 Key（若存在）以避免干扰：
+  - 需删除的旧 Key：redeem_history / redeem_language / redeem_theme。
+
+5) 翻译与文案（中英文；每个商品引导不同，集中到商品目录）
+- 保留中英文。
+- 通用：页面标题、副标题、按钮文案、表单占位、错误提示与成功提示保留原风格。
+- Discord 商品：沿用现有文案（与原 redeem-discord 保持一致）。
+- ChatGPT 商品：覆盖以下点：
+  - 页面标题：兑换 ChatGPT CDK（en: Redeem ChatGPT CDK）
+  - 引导标题：获取账号密钥（Access Token）
+  - 引导步骤：
+    1) 登录 ChatGPT（链接：https://chatgpt.com/）
+    2) 获取账号密钥（链接：https://chatgpt.com/api/auth/session）
+    3) 输入 CDK 卡密并完成充值（点击无响应，仅说明）
+  - 表单标签：账号密钥（Access Token）、CDK 卡密
+  - 成功弹窗：展示当前用户信息（按可用字段展示：email/name/id 等）
+- 所有“商品差异”的文案与引导统一放在：src/domains/redeem/products/{product}/ 下，便于扩展新商品。
+
+6) API 适配（统一三接口 + 通过 X-Product-ID 区分商品；DEV 直连正式 API）
+- 所有商品共用三个接口，前端通过请求头携带 `X-Product-ID` 指示商品（取值：`discord` 或 `chatgpt`）：
+  - POST /external/public/user         # 校验 Access Token，并返回标准化用户信息
+  - GET  /cdks/public/:code            # 校验 CDK
+  - POST /stocks/public/outstock       # 兑换下发
+- 请求头规范：
+  - `Content-Type: application/json`（POST）
+  - `X-Product-ID: <product>`（必须）
+- 通用请求封装（示例）：
+  request(path, { method, body, product }) => fetch(BASE_URL+path, { headers: { 'Content-Type': 'application/json', 'X-Product-ID': product } })
+- 导出统一函数：
+  - verifyToken(token, product)
+  - verifyCdk(code, product)
+  - redeemCdk({ cdk, user }, product)
+- 返回数据规范：
+  - verifyToken => { id?: string; email?: string; name?: string; username?: string; ... }
+  - 前端在成功后归一化用户展示标识 user：user = email || name || username || id。
+- 兼容与 mock：
+  - BASE_URL 固定使用正式地址（例如：https://receipt-api.nitro.xin），DEV 环境也直连正式 API。
+  - 仅在满足“mock 条件”（token/cdk 为 mock_ok / mock_fail）时，本地短路返回模拟结果；其他情况一律调用正式 API。
+ - `X-Product-ID` 值大小写固定且仅允许：`discord` / `chatgpt`，否则后端应返回 4xx。
+
+7) ChatGPT 引导实现
+- 左侧引导区域使用与现有 TokenGuide 类似的“步骤卡片”样式，但不使用书签脚本；替换为三张卡片：
+  - Step1：登录 ChatGPT（可点击，target=_blank 打开 https://chatgpt.com/）
+  - Step2：获取账号密钥（可点击，target=_blank 打开 https://chatgpt.com/api/auth/session）
+  - Step3：输入 CDK 卡密并完成充值（不可点击，显示“点击无响应”说明）
+- 可参考 prompts/pay.html 的交互与视觉节奏，保持与 redeem 页面统一的样式风格（不引入新字体/库）。
+
+8) 其他交互
+- 语言切换与深浅色切换保留。
+- 安全提示语沿用：“数据仅在浏览器中用于验证，不会被存储在服务器端。”
+- 禁止在控制台打印 token/cdk 等敏感信息；统一 API 层不得输出敏感内容。
+
+9) 验收标准（重要）
+- /redeem/discord 正常可用，功能与现有 redeem-discord 等价（历史记录列为“用户/CDK/时间”）。
+ - /redeem/chatgpt 可用，mock 验证可走通（仅 mock_ok/mock_fail 生效），三步引导显示正确，两个外链正确打开。
+ - 历史记录按商品独立存储与读取，不串扰；列表显示为“用户 / CDK / 时间”。
+ - 表单提交成功有确认弹窗，展示当前用户可用信息（email/name/id 等）。
+ - 表单重置：真实成功充值后重置；mock 成功不重置。
+
+附录 A：通用 request 封装示例（伪代码）
+
+function request(path, { method = 'GET', body, product }) {
+  const headers = { 'X-Product-ID': product };
+  if (method !== 'GET') headers['Content-Type'] = 'application/json';
+  // DEV 直连正式 API；只在 mock_ok/mock_fail 触发时短路模拟
+  return fetch(`${BASE_URL}${path}`, {
+    method,
+    headers,
+    body: method === 'GET' ? undefined : JSON.stringify(body)
+  }).then(async res => {
+    if (!res.ok) throw new Error((await res.text()) || `HTTP ${res.status}`);
+    const text = await res.text();
+    return text ? JSON.parse(text) : undefined;
+  });
+}
+
+export function verifyToken(token, product) {
+  // 短路 mock：仅当 token 为 mock_ok/mock_fail
+  if (token === 'mock_ok') return Promise.resolve({ id: 'mock', email: 'user@example.com', name: 'Mock User' });
+  if (token === 'mock_fail') return Promise.reject(new Error('Access Token 无效或已过期'));
+  return request('/external/public/user', { method: 'POST', body: { token }, product });
+}
+
+export function verifyCdk(code, product) {
+  if (code === 'mock_ok') return Promise.resolve({ code, used: false, app_id: `${product}_pro` });
+  if (code === 'mock_fail') return Promise.reject(new Error('CDK 无效或已使用'));
+  return request(`/cdks/public/${encodeURIComponent(code)}`, { method: 'GET', product });
+}
+
+export function redeemCdk(payload, product) {
+  if (payload.cdk === 'mock_ok' && payload.user === 'mock_ok') return Promise.resolve(true);
+  if (payload.cdk === 'mock_fail' || payload.user === 'mock_fail') return Promise.reject(new Error('充值失败'));
+  return request('/stocks/public/outstock', { method: 'POST', body: payload, product });
+}
+
+// 用户显示值统一：
+function toDisplayUser(u) {
+  return u.email || u.name || u.username || u.id || 'unknown';
+}
+
+附录 B：商品配置示例（src/domains/redeem/products/{product}/config.ts）
+
+export const productConfig = {
+  discord: {
+    slug: 'discord',
+    title: { zh: '兑换 Discord CDK', en: 'Redeem Discord CDK' },
+    subTitle: { zh: '安全极速的账号储值服务', en: 'Safe and fast account recharge service' },
+    guide: {
+      zh: [
+        { title: '创建收藏夹', description: '……（沿用现有文案）', link: null, clickable: false },
+        { title: '书签脚本', description: '……', link: null, clickable: false },
+        { title: '登录网站', description: 'https://discord.com/', link: 'https://discord.com/', clickable: true },
+      ],
+      en: [ /* 同上英文版 */ ],
+    },
+    translationOverride: { /* 若有差异可增量覆盖 */ },
+  },
+  chatgpt: {
+    slug: 'chatgpt',
+    title: { zh: '兑换 ChatGPT CDK', en: 'Redeem ChatGPT CDK' },
+    subTitle: { zh: '安全极速的账号储值服务', en: 'Safe and fast account recharge service' },
+    guide: {
+      zh: [
+        { title: '步骤1：登录 ChatGPT', description: '打开并登录 ChatGPT', link: 'https://chatgpt.com/', clickable: true },
+        { title: '步骤2：获取账号密钥（Access Token）', description: '打开并复制 accessToken 字段', link: 'https://chatgpt.com/api/auth/session', clickable: true },
+        { title: '步骤3：输入 CDK 卡密并完成充值', description: '点击无响应，仅作为说明', link: null, clickable: false },
+      ],
+      en: [
+        { title: 'Step 1: Sign in to ChatGPT', description: 'Open and sign in to ChatGPT', link: 'https://chatgpt.com/', clickable: true },
+        { title: 'Step 2: Get Access Token', description: 'Open and copy the accessToken field', link: 'https://chatgpt.com/api/auth/session', clickable: true },
+        { title: 'Step 3: Enter CDK and finish redeem', description: 'No click action (info only)', link: null, clickable: false },
+      ],
+    },
+    translationOverride: { /* 如按钮文案差异可覆盖 */ },
+  }
+} as const;
+
+附录 C：404/NotFound 建议
+
+- 路由 /redeem/:product 解析后，若 product 不在 ['discord','chatgpt']：
+  - 返回一个简单的占位组件："404 Not Found"，带返回首页按钮；或使用全局 NotFound。
+- 不做任何重定向与回退，保持显式失败，便于排查。
+- 代码结构清晰：通用逻辑在 redeem 下共享，商品差异在 products/discord 与 products/chatgpt 下实现。
+
+10) 注意事项
+- 保持与 src/styles/tokens.css 的设计变量一致，不要新增全局变量。
+- 不改动非 redeem 的路由或页面。
+- 若需兼容旧路径 /redeem-discord，可临时保留一个 Route 重定向到 /redeem/discord（如不需要则省略）。
+
+输出要求：
+- 直接提交完整代码变更（新增/修改文件），包含：
+  - 新的 src/domains/redeem 目录与文件
+  - 调整后的 src/main.tsx 路由
+  - 不要保留旧的 src/domains/redeem-discord 入口（如做重定向则仅在路由层保留）
+- 代码需通过项目现有构建（pnpm + vite）的基本编译检查。

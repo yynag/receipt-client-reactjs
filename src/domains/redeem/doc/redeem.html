@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Discord CDK 兑换中心 - 演示</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      .dark {
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --bg-tertiary: #334155;
+        --text-primary: #f1f5f9;
+        --text-secondary: #cbd5e1;
+        --border-color: #475569;
+        --accent: #3b82f6;
+        --accent-hover: #2563eb;
+        --success: #10b981;
+        --error: #ef4444;
+      }
+
+      .light {
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8fafc;
+        --bg-tertiary: #f1f5f9;
+        --text-primary: #0f172a;
+        --text-secondary: #475569;
+        --border-color: #e2e8f0;
+        --accent: #3b82f6;
+        --accent-hover: #2563eb;
+        --success: #10b981;
+        --error: #ef4444;
+      }
+
+      body {
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        transition: all 0.3s ease;
+      }
+
+      .glass-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+      }
+
+      .glass-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 24px rgba(59, 130, 246, 0.4);
+      }
+
+      .btn-primary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .input-field {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        padding: 12px 16px;
+        border-radius: 8px;
+        width: 100%;
+        font-size: 14px;
+        transition: all 0.3s ease;
+      }
+
+      .input-field:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      }
+
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+      }
+
+      .modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .modal-content {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 24px;
+        max-width: 500px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        transform: scale(0.9);
+        transition: all 0.3s ease;
+      }
+
+      .modal-overlay.active .modal-content {
+        transform: scale(1);
+      }
+
+      .step-indicator {
+        display: flex;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+
+      .step-number {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 12px;
+        margin-right: 8px;
+      }
+
+      .loading-spinner {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top: 2px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .token-display {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 12px;
+        font-family: "Courier New", monospace;
+        font-size: 12px;
+        word-break: break-all;
+        color: var(--text-secondary);
+      }
+
+      .history-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .history-table th,
+      .history-table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .status-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        font-weight: bold;
+      }
+
+      .status-icon.success {
+        background: var(--success);
+        color: white;
+      }
+
+      .status-icon.error {
+        background: var(--error);
+        color: white;
+      }
+
+      .language-toggle,
+      .theme-toggle {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.3s ease;
+      }
+
+      .language-toggle:hover,
+      .theme-toggle:hover {
+        background: var(--accent);
+        color: white;
+        border-color: var(--accent);
+      }
+    </style>
+  </head>
+  <body class="light">
+    <!-- Header -->
+    <header class="glass-card max-w-5xl mx-auto m-4 p-4">
+      <div class="flex justify-between items-center">
+        <div>
+          <h1 class="text-2xl font-bold mb-1" data-i18n="pageTitle"></h1>
+          <p class="text-sm opacity-75" data-i18n="subTitle"></p>
+        </div>
+        <div class="flex gap-2">
+          <button class="language-toggle" onclick="toggleLanguage()">
+            <i class="fas fa-language mr-1"></i>
+            <span id="langText">EN</span>
+          </button>
+          <button class="theme-toggle" onclick="toggleTheme()">
+            <i class="fas fa-moon" id="themeIcon"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-5xl mx-auto px-0">
+      <div class="flex flex-wrap flex-row lg:flex-nowrap gap-6">
+        
+        <!-- Left: Token Guide -->
+        <div class="w-full lg:w-1/3">
+          <div class="glass-card p-6">
+            <h2 class="text-lg font-semibold mb-4"><i class="fas fa-book mr-2"></i><span data-i18n="guideTitle"></span></h2>
+
+            <div class="space-y-4">
+              <div class="border-l-4 border-blue-500 pl-4">
+                <h3 class="font-medium mb-2" data-i18n="guideStep1"></h3>
+                <p class="text-sm opacity-75 mb-2" data-i18n="guideStep1Desc"></p>
+              </div>
+
+              <div class="border-l-4 border-green-500 pl-4">
+                <h3 class="font-medium mb-2" data-i18n="guideStep2"></h3>
+                <div class="token-display mb-2">
+                  javascript:(function(){(() => {var I =
+                  document.createElement("iframe");document.body.appendChild(I);prompt("Here is your token. Keep it
+                  secret:", I.contentWindow.localStorage.token.replace(/"/g, ""));})()})();
+                </div>
+                <button class="btn-primary text-sm p-2" onclick="copyScript()">
+                  <i class="fas fa-copy mr-1"></i><span data-i18n="copyScript"></span>
+                </button>
+              </div>
+
+              <div class="border-l-4 border-yellow-500 pl-4">
+                <h3 class="font-medium mb-2" data-i18n="guideStep3"></h3>
+                <p class="text-sm opacity-75" data-i18n="guideStep3Desc"></p>
+              </div>
+
+              <div class="border-l-4 border-purple-500 pl-4">
+                <h3 class="font-medium mb-2" data-i18n="guideStep4"></h3>
+                <p class="text-sm opacity-75" data-i18n="guideStep4Desc"></p>
+              </div>
+                </p>
+              </div>
+            </div>
+          </div>
+
+        <!-- Right: Redeem Form -->
+        <div class="w-full lg:w-2/3">
+          <div class="glass-card p-6">
+            <h2 class="text-lg font-semibold mb-6">
+              <i class="fas fa-exchange-alt mr-2"></i><span data-i18n="redeemTitle"></span>
+            </h2>
+
+            <form id="redeemForm" class="space-y-6">
+              <!-- Step 1: Token Input -->
+              <div>
+                <div class="step-indicator">
+                  <div class="step-number">1</div>
+                  <label class="font-medium" data-i18n="step1"></label>
+                </div>
+                <input
+                  type="text"
+                  id="tokenInput"
+                  class="input-field mt-2"
+                  placeholder="请输入浏览器中获取到的Token"
+                  data-i18n-placeholder="tokenPlaceholder"
+                  onkeypress="handleEnterKey(event, 'token')"
+                />
+                <div id="tokenStatus" class="mt-2 text-sm"></div>
+              </div>
+
+              <!-- Step 2: CDK Input -->
+              <div>
+                <div class="step-indicator">
+                  <div class="step-number">2</div>
+                  <label class="font-medium" data-i18n="step2"></label>
+                </div>
+                <input
+                  type="text"
+                  id="cdkInput"
+                  class="input-field mt-2"
+                  placeholder="请输入兑换码"
+                  data-i18n-placeholder="cdkPlaceholder"
+                  onkeypress="handleEnterKey(event, 'cdk')"
+                />
+                <div id="cdkStatus" class="mt-2 text-sm"></div>
+              </div>
+
+              <!-- Submit Button -->
+              <div class="flex items-center justify-between">
+                <button type="button" class="btn-primary" onclick="startRedeem()" id="redeemBtn">
+                  <i class="fas fa-rocket mr-2"></i><span data-i18n="startRedeem"></span>
+                </button>
+
+                <button type="button" class="text-sm opacity-75 hover:opacity-100" onclick="showHistory()">
+                  <i class="fas fa-history mr-1"></i><span data-i18n="viewHistory"></span>
+                </button>
+              </div>
+
+              <!-- Security Note -->
+              <div class="text-xs opacity-60 border-t pt-4" data-i18n="securityNote">
+                <i class="fas fa-shield-alt mr-1"></i>
+              </div>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-card max-w-5xl mx-auto m-4 p-4 text-center text-sm opacity-75" data-i18n="footer"></footer>
+
+    <!-- Modal: Confirm/Status -->
+    <div id="confirmModal" class="modal-overlay">
+      <div class="modal-content">
+        <div class="flex items-center mb-4">
+          <div id="modalIcon" class="status-icon mr-3"></div>
+          <h3 id="modalTitle" class="text-lg font-semibold"></h3>
+        </div>
+        <div id="modalMessage" class="mb-6"></div>
+        <div id="modalDetails" class="mb-6 p-4 bg-opacity-50 rounded-lg" style="background: var(--bg-tertiary)"></div>
+        <button class="btn-primary w-full" onclick="closeModal('confirmModal')" data-i18n="confirm"></button>
+      </div>
+    </div>
+
+    <!-- Modal: History -->
+    <div id="historyModal" class="modal-overlay">
+      <div class="modal-content">
+        <h3 class="text-lg font-semibold mb-4" data-i18n="history"><i class="fas fa-history mr-2"></i></h3>
+        <div id="historyContent"></div>
+        <button class="btn-primary w-full mt-4" onclick="closeModal('historyModal')" data-i18n="close"></button>
+      </div>
+    </div>
+
+    <script>
+      // Global state
+      let currentTheme = "light";
+      let currentLang = "zh";
+      let validatedToken = null;
+      let validatedCDK = null;
+      let redeemHistory = JSON.parse(localStorage.getItem("redeemHistory") || "[]");
+
+      // Translations
+      const translations = {
+        zh: {
+          pageTitle: "兑换 Discord CDK",
+          subTitle: "安全、快捷的账号充值服务",
+          step1: "输入Token",
+          step2: "输入CDK",
+          tokenPlaceholder: "请输入浏览器中获取到的Token",
+          cdkPlaceholder: "请输入兑换码",
+          startRedeem: "开始充值",
+          viewHistory: "查看兑换记录",
+          securityNote: "所有数据仅在本地浏览器中用于校验，不会被存储或上传。",
+          tokenValid: "Token验证成功",
+          tokenInvalid: "Token无效，可能不正确",
+          tokenPremium: "不能兑换，用户为高级用户",
+          cdkValid: "兑换码验证成功",
+          cdkInvalid: "兑换码无效，请重试",
+          redeemSuccess: "充值成功",
+          redeemError: "充值失败",
+          confirmRedeem: "确认兑换",
+          userInfo: "用户信息",
+          cdkInfo: "CDK信息",
+          history: "兑换记录",
+          noHistory: "暂无兑换记录",
+          guideTitle: "获取Token教程",
+          redeemTitle: "CDK兑换",
+          guideTitle: "获取Token教程",
+          copyScript: "复制脚本",
+          confirm: "确认",
+          close: "关闭",
+          footer: "© 2025 官方代理储值系统. 保留所有权利.使用本服务即表示您同意我们的服务条款和隐私政策",
+          guideStep1: "步骤1: 创建书签",
+          guideStep1Desc: '打开浏览器书签管理，创建名称为"GetToken"的书签。',
+          guideStep2: "步骤2: 填写脚本",
+          guideStep3: "步骤3: 登录网站",
+          guideStep3Desc: "在浏览器打开并登录 https://discord.com/",
+          guideStep4: "步骤4: 执行脚本",
+          guideStep4Desc: '登录成功后，在地址栏输入书签名称"GetToken"并回车，即可弹出Token提示框。',
+          scriptCopied: "脚本已复制到剪贴板！",
+          userToken: "用户Token",
+          cdk: "CDK",
+          redeemTime: "兑换时间",
+          status: "状态"
+        },
+        en: {
+          pageTitle: "Redeem Discord CDK",
+          subTitle: "Safe and fast account recharge service",
+          step1: "Enter Token",
+          step2: "Enter CDK",
+          tokenPlaceholder: "Paste the token retrieved from the browser",
+          cdkPlaceholder: "Enter the CDK code",
+          startRedeem: "Start recharge",
+          viewHistory: "View redeem history",
+          securityNote: "Data stays within your browser for verification and is never stored on our servers.",
+          tokenValid: "Token validated successfully",
+          tokenInvalid: "Invalid token, maybe incorrect",
+          tokenPremium: "Can't redeem, User is already a premium member",
+          cdkValid: "CDK validated successfully",
+          cdkInvalid: "Invalid CDK, please try again",
+          redeemSuccess: "Recharge successful",
+          redeemError: "Recharge failed",
+          confirmRedeem: "Confirm redeem",
+          userInfo: "User Information",
+          cdkInfo: "CDK Information",
+          history: "Redeem History",
+          noHistory: "No redemption records yet",
+          redeemTitle: "CDK Redemption",
+          guideTitle: "Token Guide",
+          copyScript: "Copy Script",
+          confirm: "Confirm",
+          close: "Close",
+          footer:
+            "© 2025 Official Agent Recharge System. All rights reserved. Using this service means you agree to our terms of service and privacy policy",
+          guideStep1: "Step 1: Create Bookmark",
+          guideStep1Desc: 'Open browser bookmark manager and create a bookmark named "GetToken".',
+          guideStep2: "Step 2: Fill Script",
+          guideStep3: "Step 3: Login to Website",
+          guideStep3Desc: "Open and login to https://discord.com/ in your browser",
+          guideStep4: "Step 4: Execute Script",
+          guideStep4Desc:
+            'After successful login, enter the bookmark name "GetToken" in the address bar and press Enter to get the Token prompt.',
+          scriptCopied: "Script copied to clipboard!",
+          userToken: "User Token",
+          cdk: "CDK",
+          redeemTime: "Redeem Time",
+          status: "Status"
+        }
+      };
+
+      // Mock API responses
+      const mockAPI = {
+        validateToken: (token) => {
+          return new Promise((resolve) => {
+            setTimeout(() => {
+              if (token === "mock") {
+                resolve({
+                  success: true,
+                  data: {
+                    id: "user-12345",
+                    username: "MockUser",
+                    global_name: "Mock User",
+                    locale: "zh",
+                    premium_type: 0,
+                    email: "mock@example.com",
+                    verified: true,
+                    phone: "+86 138 0013 8000"
+                  }
+                });
+              } else if (token === "premium_token") {
+                resolve({
+                  success: true,
+                  data: {
+                    id: "premium-12345",
+                    username: "PremiumUser",
+                    global_name: "Premium User",
+                    locale: "zh",
+                    premium_type: 2,
+                    email: "premium@example.com",
+                    verified: true,
+                    phone: "+86 139 0013 9000"
+                  }
+                });
+              } else {
+                resolve({
+                  success: false,
+                  error: "Token无效，可能不正确"
+                });
+              }
+            }, 800);
+          });
+        },
+
+        validateCDK: (cdk) => {
+          return new Promise((resolve) => {
+            setTimeout(() => {
+              if (cdk === "mock") {
+                resolve({
+                  success: true,
+                  data: {
+                    code: "mock",
+                    used: false,
+                    app_id: "discord-nitro-app"
+                  }
+                });
+              } else if (cdk === "USED_CDK_456") {
+                resolve({
+                  success: true,
+                  data: {
+                    code: "USED_CDK_456",
+                    used: true,
+                    app_id: "discord-nitro-app"
+                  }
+                });
+              } else {
+                resolve({
+                  success: false,
+                  error: "兑换码无效，请重试"
+                });
+              }
+            }, 600);
+          });
+        },
+
+        redeem: (token, cdk) => {
+          return new Promise((resolve) => {
+            setTimeout(() => {
+              if (token === "mock" && cdk === "mock") {
+                resolve({
+                  success: true,
+                  message: "充值成功"
+                });
+              } else {
+                resolve({
+                  success: false,
+                  error: "充值失败，请检查输入信息"
+                });
+              }
+            }, 1500);
+          });
+        }
+      };
+
+      // Theme toggle
+      function toggleTheme() {
+        currentTheme = currentTheme === "light" ? "dark" : "light";
+        document.body.className = currentTheme;
+        const icon = document.getElementById("themeIcon");
+        icon.className = currentTheme === "light" ? "fas fa-moon" : "fas fa-sun";
+      }
+
+      // Language toggle
+      function toggleLanguage() {
+        currentLang = currentLang === "zh" ? "en" : "zh";
+        document.getElementById("langText").textContent = currentLang === "zh" ? "EN" : "中文";
+        updateUIText();
+      }
+
+      // Update UI text based on language
+      function updateUIText() {
+        const t = translations[currentLang];
+
+        // Update all elements with data-i18n attribute
+        document.querySelectorAll("[data-i18n]").forEach((element) => {
+          const key = element.getAttribute("data-i18n");
+          if (t[key]) {
+            element.textContent = t[key];
+          }
+        });
+
+        // Update placeholders
+        document.querySelectorAll("[data-i18n-placeholder]").forEach((element) => {
+          const key = element.getAttribute("data-i18n-placeholder");
+          if (t[key]) {
+            element.placeholder = t[key];
+          }
+        });
+      }
+
+      // Copy script to clipboard
+      function copyScript() {
+        const script = `javascript:(function(){(() => {var I = document.createElement("iframe");document.body.appendChild(I);prompt("Here is your token. Keep it secret:", I.contentWindow.localStorage.token.replace(/"/g, ""));})()})();`;
+        navigator.clipboard.writeText(script).then(() => {
+          showModal("success", translations[currentLang].scriptCopied, "", "");
+        });
+      }
+
+      // Validate token
+      async function validateToken() {
+        const token = document.getElementById("tokenInput").value.trim();
+        const statusDiv = document.getElementById("tokenStatus");
+
+        if (!token) {
+          statusDiv.innerHTML = "";
+          return;
+        }
+
+        statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 验证中...';
+
+        try {
+          const result = await mockAPI.validateToken(token);
+
+          if (result.success) {
+            const data = result.data;
+
+            if (data.premium_type > 0) {
+              statusDiv.innerHTML =
+                '<span class="text-red-500"><i class="fas fa-times-circle"></i> 不能兑换，用户为高级用户</span>';
+              showModal(
+                "error",
+                translations[currentLang].tokenPremium,
+                "",
+                `
+                            <div><strong>用户名:</strong> ${data.username}</div>
+                            <div><strong>邮箱:</strong> ${data.email}</div>
+                            <div><strong>高级类型:</strong> ${data.premium_type}</div>
+                        `
+              );
+            } else {
+              validatedToken = data;
+              statusDiv.innerHTML =
+                '<span class="text-green-500"><i class="fas fa-check-circle"></i> Token验证成功</span>';
+              showModal(
+                "success",
+                translations[currentLang].tokenValid,
+                translations[currentLang].userInfo,
+                `
+                            <div><strong>用户名:</strong> ${data.username}</div>
+                            <div><strong>邮箱:</strong> ${data.email}</div>
+                            <div><strong>手机:</strong> ${data.phone}</div>
+                            <div><strong>已验证:</strong> ${data.verified ? "是" : "否"}</div>
+                        `
+              );
+            }
+          } else {
+            statusDiv.innerHTML = `<span class="text-red-500"><i class="fas fa-times-circle"></i> ${result.error}</span>`;
+            showModal("error", translations[currentLang].tokenInvalid, result.error, "");
+          }
+        } catch (error) {
+          statusDiv.innerHTML = '<span class="text-red-500"><i class="fas fa-times-circle"></i> 网络错误</span>';
+          showModal("error", "网络错误", "请检查网络连接后重试", "");
+        }
+      }
+
+      // Validate CDK
+      async function validateCDK() {
+        const cdk = document.getElementById("cdkInput").value.trim();
+        const statusDiv = document.getElementById("cdkStatus");
+
+        if (!cdk) {
+          statusDiv.innerHTML = "";
+          return;
+        }
+
+        statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 验证中...';
+
+        try {
+          const result = await mockAPI.validateCDK(cdk);
+
+          if (result.success) {
+            const data = result.data;
+            validatedCDK = data;
+
+            if (data.used) {
+              statusDiv.innerHTML =
+                '<span class="text-red-500"><i class="fas fa-times-circle"></i> 兑换码已被使用</span>';
+              showModal(
+                "error",
+                "兑换码已被使用",
+                "此兑换码已经被其他用户使用",
+                `
+                            <div><strong>兑换码:</strong> ${data.code}</div>
+                            <div><strong>应用ID:</strong> ${data.app_id}</div>
+                            <div><strong>状态:</strong> 已使用</div>
+                        `
+              );
+            } else {
+              statusDiv.innerHTML =
+                '<span class="text-green-500"><i class="fas fa-check-circle"></i> 兑换码验证成功</span>';
+              showModal(
+                "success",
+                translations[currentLang].cdkValid,
+                translations[currentLang].cdkInfo,
+                `
+                            <div><strong>兑换码:</strong> ${data.code}</div>
+                            <div><strong>应用ID:</strong> ${data.app_id}</div>
+                            <div><strong>状态:</strong> 可用</div>
+                        `
+              );
+            }
+          } else {
+            statusDiv.innerHTML = `<span class="text-red-500"><i class="fas fa-times-circle"></i> ${result.error}</span>`;
+            showModal("error", translations[currentLang].cdkInvalid, result.error, "");
+          }
+        } catch (error) {
+          statusDiv.innerHTML = '<span class="text-red-500"><i class="fas fa-times-circle"></i> 网络错误</span>';
+          showModal("error", "网络错误", "请检查网络连接后重试", "");
+        }
+      }
+
+      // Start redeem process
+      async function startRedeem() {
+        const token = document.getElementById("tokenInput").value.trim();
+        const cdk = document.getElementById("cdkInput").value.trim();
+        const btn = document.getElementById("redeemBtn");
+
+        if (!validatedToken) {
+          showModal("error", "请先验证Token", "请输入有效的Token并等待验证完成", "");
+          return;
+        }
+
+        if (!validatedCDK) {
+          showModal("error", "请先验证CDK", "请输入有效的CDK并等待验证完成", "");
+          return;
+        }
+
+        if (validatedCDK.used) {
+          showModal("error", "兑换码已被使用", "请使用其他兑换码", "");
+          return;
+        }
+
+        // Show loading state
+        btn.disabled = true;
+        btn.innerHTML = '<div class="loading-spinner mr-2"></div>充值中...';
+
+        try {
+          const result = await mockAPI.redeem(token, cdk);
+
+          if (result.success) {
+            // Add to history
+            const historyItem = {
+              token: token.substring(0, 10) + "...",
+              cdk: cdk,
+              time: new Date().toLocaleString(),
+              success: true
+            };
+            redeemHistory.unshift(historyItem);
+            localStorage.setItem("redeemHistory", JSON.stringify(redeemHistory));
+
+            showModal(
+              "success",
+              translations[currentLang].redeemSuccess,
+              result.message,
+              `
+                        <div><strong>用户:</strong> ${validatedToken.username}</div>
+                        <div><strong>兑换码:</strong> ${validatedCDK.code}</div>
+                        <div><strong>应用:</strong> ${validatedCDK.app_id}</div>
+                        <div><strong>时间:</strong> ${new Date().toLocaleString()}</div>
+                    `
+            );
+
+            // Reset form
+            document.getElementById("tokenInput").value = "";
+            document.getElementById("cdkInput").value = "";
+            document.getElementById("tokenStatus").innerHTML = "";
+            document.getElementById("cdkStatus").innerHTML = "";
+            validatedToken = null;
+            validatedCDK = null;
+          } else {
+            showModal("error", translations[currentLang].redeemError, result.error, "");
+          }
+        } catch (error) {
+          showModal("error", "网络错误", "充值过程中发生网络错误，请重试", "");
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-rocket mr-2"></i>' + translations[currentLang].startRedeem;
+        }
+      }
+
+      // Show modal
+      function showModal(type, title, message, details) {
+        const modal = document.getElementById("confirmModal");
+        const icon = document.getElementById("modalIcon");
+        const titleEl = document.getElementById("modalTitle");
+        const messageEl = document.getElementById("modalMessage");
+        const detailsEl = document.getElementById("modalDetails");
+
+        icon.className = `status-icon ${type === "success" ? "success" : "error"}`;
+        icon.innerHTML = type === "success" ? "✓" : "✗";
+        titleEl.textContent = title;
+        messageEl.textContent = message;
+        detailsEl.innerHTML = details;
+        detailsEl.style.display = details ? "block" : "none";
+
+        modal.classList.add("active");
+      }
+
+      // Show history
+      function showHistory() {
+        const modal = document.getElementById("historyModal");
+        const content = document.getElementById("historyContent");
+
+        if (redeemHistory.length === 0) {
+          content.innerHTML = `<p class="text-center opacity-75">${translations[currentLang].noHistory}</p>`;
+        } else {
+          const t = translations[currentLang];
+          const table = `
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>${t.userToken}</th>
+                                <th>${t.cdk}</th>
+                                <th>${t.redeemTime}</th>
+                                <th>${t.status}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${redeemHistory
+                              .map(
+                                (item) => `
+                                <tr>
+                                    <td class="font-mono text-sm">${item.token}</td>
+                                    <td class="font-mono text-sm">${item.cdk}</td>
+                                    <td class="text-sm">${item.time}</td>
+                                    <td>
+                                        <span class="status-icon ${
+                                          item.success ? "success" : "error"
+                                        }" style="width: 20px; height: 20px; font-size: 12px;">
+                                            ${item.success ? "✓" : "✗"}
+                                        </span>
+                                    </td>
+                                </tr>
+                            `
+                              )
+                              .join("")}
+                        </tbody>
+                    </table>
+                `;
+          content.innerHTML = table;
+        }
+
+        modal.classList.add("active");
+      }
+
+      // Close modal
+      function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove("active");
+      }
+
+      // Handle Enter key for validation
+      function handleEnterKey(event, type) {
+        if (event.key === "Enter") {
+          if (type === "token") {
+            validateToken();
+          } else if (type === "cdk") {
+            validateCDK();
+          }
+        }
+      }
+
+      // Initialize theme based on system preference
+      function initTheme() {
+        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        currentTheme = prefersDark ? "dark" : "light";
+        document.body.className = currentTheme;
+        const icon = document.getElementById("themeIcon");
+        icon.className = currentTheme === "light" ? "fas fa-moon" : "fas fa-sun";
+      }
+
+      // Initialize on load
+      document.addEventListener("DOMContentLoaded", function () {
+        initTheme();
+        updateUIText();
+
+        // Add sample history for demonstration
+        if (redeemHistory.length === 0) {
+          redeemHistory = [
+            {
+              token: "mock_***_token",
+              cdk: "mock",
+              time: "2025/1/15 14:30:25",
+              success: true
+            },
+            {
+              token: "test_***_token",
+              cdk: "SAMPLE_CDK_002",
+              time: "2025/1/14 09:15:10",
+              success: true
+            }
+          ];
+          localStorage.setItem("redeemHistory", JSON.stringify(redeemHistory));
+        }
+      });
+
+      // Close modals when clicking overlay
+      document.getElementById("confirmModal").addEventListener("click", function (e) {
+        if (e.target === this) {
+          closeModal("confirmModal");
+        }
+      });
+
+      document.getElementById("historyModal").addEventListener("click", function (e) {
+        if (e.target === this) {
+          closeModal("historyModal");
+        }
+      });
+    </script>
+  </body>
+</html>

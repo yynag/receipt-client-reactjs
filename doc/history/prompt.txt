@@ -1,0 +1,124 @@
+
+src/domains/admin/pages/dashboard/CDKStatsTab.tsx 和 src/domains/admin/pages/dashboard/StockStatsTab.tsx 修改需求：
+- 去掉使用情况分布图（圆饼图）
+- 改成柱状图
+    - 横坐标：应用-商品 组合，比如 ChatGPT(Plus 1M)、ChatGPT(Plus 2M)
+    - 纵坐标：已使用和未使用，在一根柱子上，已使用在下（红色），未使用再上（蓝色）。
+- 应用筛选：如果筛选应用，柱状图只保留此应用的数据
+- 商品筛选：只保留此应用和商品的数据
+- 人筛选：数据再加个 user_id
+- API接口帮我生成
+
+
+柱状图改进：
+- 柱子细一点
+- 把数字标注到柱子上
+- 应用和商品的文字太小了，改成上面应用名称，下面商品名称
+- 当鼠标放到蓝色/红色柱子上时，另一个颜色就会变淡，这是否是bug，去掉这种花哨的效果，
+
+- 柱状图横坐标只允许显示 10 个，其余的通过上下页按钮显示
+
+- bug：鼠标放在上下页按钮的时候，按钮变透明，但可点击
+- 切面切换的时候，柱状图有很奇怪的过渡动画，全部去掉
+- 加上页码显示（如 “第 X / Y 页”）
+
+src/domains/query 再添加App名称、兑换时间信息，接口我已经写好：src/domains/query/api/index.ts
+
+src/domains/admin 添加英文语言，国际化按照跟 /src/domians 文件夹其他子域一致，按照 src/domains/redeem/translation.ts 来，另外一些关键的翻译：
+- 应用：App
+- 商品：Product
+- 角色：Role
+
+
+src/domains/admin 每次加载页面，读取浏览器语言作为默认值。
+
+
+src/domains/admin/pages/dashboard 文件夹内的页面还没有适配国际化
+
+生成代码提示词，输出到 prompts/2_gen_code.txt 文件中，如果上下文大小受限，可以使用 prompts/context.txt 作为上下文页面交换。
+
+prompts/query.html 是我之前使用的网页，想收入到当前项目中，输出到 src/domains/query 目录，要求：
+- 不需要使用Ant Design，用 tailwindcss + reactjs
+- 提供中英文（切换按钮/加载自动匹配设备语言），提供白天/夜晚主题
+- 代码组织与 src/domains/ 其他子域一致
+- API接口留置，我自己实现
+
+对 User 的处理有点问题，User默认只有 user 和 是否验证 两个字段，如果还需要显示其他字段，通过 extra 字段来补充属性。
+- 对Discord来说，他的extra属性有 global_name、email、phone、locale
+- 对ChatGPT来说，它的extra属性是空的，所以弹窗的时候只需要展示user这个字符串即可，字段名就叫 用户（user）
+- 对于那些 extra 里的字段，key也是翻译的Key，value不变。
+- 模板里面不应该出现 global email phone 这些在 extra 里具体的东西。
+
+src/domains/redeem 修改意见：
+- 每个商品的 User 不一样，特殊的包含在 extra 这个字段里。ChatGPT没有extra，Discord有，global_name、email 等，特殊性应该放在 products/ 目录下
+- 我不清楚为什么，鼠标移动到按钮上，鼠标没有从指针变成手指。
+
+- 翻译文案 "点击无响应，仅作为说明" 改成 "充值过程可能漫长，请耐心等待！"，同步到英文文案。
+- 步骤1和步骤2，不要 显示网址，改成 现实小按钮，直接点击。
+- 输入框：当没有输入的时候，下方显示文字：等待输入
+
+调整 src/domains/redeem/api/index.ts 的API接口，
+- 不应该出现 DiscordUserResponse，应该是 UserResponse，要抽象出来
+- UserResponse：
+    - user: string
+    - verified: boolean
+    - extra: object，现有的Discord用户其他属性放在这个里面
+- 去掉 CdkResponse，CDK校验，成功返回200，错误返回Text的message，没有JSON
+- /external/public/discord-user 这个接口改成 /external/public/check-user，后端我自己调整
+- 所有的mock，不区分product
+- 所有的请求，成功返回200，错误就会返回Text格式的messsage。
+
+
+我修改了 src/domains/redeem/api/index.ts API接口，你生成的太复杂，不利于维护，你按照这个接口，修改其他地方，写代码要追求简单、直白，一目了然。
+
+
+下面是生成子网页代码的提示词，检查一下还有什么问题需要我确认：
+
+生成子域代码到 src/domains/redeem-chatgpt ，按照 src/domains/redeem-discord 模板，可以参考同类型 prompts/pay.html，下面是具体差异：
+- 充值流程跟 redeem-discord 不同，chatgpt 只有：
+    1. 步骤1: 登录您的ChatGPT账号/（使用您的账号凭证登录系统），点击跳转 https://chatgpt.com/
+    2. 步骤2: 获取账号密钥(Access Token)/（从账号设置中获取您的访问令牌），点击跳转 https://chatgpt.com/api/auth/session
+    3. 步骤3: 输入CDK卡密并完成充值/输入卡密信息完成充值过程，点击无响应
+- 输入表单同 redeem-discord 一样，输入框标题如下
+    1. 名称：账号密钥（Access Token）
+    2. 名称：CDK卡密
+- 跟 redeem-discord 一样，输入完，弹窗显示当前用户的一些信息
+- api使用mock，后续我自己写。
+
+我的想法是：它只是跟 Discord 一样，只是不同的商品，不同的引导指南。
+
+1. 是否加路由，考虑后决定：把 redeem-discord 改成 redeem，通过 redeem/discord 来访问，把共同的抽象出来，把特殊的提取出来。
+2. 历史记录，把AccessToken换成用户名（其实就是邮箱）
+
+路由与兼容：
+- 不保留旧路径，不考虑向后兼容
+- 拼写错误给404
+存储与迁移：
+- 确认采用新的本地存储Key命名
+- 不需要迁移，直接删除以前的即可
+文案与翻译：
+- 需要英文文案，引导步骤每个商品不一样，可以增加吧。
+- 页面标题也要改过来。（所有不一样的统一到一个文件夹内）
+API 细节：
+- 大小写固定，枚举值就 discord / chatgpt
+- 统一用户返回结构最小字段集，具体按你的来
+- 我需要在DEV连接到正式的API，你还是只包含 mock_ok/fail 生效
+历史记录：
+- 可以
+- 不需要脱敏，都是用户名、邮箱之类的
+表单重置：
+- mock不重置
+
+同意上述确认与优化
+
+
+根据 prompts/1_gen_code.txt 提示词，生成代码，如果上下文大小受限，可以使用 prompts/context.txt 作为上下文页面交换。
+
+
+
+
+@src/domains/redeem/index.tsx 在 <p>2313213123</p> 这个位置添加一个模块，跟 GuidePanel 和 RedeemForm 差不多。里面的内容是：
+- 标题：查询任务
+- 输入框：请输入任务ID
+- 左右边是查询按钮
+输入框可以参考 RedeemForm 输入CDK输入框 的设计。

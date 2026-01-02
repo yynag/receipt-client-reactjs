@@ -1,0 +1,17 @@
+# dependencies
+node_modules
+.pnpm-store
+
+# builds
+dist
+build
+coverage
+
+# logs
+*.log
+
+# misc
+.DS_Store
+.vscode
+
+**/*/doc
