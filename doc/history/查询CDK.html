@@ -1,0 +1,1567 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CDK批量查询工具</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Poppins', sans-serif;
+      }
+
+      body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+        color: #2d3748;
+        min-height: 100vh;
+        padding: 5px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        margin: 0;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 1000px;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        display: flex;
+        flex-direction: column;
+        min-height: calc(100vh - 10px);
+      }
+
+      header {
+        background: linear-gradient(to right, #4f46e5, #7c3aed);
+        color: white;
+        padding: 15px 30px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        flex-shrink: 0;
+        border-radius: 20px，20px，0，0;
+      }
+
+      .header-pattern {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        opacity: 0.05;
+        border-radius: 20px，20px，0，0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      }
+
+      .language-switcher {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        display: flex;
+        gap: 8px;
+        z-index: 10;
+      }
+
+      .lang-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 16px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.3s;
+        position: relative;
+        z-index: 10;
+      }
+
+      .lang-btn:hover,
+      .lang-btn.active {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 8px;
+        position: relative;
+      }
+
+      .logo-icon {
+        font-size: 30px;
+        margin-right: 12px;
+        color: #10b981;
+        background: white;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        font-size: 24px;
+        margin-bottom: 4px;
+        font-weight: 700;
+      }
+
+      .subtitle {
+        font-size: 14px;
+        opacity: 0.9;
+        font-weight: 300;
+      }
+
+      .content {
+        padding: 15px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .main-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        min-height: 100%;
+      }
+
+      .bottom-content {
+        margin-top: auto;
+        padding: 20px 0;
+      }
+
+      .empty-placeholder {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        color: #718096;
+        opacity: 0.6;
+        min-height: 200px;
+      }
+
+      .empty-placeholder i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        color: #4f46e5;
+        opacity: 0.3;
+      }
+
+      .empty-placeholder h3 {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+        color: #4f46e5;
+      }
+
+      .empty-placeholder p {
+        font-size: 0.9rem;
+        line-height: 1.5;
+      }
+
+      .section-title {
+        font-size: 18px;
+        color: #4f46e5;
+        margin-bottom: 15px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #e1effe;
+        position: relative;
+        font-weight: 600;
+      }
+
+      .section-title:after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 60px;
+        height: 2px;
+        background: #4f46e5;
+      }
+
+      .input-area {
+        background: #f7fafc;
+        padding: 15px;
+        border-radius: 16px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+        margin-bottom: 15px;
+        border: 1px solid #e2e8f0;
+        flex-shrink: 0;
+      }
+
+      .input-title {
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: #4f46e5;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+      }
+
+      .input-title i {
+        margin-right: 10px;
+      }
+
+      textarea {
+        width: 100%;
+        height: 100px;
+        padding: 12px;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        font-size: 14px;
+        transition: all 0.3s;
+        background: white;
+        resize: vertical;
+      }
+
+      textarea:focus {
+        border-color: #4f46e5;
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+      }
+
+      .input-hint {
+        color: #718096;
+        font-size: 12px;
+        margin-top: 8px;
+        line-height: 1.4;
+      }
+
+      .input-hint i {
+        color: #f59e0b;
+        margin-right: 6px;
+      }
+
+      .button-group {
+        display: flex;
+        gap: 15px;
+        margin-top: 15px;
+      }
+
+      .btn {
+        flex: 1;
+        padding: 12px;
+        border: none;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .btn-primary {
+        background: linear-gradient(to right, #4f46e5, #7c3aed);
+        color: white;
+        box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 25px rgba(79, 70, 229, 0.4);
+      }
+
+      .btn-secondary {
+        background: #f7fafc;
+        color: #4f46e5;
+        border: 2px solid #e2e8f0;
+      }
+
+      .btn-secondary:hover {
+        background: #edf2f7;
+        transform: translateY(-3px);
+      }
+
+      .btn i {
+        margin-right: 10px;
+      }
+
+      .loading {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top: 2px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 4px;
+        background: #e2e8f0;
+        border-radius: 2px;
+        overflow: hidden;
+        margin: 16px 0;
+        display: none;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(to right, #4f46e5, #7c3aed);
+        width: 0%;
+        transition: width 0.3s ease;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+        margin: 12px 0;
+      }
+
+      .stat-card {
+        background: #f7fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 12px;
+        text-align: center;
+        transition: all 0.2s ease;
+      }
+
+      .stat-card:hover {
+        border-color: #4f46e5;
+        transform: translateY(-2px);
+      }
+
+      .stat-card.valid {
+        border-color: #10b981;
+      }
+
+      .stat-card.used {
+        border-color: #f59e0b;
+      }
+
+      .stat-card.invalid {
+        border-color: #ef4444;
+      }
+
+      .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #2d3748;
+        margin-bottom: 4px;
+      }
+
+      .stat-label {
+        font-size: 0.875rem;
+        color: #718096;
+      }
+
+      .results-section {
+        margin-top: 12px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .copy-section {
+        background: #f7fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 12px;
+        flex-shrink: 0;
+      }
+
+      .copy-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 12px;
+      }
+
+      .copy-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .btn-copy {
+        background: #10b981;
+        color: white;
+        padding: 6px 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .btn-copy:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+      }
+
+      .btn-copy.copied {
+        background: #718096;
+      }
+
+      .copy-icon {
+        width: 12px;
+        height: 12px;
+      }
+
+      .tabs {
+        display: flex;
+        border-bottom: 1px solid #e2e8f0;
+        margin-bottom: 12px;
+        flex-shrink: 0;
+      }
+
+      .tab {
+        padding: 8px 16px;
+        background: none;
+        border: none;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        color: #718096;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s ease;
+      }
+
+      .tab.active {
+        color: #4f46e5;
+        border-bottom-color: #4f46e5;
+      }
+
+      .tab:hover:not(.active) {
+        color: #2d3748;
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      .results-list {
+        overflow-y: auto;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        background: white;
+        min-height: 120px;
+        max-height: 200px;
+      }
+
+      .result-item {
+        padding: 12px 16px;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: background-color 0.2s ease;
+      }
+
+      .result-item:hover {
+        background: #f7fafc;
+      }
+
+      .result-item:last-child {
+        border-bottom: none;
+      }
+
+      .result-code {
+        font-family: 'Courier New', monospace;
+        font-weight: 600;
+        color: #2d3748;
+      }
+
+      .result-info {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+      }
+
+      .result-status {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+      }
+
+      .status-valid {
+        background: rgba(16, 185, 129, 0.2);
+        color: #10b981;
+      }
+
+      .status-used {
+        background: rgba(245, 158, 11, 0.2);
+        color: #f59e0b;
+      }
+
+      .status-invalid {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+      }
+
+      .result-details {
+        font-size: 0.75rem;
+        color: #718096;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #718096;
+      }
+
+      .empty-icon {
+        font-size: 3rem;
+        margin-bottom: 16px;
+        opacity: 0.5;
+      }
+
+      .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #10b981;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+        transform: translateX(400px);
+        transition: transform 0.3s ease;
+      }
+
+      .toast.show {
+        transform: translateX(0);
+      }
+
+      .toast.warning {
+        background: #f59e0b;
+      }
+
+      .toast.error {
+        background: #ef4444;
+      }
+
+      .result-area {
+        background: #f7fafc;
+        padding: 25px;
+        border-radius: 16px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+        margin-top: 30px;
+        border: 1px solid #e2e8f0;
+        display: none;
+      }
+
+      .result-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .result-title {
+        font-weight: 600;
+        color: #4f46e5;
+        font-size: 18px;
+      }
+
+      .result-count {
+        background: #4f46e5;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 14px;
+      }
+
+      .result-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .result-table th {
+        background: #edf2f7;
+        padding: 12px 15px;
+        text-align: left;
+        font-weight: 600;
+        color: #4a5568;
+      }
+
+      .result-table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #e2e8f0;
+      }
+
+      .result-table tr:last-child td {
+        border-bottom: none;
+      }
+
+      .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .status-valid {
+        background: #c6f6d5;
+        color: #22543d;
+      }
+
+      .status-invalid {
+        background: #fed7d7;
+        color: #742a2a;
+      }
+
+      footer {
+        text-align: center;
+        padding: 10px;
+        color: #718096;
+        font-size: 12px;
+        background: #f7fafc;
+        border-top: 1px solid #e2e8f0;
+        flex-shrink: 0;
+        border-radius: 0 0 20px 20px;
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          max-width: 100%;
+        }
+
+        .content {
+          padding: 20px;
+        }
+
+        header {
+          padding: 20px;
+        }
+
+        h1 {
+          font-size: 24px;
+        }
+
+        .subtitle {
+          font-size: 14px;
+        }
+
+        .logo {
+          flex-direction: column;
+          text-align: center;
+        }
+
+        .logo-icon {
+          margin-right: 0;
+          margin-bottom: 10px;
+        }
+
+        .button-group {
+          flex-direction: column;
+        }
+
+        .language-switcher {
+          position: relative;
+          top: 0;
+          right: 0;
+          justify-content: center;
+          margin-bottom: 15px;
+        }
+
+        .result-table {
+          display: block;
+          overflow-x: auto;
+        }
+      }
+
+      .ai-elements {
+        display: flex;
+        justify-content: center;
+        margin: 10px 0;
+        gap: 12px;
+        flex-shrink: 0;
+      }
+
+      .ai-element {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #4f46e5;
+        opacity: 0.6;
+        animation: pulse 2s infinite;
+      }
+
+      .ai-element:nth-child(2) {
+        animation-delay: 0.3s;
+        background: #7c3aed;
+      }
+
+      .ai-element:nth-child(3) {
+        animation-delay: 0.6s;
+        background: #10b981;
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+          opacity: 0.6;
+        }
+        50% {
+          transform: scale(1.3);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(1);
+          opacity: 0.6;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="header-pattern"></div>
+        <div class="language-switcher">
+          <button class="lang-btn active" data-lang="zh-CN">简体</button>
+          <button class="lang-btn" data-lang="zh-TW">繁體</button>
+          <button class="lang-btn" data-lang="en">EN</button>
+        </div>
+        <div class="logo">
+          <i class="fas fa-search-dollar logo-icon"></i>
+          <div>
+            <h1 data-i18n="title" id="sysTitle">CDK批量查询工具</h1>
+            <p class="subtitle" data-i18n="subtitle" id="sysDesc">批量查询多个CDK的权限信息</p>
+          </div>
+        </div>
+      </header>
+
+      <div class="content">
+        <div class="main-content">
+          <div class="input-area">
+            <div class="input-title">
+              <i class="fas fa-keyboard"></i> <span data-i18n="inputTitle" id="inputLabel">请输入CDK字段</span>
+            </div>
+            <textarea
+              id="cdkInput"
+              data-i18n-placeholder="inputPlaceholder"
+              placeholder="请输入CDK，每行一个"
+            ></textarea>
+            <div class="input-hint">
+              <i class="fas fa-info-circle"></i>
+              <span id="inputHint">请在CDK中查看CDK数据信息，每行输入一个CDK代码</span>
+            </div>
+
+            <div class="button-group">
+              <button class="btn btn-primary" id="queryBtn" data-i18n="queryButton">
+                <span id="queryBtnText">开始查询</span>
+                <div class="loading" id="queryLoading" style="display: none"></div>
+              </button>
+              <button class="btn btn-secondary" id="clearBtn" data-i18n="confirmButton">
+                <i class="fas fa-check"></i> 清空输入
+              </button>
+            </div>
+
+            <div class="progress-bar" id="progressBar" style="display: none">
+              <div class="progress-fill" id="progressFill"></div>
+            </div>
+          </div>
+
+          <!-- 统计区域 -->
+          <div class="stats-grid" id="statsSection" style="display: none">
+            <div class="stat-card">
+              <div class="stat-number" id="totalCount">0</div>
+              <div class="stat-label" id="totalLabel">总数量</div>
+            </div>
+            <div class="stat-card valid">
+              <div class="stat-number" id="validCount">0</div>
+              <div class="stat-label" id="validLabel">有效CDK</div>
+            </div>
+            <div class="stat-card used">
+              <div class="stat-number" id="usedCount">0</div>
+              <div class="stat-label" id="usedLabel">已使用</div>
+            </div>
+            <div class="stat-card invalid">
+              <div class="stat-number" id="invalidCount">0</div>
+              <div class="stat-label" id="invalidLabel">无效CDK</div>
+            </div>
+          </div>
+
+          <!-- 结果区域 -->
+          <div class="results-section" id="resultsSection" style="display: none">
+            <div class="copy-section">
+              <div class="copy-title" id="copyTitle">一键复制CDK</div>
+              <div class="copy-buttons">
+                <button class="btn-copy" id="copyAllBtn">
+                  <svg class="copy-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                      d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"
+                    />
+                  </svg>
+                  <span id="copyAllText">复制全部</span>
+                </button>
+                <button class="btn-copy" id="copyValidBtn">
+                  <svg class="copy-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                      d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"
+                    />
+                  </svg>
+                  <span id="copyValidText">复制有效</span>
+                </button>
+                <button class="btn-copy" id="copyUsedBtn">
+                  <svg class="copy-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                      d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"
+                    />
+                  </svg>
+                  <span id="copyUsedText">复制已使用</span>
+                </button>
+                <button class="btn-copy" id="copyInvalidBtn">
+                  <svg class="copy-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                      d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"
+                    />
+                  </svg>
+                  <span id="copyInvalidText">复制无效</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="tabs">
+              <button class="tab active" data-tab="all" id="tabAll">全部</button>
+              <button class="tab" data-tab="valid" id="tabValid">有效CDK</button>
+              <button class="tab" data-tab="used" id="tabUsed">已使用</button>
+              <button class="tab" data-tab="invalid" id="tabInvalid">无效CDK</button>
+            </div>
+
+            <div class="tab-content active" id="tab-all">
+              <div class="results-list" id="allList"></div>
+            </div>
+            <div class="tab-content" id="tab-valid">
+              <div class="results-list" id="validList"></div>
+            </div>
+            <div class="tab-content" id="tab-used">
+              <div class="results-list" id="usedList"></div>
+            </div>
+            <div class="tab-content" id="tab-invalid">
+              <div class="results-list" id="invalidList"></div>
+            </div>
+          </div>
+
+          <!-- 空占位区域 -->
+          <div class="empty-placeholder" id="emptyPlaceholder">
+            <i class="fas fa-search"></i>
+            <h3 id="emptyTitle">暂无数据</h3>
+            <p id="emptyDesc">请输入CDK代码并点击"开始查询"</p>
+          </div>
+
+          <div class="bottom-content">
+            <div class="ai-elements">
+              <div class="ai-element"></div>
+              <div class="ai-element"></div>
+              <div class="ai-element"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <p id="footerText">© 2023 CDK批量查询工具 | 提供安全可靠的CDK查询服务</p>
+      </footer>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+      const langData = {
+        'zh-CN': {
+          sysTitle: 'CDK批量查询工具',
+          sysDesc: '快速查询多个CDK的状态信息',
+          inputLabel: '输入CDK列表',
+          inputHint: '请在CDK中查看CDK数据信息，每行输入一个CDK代码',
+          inputPlaceholder: '请输入CDK，每行一个：\nGPTXXXXXXXXXXXXXX\nGPTYYYYYYYYYYYYYY\nGPTZZZZZZZZZZZZZZ',
+          queryBtn: '开始查询',
+          queryingBtn: '查询中...',
+          clearBtn: '清空输入',
+          copyAllBtn: '复制全部',
+          copyValidBtn: '复制有效',
+          copyUsedBtn: '复制已使用',
+          copyInvalidBtn: '复制无效',
+          copyTitle: '一键复制CDK',
+          tabAll: '全部',
+          tabValid: '有效CDK',
+          tabUsed: '已使用',
+          tabInvalid: '无效CDK',
+          totalLabel: '总数量',
+          validLabel: '有效CDK',
+          usedLabel: '已使用',
+          invalidLabel: '无效CDK',
+          statusValid: '有效',
+          statusUsed: '已使用',
+          statusInvalid: '无效',
+          userLabel: '用户',
+          timeLabel: '时间',
+          emptyTitle: '暂无数据',
+          emptyDesc: '请输入CDK代码并点击“开始查询”',
+          noValidCDK: '暂无有效CDK',
+          noUsedCDK: '暂无已使用CDK',
+          noInvalidCDK: '暂无无效CDK',
+          noCDKToCopy: '没有可复制的CDK',
+          copySuccess: (count) => `已复制 ${count} 个CDK`,
+          copyFailed: '复制失败',
+          copied: '已复制',
+          inputEmpty: '请输入CDK列表',
+          inputInvalid: '请输入有效的CDK',
+          networkError: '网络错误',
+          requestTimeout: '请求超时',
+          footerText: '© 2023 CDK批量查询工具 | 提供安全可靠的CDK查询服务',
+          // API错误消息翻译
+          errorMessages: {
+            卡密已被使用: '卡密已被使用',
+            无效CDK: '无效CDK',
+            卡密不存在: '卡密不存在',
+            网络错误: '网络错误',
+            请求超时: '请求超时',
+          },
+        },
+        'zh-TW': {
+          sysTitle: 'CDK批量查詢工具',
+          sysDesc: '快速查詢多個CDK的狀態信息',
+          inputLabel: '輸入CDK列表',
+          inputHint: '請在CDK中查看CDK數據信息，每行輸入一個CDK代碼',
+          inputPlaceholder: '請輸入CDK，每行一個：\nGPTXXXXXXXXXXXXXX\nGPTYYYYYYYYYYYYYY\nGPTZZZZZZZZZZZZZZ',
+          queryBtn: '開始查詢',
+          queryingBtn: '查詢中...',
+          clearBtn: '清空輸入',
+          copyAllBtn: '複製全部',
+          copyValidBtn: '複製有效',
+          copyUsedBtn: '複製已使用',
+          copyInvalidBtn: '複製無效',
+          copyTitle: '一鍵複製CDK',
+          tabAll: '全部',
+          tabValid: '有效CDK',
+          tabUsed: '已使用',
+          tabInvalid: '無效CDK',
+          totalLabel: '總數量',
+          validLabel: '有效CDK',
+          usedLabel: '已使用',
+          invalidLabel: '無效CDK',
+          statusValid: '有效',
+          statusUsed: '已使用',
+          statusInvalid: '無效',
+          userLabel: '用戶',
+          timeLabel: '時間',
+          emptyTitle: '暫無數據',
+          emptyDesc: '請輸入CDK代碼並點擊「開始查詢」',
+          noValidCDK: '暫無有效CDK',
+          noUsedCDK: '暫無已使用CDK',
+          noInvalidCDK: '暫無無效CDK',
+          noCDKToCopy: '沒有可複製的CDK',
+          copySuccess: (count) => `已複製 ${count} 個CDK`,
+          copyFailed: '複製失敗',
+          copied: '已複製',
+          inputEmpty: '請輸入CDK列表',
+          inputInvalid: '請輸入有效的CDK',
+          networkError: '網絡錯誤',
+          requestTimeout: '請求超時',
+          footerText: '© 2023 CDK批量查詢工具 | 提供安全可靠的CDK查詢服務',
+          // API錯誤消息翻譯
+          errorMessages: {
+            卡密已被使用: '卡密已被使用',
+            無效CDK: '無效CDK',
+            卡密不存在: '卡密不存在',
+            網絡錯誤: '網絡錯誤',
+            請求超時: '請求超時',
+          },
+        },
+        en: {
+          sysTitle: 'CDK Batch Query Tool',
+          sysDesc: 'Quickly check multiple CDK status',
+          inputLabel: 'Input CDK List',
+          inputHint: 'Please check CDK data info in CDK, enter one CDK code per line',
+          inputPlaceholder: 'Enter CDK, one per line:\nGPTXXXXXXXXXXXXXX\nGPTYYYYYYYYYYYYYY\nGPTZZZZZZZZZZZZZZ',
+          queryBtn: 'Start Query',
+          queryingBtn: 'Querying...',
+          clearBtn: 'Clear Input',
+          copyAllBtn: 'Copy All',
+          copyValidBtn: 'Copy Valid',
+          copyUsedBtn: 'Copy Used',
+          copyInvalidBtn: 'Copy Invalid',
+          copyTitle: 'Quick Copy CDK',
+          tabAll: 'All',
+          tabValid: 'Valid CDK',
+          tabUsed: 'Used',
+          tabInvalid: 'Invalid',
+          totalLabel: 'Total',
+          validLabel: 'Valid CDK',
+          usedLabel: 'Used',
+          invalidLabel: 'Invalid',
+          statusValid: 'Valid',
+          statusUsed: 'Used',
+          statusInvalid: 'Invalid',
+          userLabel: 'User',
+          timeLabel: 'Time',
+          emptyTitle: 'No Data',
+          emptyDesc: 'Please enter CDK codes and click "Start Query"',
+          noValidCDK: 'No Valid CDK',
+          noUsedCDK: 'No Used CDK',
+          noInvalidCDK: 'No Invalid CDK',
+          noCDKToCopy: 'No CDK to Copy',
+          copySuccess: (count) => `Copied ${count} CDK(s)`,
+          copyFailed: 'Copy Failed',
+          copied: 'Copied',
+          inputEmpty: 'Please Input CDK List',
+          inputInvalid: 'Please Input Valid CDK',
+          networkError: 'Network Error',
+          requestTimeout: 'Request Timeout',
+          footerText: '© 2023 CDK Batch Query Tool | Providing secure and reliable CDK query services',
+          // API error message translations
+          errorMessages: {
+            卡密已被使用: 'Card key has been used',
+            無效CDK: 'Invalid CDK',
+            卡密不存在: 'Card key does not exist',
+            網絡錯誤: 'Network Error',
+            請求超時: 'Request Timeout',
+          },
+        },
+      };
+
+      let currentLang = 'zh-CN';
+
+      function setLang(lang) {
+        currentLang = lang;
+        const t = langData[lang];
+
+        // 更新语言按钮状态
+        document.querySelectorAll('.lang-btn').forEach((btn) => btn.classList.remove('active'));
+        document.querySelector(`[data-lang="${lang}"]`).classList.add('active');
+
+        // 更新所有文本
+        document.getElementById('sysTitle').textContent = t.sysTitle;
+        document.getElementById('sysDesc').textContent = t.sysDesc;
+        document.getElementById('inputLabel').textContent = t.inputLabel;
+        document.getElementById('inputHint').textContent = t.inputHint;
+        document.getElementById('cdkInput').placeholder = t.inputPlaceholder;
+        document.getElementById('queryBtnText').textContent = t.queryBtn;
+        document.getElementById('clearBtn').textContent = t.clearBtn;
+        document.getElementById('footerText').textContent = t.footerText;
+
+        // 更新复制按钮文本
+        document.getElementById('copyTitle').textContent = t.copyTitle;
+        document.getElementById('copyAllText').textContent = t.copyAllBtn;
+        document.getElementById('copyValidText').textContent = t.copyValidBtn;
+        document.getElementById('copyUsedText').textContent = t.copyUsedBtn;
+        document.getElementById('copyInvalidText').textContent = t.copyInvalidBtn;
+
+        // 更新标签页文本
+        document.getElementById('tabAll').textContent = t.tabAll;
+        document.getElementById('tabValid').textContent = t.tabValid;
+        document.getElementById('tabUsed').textContent = t.tabUsed;
+        document.getElementById('tabInvalid').textContent = t.tabInvalid;
+
+        // 更新统计标签
+        document.getElementById('totalLabel').textContent = t.totalLabel;
+        document.getElementById('validLabel').textContent = t.validLabel;
+        document.getElementById('usedLabel').textContent = t.usedLabel;
+        document.getElementById('invalidLabel').textContent = t.invalidLabel;
+
+        // 更新空状态文本
+        document.getElementById('emptyTitle').textContent = t.emptyTitle;
+        document.getElementById('emptyDesc').textContent = t.emptyDesc;
+
+        // 如果有结果，重新渲染结果
+        if (window.cdkQueryTool && window.cdkQueryTool.cdkResults.length > 0) {
+          window.cdkQueryTool.renderResults();
+        }
+      }
+
+      class CDKQueryTool {
+        constructor() {
+          this.cdkResults = [];
+          this.isQuerying = false;
+          this.init();
+        }
+
+        init() {
+          this.bindEvents();
+          this.updateInitialLabels();
+          this.resetLoadingState();
+        }
+
+        resetLoadingState() {
+          // 确保页面初始化时loading是隐藏的
+          const loading = document.getElementById('queryLoading');
+          const btn = document.getElementById('queryBtn');
+          const text = document.getElementById('queryBtnText');
+          const progressBar = document.getElementById('progressBar');
+          const aiElements = document.querySelector('.ai-elements');
+
+          if (loading) {
+            loading.style.display = 'none';
+            loading.style.visibility = 'hidden';
+            loading.style.opacity = '0';
+          }
+
+          if (btn) {
+            btn.disabled = false;
+          }
+
+          if (text) {
+            text.textContent = langData[currentLang]?.queryBtn || '开始查询';
+          }
+
+          if (progressBar) {
+            progressBar.style.display = 'none';
+          }
+
+          // 隐藏AI动画元素
+          if (aiElements) {
+            aiElements.style.display = 'none';
+          }
+
+          // 重置查询状态
+          this.isQuerying = false;
+        }
+
+        updateInitialLabels() {
+          const t = langData[currentLang];
+          document.getElementById('sysTitle').textContent = t.sysTitle;
+          document.getElementById('sysDesc').textContent = t.sysDesc;
+          document.getElementById('inputLabel').textContent = t.inputLabel;
+          document.getElementById('inputHint').textContent = t.inputHint;
+          document.getElementById('cdkInput').placeholder = t.inputPlaceholder;
+          document.getElementById('queryBtnText').textContent = t.queryBtn;
+          document.getElementById('clearBtn').textContent = t.clearBtn;
+          document.getElementById('footerText').textContent = t.footerText;
+
+          // 更新复制按钮文本
+          document.getElementById('copyTitle').textContent = t.copyTitle;
+          document.getElementById('copyAllText').textContent = t.copyAllBtn;
+          document.getElementById('copyValidText').textContent = t.copyValidBtn;
+          document.getElementById('copyUsedText').textContent = t.copyUsedBtn;
+          document.getElementById('copyInvalidText').textContent = t.copyInvalidBtn;
+
+          // 更新标签页文本
+          document.getElementById('tabAll').textContent = t.tabAll;
+          document.getElementById('tabValid').textContent = t.tabValid;
+          document.getElementById('tabUsed').textContent = t.tabUsed;
+          document.getElementById('tabInvalid').textContent = t.tabInvalid;
+
+          // 更新统计标签
+          document.getElementById('totalLabel').textContent = t.totalLabel;
+          document.getElementById('validLabel').textContent = t.validLabel;
+          document.getElementById('usedLabel').textContent = t.usedLabel;
+          document.getElementById('invalidLabel').textContent = t.invalidLabel;
+
+          // 更新空状态文本
+          document.getElementById('emptyTitle').textContent = t.emptyTitle;
+          document.getElementById('emptyDesc').textContent = t.emptyDesc;
+        }
+
+        bindEvents() {
+          document.getElementById('queryBtn').addEventListener('click', () => this.startQuery());
+          document.getElementById('clearBtn').addEventListener('click', () => this.clearInput());
+
+          // 标签页切换
+          document.querySelectorAll('.tab').forEach((tab) => {
+            tab.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
+          });
+
+          // 复制按钮事件
+          document.getElementById('copyAllBtn').addEventListener('click', () => this.copyCDKs('all'));
+          document.getElementById('copyValidBtn').addEventListener('click', () => this.copyCDKs('valid'));
+          document.getElementById('copyUsedBtn').addEventListener('click', () => this.copyCDKs('used'));
+          document.getElementById('copyInvalidBtn').addEventListener('click', () => this.copyCDKs('invalid'));
+        }
+
+        clearInput() {
+          document.getElementById('cdkInput').value = '';
+          this.hideResults();
+          this.resetLoadingState();
+          // 确保清空时AI动画也隐藏
+          const aiElements = document.querySelector('.ai-elements');
+          if (aiElements) {
+            aiElements.style.display = 'none';
+          }
+        }
+
+        hideResults() {
+          document.getElementById('statsSection').style.display = 'none';
+          document.getElementById('resultsSection').style.display = 'none';
+          document.getElementById('emptyPlaceholder').style.display = 'flex';
+        }
+
+        showResults() {
+          document.getElementById('statsSection').style.display = 'grid';
+          document.getElementById('resultsSection').style.display = 'block';
+          document.getElementById('emptyPlaceholder').style.display = 'none';
+        }
+
+        async startQuery() {
+          if (this.isQuerying) return;
+
+          const input = document.getElementById('cdkInput').value.trim();
+          const t = langData[currentLang];
+
+          if (!input) {
+            this.showToast(t.inputEmpty, 'warning');
+            return;
+          }
+
+          const cdkList = input
+            .split('\n')
+            .map((line) => line.trim())
+            .filter((line) => line.length > 0);
+
+          if (cdkList.length === 0) {
+            this.showToast(t.inputInvalid, 'warning');
+            return;
+          }
+
+          // 防重复查询机制
+          this.isQuerying = true;
+          this.cdkResults = [];
+
+          try {
+            // 立即显示loading
+            this.updateQueryButton(true);
+            this.showProgressBar();
+            this.hideResults();
+
+            const response = await fetch(
+              `https://receipt-api.nitro.xin/cdks/public/check-usage/${cdkList.map(encodeURIComponent).join(',')}`,
+              {
+                method: 'GET',
+              },
+            );
+            if (!response.ok) {
+              throw new Error('Failed to check CDKs: ' + (await response.text()));
+            }
+            const data = await response.json();
+
+            this.cdkResults = data.map((cdk) => {
+              return {
+                card_key: cdk.code,
+                status: cdk.used ? 1 : 0,
+                status_text: cdk.used ? '已使用' : '有效',
+                user_id: cdk.user || '',
+                used_at: cdk.redeem_time || '',
+              };
+            });
+
+            const progress = ((this.cdkResults.length / cdkList.length) * 100).toFixed(0);
+            document.getElementById('progressFill').style.width = `${progress}%`;
+
+            this.displayResults();
+          } finally {
+            // 确保无论成功或失败都会隐藏loading
+            this.isQuerying = false;
+            this.updateQueryButton(false);
+            this.hideProgressBar();
+          }
+        }
+
+        updateQueryButton(isLoading) {
+          const btn = document.getElementById('queryBtn');
+          const text = document.getElementById('queryBtnText');
+          const loading = document.getElementById('queryLoading');
+          const aiElements = document.querySelector('.ai-elements');
+
+          // 添加元素存在性验证
+          if (!btn || !text || !loading) {
+            console.error('Loading elements not found:', { btn: !!btn, text: !!text, loading: !!loading });
+            return;
+          }
+
+          if (isLoading) {
+            btn.disabled = true;
+            text.textContent = langData[currentLang].queryingBtn;
+            loading.style.display = 'inline-block';
+            loading.style.visibility = 'visible';
+            loading.style.opacity = '1';
+
+            // 显示AI动画元素
+            if (aiElements) {
+              aiElements.style.display = 'flex';
+            }
+          } else {
+            btn.disabled = false;
+            text.textContent = langData[currentLang].queryBtn;
+            loading.style.display = 'none';
+            loading.style.visibility = 'hidden';
+            loading.style.opacity = '0';
+
+            // 隐藏AI动画元素
+            if (aiElements) {
+              aiElements.style.display = 'none';
+            }
+
+            // 使用setTimeout在短时间后恢复正常的CSS属性
+            setTimeout(() => {
+              if (loading && loading.style.display === 'none') {
+                loading.style.visibility = '';
+                loading.style.opacity = '';
+              }
+            }, 100);
+          }
+        }
+
+        showProgressBar() {
+          document.getElementById('progressBar').style.display = 'block';
+        }
+
+        hideProgressBar() {
+          document.getElementById('progressBar').style.display = 'none';
+        }
+
+        displayResults() {
+          this.updateStats();
+          this.renderResults();
+          this.showResults();
+        }
+
+        updateStats() {
+          const total = this.cdkResults.length;
+          const valid = this.cdkResults.filter((r) => r.status === 0).length;
+          const used = this.cdkResults.filter((r) => r.status === 1).length;
+          const invalid = this.cdkResults.filter((r) => r.status === -1).length;
+
+          document.getElementById('totalCount').textContent = total;
+          document.getElementById('validCount').textContent = valid;
+          document.getElementById('usedCount').textContent = used;
+          document.getElementById('invalidCount').textContent = invalid;
+        }
+
+        renderResults() {
+          const allList = document.getElementById('allList');
+          const validList = document.getElementById('validList');
+          const usedList = document.getElementById('usedList');
+          const invalidList = document.getElementById('invalidList');
+
+          [allList, validList, usedList, invalidList].forEach((list) => {
+            list.innerHTML = '';
+          });
+
+          this.cdkResults.forEach((result) => {
+            const item = this.createResultItem(result);
+            allList.appendChild(item.cloneNode(true));
+
+            if (result.status === 0) {
+              validList.appendChild(item.cloneNode(true));
+            } else if (result.status === 1) {
+              usedList.appendChild(item.cloneNode(true));
+            } else {
+              invalidList.appendChild(item.cloneNode(true));
+            }
+          });
+
+          this.handleEmptyStates();
+        }
+
+        createResultItem(result) {
+          const item = document.createElement('div');
+          item.className = 'result-item';
+
+          const statusClass =
+            result.status === 0 ? 'status-valid' : result.status === 1 ? 'status-used' : 'status-invalid';
+
+          const t = langData[currentLang];
+          const statusText = result.status === 0 ? t.statusValid : result.status === 1 ? t.statusUsed : t.statusInvalid;
+
+          let detailsHtml = '';
+          if (result.status === 1 && result.user_id) {
+            detailsHtml += `<div class="result-details">${t.userLabel}: ${result.user_id}</div>`;
+          }
+          if (result.status === 1 && result.used_at) {
+            detailsHtml += `<div class="result-details">${t.timeLabel}: ${result.used_at}</div>`;
+          }
+          if (result.status === -1) {
+            // 翻译API错误消息
+            const translatedMessage =
+              t.errorMessages && t.errorMessages[result.status_text]
+                ? t.errorMessages[result.status_text]
+                : result.status_text;
+            detailsHtml += `<div class="result-details">${translatedMessage}</div>`;
+          }
+
+          item.innerHTML = `
+                    <div class="result-code">${result.card_key}</div>
+                    <div class="result-info">
+                        <span class="result-status ${statusClass}">${statusText}</span>
+                        ${detailsHtml}
+                    </div>
+                `;
+
+          return item;
+        }
+
+        handleEmptyStates() {
+          const t = langData[currentLang];
+          const lists = [
+            { element: document.getElementById('validList'), message: t.noValidCDK },
+            { element: document.getElementById('usedList'), message: t.noUsedCDK },
+            { element: document.getElementById('invalidList'), message: t.noInvalidCDK },
+          ];
+
+          lists.forEach(({ element, message }) => {
+            if (element.children.length === 0) {
+              element.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-icon">📭</div>
+                                <div>${message}</div>
+                            </div>
+                        `;
+            }
+          });
+        }
+
+        switchTab(tabName) {
+          document.querySelectorAll('.tab').forEach((tab) => {
+            tab.classList.remove('active');
+          });
+          document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+          document.querySelectorAll('.tab-content').forEach((content) => {
+            content.classList.remove('active');
+          });
+          document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+
+        copyCDKs(type) {
+          let cdksToCopy = [];
+
+          switch (type) {
+            case 'all':
+              cdksToCopy = this.cdkResults.map((r) => r.card_key);
+              break;
+            case 'valid':
+              cdksToCopy = this.cdkResults.filter((r) => r.status === 0).map((r) => r.card_key);
+              break;
+            case 'used':
+              cdksToCopy = this.cdkResults.filter((r) => r.status === 1).map((r) => r.card_key);
+              break;
+            case 'invalid':
+              cdksToCopy = this.cdkResults.filter((r) => r.status === -1).map((r) => r.card_key);
+              break;
+          }
+
+          const t = langData[currentLang];
+          if (cdksToCopy.length === 0) {
+            this.showToast(t.noCDKToCopy, 'warning');
+            return;
+          }
+
+          const cdkText = cdksToCopy.join('\n');
+
+          if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard
+              .writeText(cdkText)
+              .then(() => {
+                this.showToast(t.copySuccess(cdksToCopy.length), 'success');
+                this.animateCopyButton(type);
+              })
+              .catch(() => {
+                this.fallbackCopy(cdkText, cdksToCopy.length);
+              });
+          } else {
+            this.fallbackCopy(cdkText, cdksToCopy.length);
+          }
+        }
+
+        fallbackCopy(text, count) {
+          const textArea = document.createElement('textarea');
+          textArea.value = text;
+          textArea.style.position = 'fixed';
+          textArea.style.left = '-999999px';
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+
+          try {
+            document.execCommand('copy');
+            this.showToast(langData[currentLang].copySuccess(count), 'success');
+          } catch {
+            this.showToast(langData[currentLang].copyFailed, 'error');
+          }
+
+          document.body.removeChild(textArea);
+        }
+
+        animateCopyButton(type) {
+          const buttonId = `copy${type.charAt(0).toUpperCase() + type.slice(1)}Btn`;
+          const button = document.getElementById(buttonId);
+
+          button.classList.add('copied');
+          const originalText = button.innerHTML;
+
+          button.innerHTML = `
+                    <svg class="copy-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                    </svg>
+                    ${langData[currentLang].copied}
+                `;
+
+          setTimeout(() => {
+            button.classList.remove('copied');
+            button.innerHTML = originalText;
+          }, 2000);
+        }
+
+        showToast(message, type = 'success') {
+          const toast = document.getElementById('toast');
+          toast.textContent = message;
+          toast.className = `toast ${type}`;
+          toast.classList.add('show');
+
+          setTimeout(() => {
+            toast.classList.remove('show');
+          }, 3000);
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        // 初始化查询工具
+        window.cdkQueryTool = new CDKQueryTool();
+
+        // 为语言按钮添加事件监听器
+        document.querySelectorAll('.lang-btn').forEach((button) => {
+          button.addEventListener('click', function () {
+            const lang = this.getAttribute('data-lang');
+            setLang(lang);
+          });
+        });
+
+        // 设置默认语言为简体中文
+        setLang('zh-CN');
+      });
+    </script>
+  </body>
+</html>

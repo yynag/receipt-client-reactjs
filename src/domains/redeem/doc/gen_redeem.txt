@@ -1,0 +1,357 @@
+根据下面需求，生成 ReactJS 代码到 src/domains/redeem 目录中
+
+## 任务概述
+
+该模块是一个Discord CDK兑换中心页面，是当前项目的子网页，生成代码。
+
+prompt/redeem.html 是一份HTML实现的代码，我很满意，视觉设计和交互样式按照它的来，Ant Design选择性使用。
+
+## 功能需求
+1. **用户Token验证**
+   - 输入框用于粘贴用户Token
+   - 实时验证Token有效性
+   - 显示用户信息（用户名、邮箱、手机号）
+
+2. **CDK兑换功能**
+   - CDK输入框
+   - 验证CDK是否有效且未被使用
+   - 执行兑换操作
+
+3. **用户界面特性**
+   - 中英文切换功能
+   - 深色/浅色主题切换（每次load跟随设备切换一次）
+   - 响应式设计
+   - 加载状态和错误提示
+
+4. **辅助功能**
+   - 获取Token教程（左侧主要内容区域展示）
+   - 兑换历史记录（弹窗展示）
+   - 兑换成功弹窗通知
+
+5. **API接口**
+   - Token验证：POST {baseURL}/external/public/discord-user
+     ```json
+     Request: { "token": "user_token_string" }
+     Response: { 
+       "ID": "user-id", 
+       "username": "username", 
+       "global_name": "global name",
+       "locale": "en", 
+       "premium_type": 1,
+       "email": "email@email.com",
+       "verified": true,
+       "phone": "phone"
+     }
+     ```
+   - CDK验证：GET {baseURL}/cdks/public/{cdk}
+     ```json
+     Response: { 
+       "code": "JN8BHNSK08NK", 
+       "used": false, 
+       "app_id": "app-id" 
+     }
+     ```
+   - 兑换操作：POST {baseURL}/stocks/public/outstock
+     ```json
+     Request: { "cdk": "cdk_code", "user": "user_token" }
+     Response: true (success)
+     ```
+   - baseURL: https://receipt-api.nitro.xin
+   - 错误处理：HTTP错误状态码和错误消息需要显示给用户
+
+## 技术要求
+1. **框架选择**：主要使用 Tailwind CSS 和 Ant Design
+2. **状态管理**：使用 useState 即可，不需要复杂的状态管理
+3. **国际化**：实现中英文切换，所有文本内容支持国际化
+4. **主题系统**：实现深色/浅色主题切换，独立页面无需与admin共享
+5. **表单验证**：实时输入验证和错误提示
+6. **HTTP请求**：使用fetch API进行API调用
+7. **本地存储**：使用localStorage存储用户偏好设置和历史记录
+8. **路由集成**：不需要考虑路由集成
+9. **错误处理**：发生网络错误时弹窗提醒用户，按照人类理解的习惯来
+
+## CDK验证逻辑问题
+- CDK不检查 premium_type，只验证 CDK 的 used（是否使用）状态
+- CDK验证返回的 app_id 需要显示给用户确认，让用户知道自己充值的哪个App
+
+## 错误状态码处理
+- 200：正常
+- 400：客户端问题，body返回错误信息（文本格式，不是JSON）
+- 500：服务器问题，body返回错误信息（文本格式，不是JSON）
+- 所有错误信息都通过弹窗组件显示给用户
+
+## 主题系统实现
+- 这是独立的页面，跟 admin 没有任何关系
+- 每次页面加载时跟随设备主题自动切换一次
+
+## 历史记录存储
+- 只存储在浏览器本地，不上传服务器
+
+## Token安全性验证
+- 根据返回的JSON，premium_type 如果大于0表示用户已经是高级用户，不能再兑换
+- 同一个账户只能兑换一次
+
+## CDK重复使用检查
+- 兑换失败时直接弹窗，告诉用户具体原因
+- 用户点击确认后，可以重新输入CDK进行校验
+
+## 网络错误处理
+- 400：客户端问题
+- 500：服务器问题
+- 封装一个弹窗组件，所有给用户的信息都用这个组件显示
+
+## 潜在问题处理
+- XSS风险：暂时不考虑
+- Token存储：只存储在浏览器本地，不上传服务器
+- API baseURL硬编码实现：https://receipt-api.nitro.xin
+- 国际化实现：页面简单，手动实现翻译系统，写到 translation.ts 里
+
+## 组件交互流程简化
+- 封装一个弹窗组件，所有给用户的信息都通过创建弹窗解决
+- 响应式布局：设置固定宽度，随着屏幕宽度自动wrap，移动端上下堆叠
+- 表单验证时机：回车时进行验证
+
+## 页面布局调整
+```
+1. 头部区域（高度要小）
+   - 页面标题："兑换 Discord CDK"
+   - 语言切换按钮
+   - 主题切换按钮
+
+2. 主要内容区域（左右分栏布局）
+   左侧：获取Token的教程区域（宽度较小）
+   - Token获取步骤说明
+   - 书签创建教程
+   - JavaScript脚本代码
+   
+   右侧：兑换表单区域（占据主要视野）
+   - Token输入框（上方标注"步骤1: 输入Token"）
+   - CDK输入框（上方标注"步骤2: 输入CDK"）
+   - 开始充值按钮（无步骤标注）
+   - 查看历史记录链接
+   - 安全提示文字
+
+3. Token和CDK验证弹窗
+   - 成功状态：绿色图标 ✅ + 成功消息
+   - 错误状态：红色图标 ❌ + 错误消息  
+   - 用户确认弹窗显示详细信息（用户信息或CDK状态）
+   - 用户点击确认后继续流程
+   - 图标要求：优先使用 Ant Design 图标，不足时使用 @ant-design/icons 或 react-icons
+
+4. 底部声明区域（高度要小）
+   - 版权声明文字
+```
+
+## 交互流程
+1. 页面加载后显示左右分栏布局
+2. 用户在左侧查看Token获取教程
+3. 用户在右侧按步骤填写：
+   - 步骤1: 输入Token → 失焦时验证 → 弹窗显示用户信息让用户确认
+   - 步骤2: 输入CDK → 失焦时验证 → 弹窗显示CDK状态让用户确认
+   - 步骤3: 点击兑换按钮 → 显示加载状态
+4. 兑换成功后弹出成功通知弹窗
+5. 用户可以继续兑换新的CDK
+
+## 样式要求
+- 主要使用 Tailwind CSS 实现样式
+- 现代化设计风格，使用渐变色和阴影效果
+- 左右分栏响应式布局（移动端上下堆叠）
+- 左侧教程区域宽度约占30%，右侧表单区域约占70%
+- 圆角卡片设计风格
+- 深色主题支持
+- 平滑的过渡动画效果
+
+## 国际化文案
+
+### 中文文案
+```json
+{
+  "pageTitle": "兑换 Discord CDK",
+  "subTitle": "安全、快捷的账号充值服务",
+  "preferences": {
+    "language": {
+      "zhLabel": "切换为中文界面",
+      "enLabel": "切换为英文界面"
+    },
+    "theme": {
+      "lightLabel": "切换为明亮模式",
+      "darkLabel": "切换为深色模式"
+    }
+  },
+  "form": {
+    "step1": "步骤1: 输入Token",
+    "step2": "步骤2: 输入CDK",
+    "tokenPlaceholder": "请输入浏览器中获取到的Token",
+    "cdkPlaceholder": "请输入兑换码",
+    "securityNote": "所有数据仅在本地浏览器中用于校验，不会被存储或上传。"
+  },
+  "buttons": {
+    "startRedeem": "开始充值",
+    "tokenGuide": "获取Token教程",
+    "viewHistory": "查看兑换记录"
+  },
+  "messages": {
+    "tokenValidated": "已验证用户：{{name}} => {{email}} => {{phone}}",
+    "cdkValidated": "兑换码已验证"
+  },
+  "errors": {
+    "tokenInvalid": "Token无效，可能不正确",
+    "tokenIsPremium": "不能兑换，用户为高级用户",
+    "tokenRequired": "请先验证Token",
+    "cdkInvalid": "兑换码无效，请重试",
+    "cdkRequired": "请输入兑换码"
+  },
+  "result": {
+    "successTitle": "充值成功",
+    "again": "继续充值"
+  },
+  "guide": {
+    "copyCodeButton": "复制代码",
+    "steps": {
+      "create": {
+        "title": "创建书签",
+        "description": "打开浏览器书签管理，创建名称为 {{bookmark}}（可自定义）的书签。"
+      },
+      "script": {
+        "title": "填写脚本"
+      },
+      "login": {
+        "title": "登录网站",
+        "description": "在浏览器打开并登录 https://discord.com/"
+      },
+      "run": {
+        "title": "执行脚本",
+        "description": "登录成功后，在地址栏输入书签名称 {{bookmark}} 并回车，即可弹出Token提示框。"
+      }
+    },
+    "bookmark": "AAAA",
+    "script": "javascript:(function()%7B(() %3D> %7Bvar I %3D document.createElement(\"iframe\")%3Bdocument.body.appendChild(I)%3Bprompt(\"Here is your token. Keep it secret%3A\"%2C I.contentWindow.localStorage.token.replace(%2F\"%2Fg%2C \"\"))%3B%7D)()%7D)();"
+  },
+
+  "history": {
+    "title": "兑换记录",
+    "empty": "暂无兑换记录",
+    "columns": {
+      "token": "用户Token",
+      "cdk": "CDK",
+      "time": "兑换时间"
+    }
+  },
+  "footerStatement": "© 2025 官方代理储值系统. 保留所有权利.使用本服务即表示您同意我们的服务条款和隐私政策"
+}
+```
+
+### 英文文案
+```json
+{
+  "pageTitle": "Redeem Discord CDK",
+  "subTitle": "Safe and fast account recharge service",
+  "preferences": {
+    "language": {
+      "zhLabel": "Switch to Chinese",
+      "enLabel": "Switch to English"
+    },
+    "theme": {
+      "lightLabel": "Use light theme",
+      "darkLabel": "Use dark theme"
+    }
+  },
+  "form": {
+    "step1": "Step 1: Enter Token",
+    "step2": "Step 2: Enter CDK",
+    "tokenPlaceholder": "Paste the token retrieved from the browser",
+    "cdkPlaceholder": "Enter the CDK code",
+    "securityNote": "Data stays within your browser for verification and is never stored on our servers."
+  },
+  "buttons": {
+    "startRedeem": "Start recharge",
+    "tokenGuide": "Token guide",
+    "viewHistory": "View redeem history"
+  },
+  "messages": {
+    "tokenValidated": "Verified: {{name}} => {{email}} => {{phone}}",
+    "cdkValidated": "CDK verified!"
+  },
+  "errors": {
+    "tokenInvalid": "Invalid token, maybe incorrect",
+    "tokenIsPremium": "Can't redeem, User is already a premium member",
+    "tokenRequired": "Please validate the token first",
+    "cdkInvalid": "Invalid CDK, please try again",
+    "cdkRequired": "Please enter the CDK code"
+  },
+  "result": {
+    "successTitle": "Recharge successful",
+    "again": "Redeem another"
+  },
+  "guide": {
+    "copyCodeButton": "Copy code",
+    "steps": {
+      "create": {
+        "title": "Create bookmark",
+        "description": "Create a browser bookmark named {{bookmark}} (customizable)."
+      },
+      "script": {
+        "title": "Bookmark script"
+      },
+      "login": {
+        "title": "Login",
+        "description": "Log in at https://discord.com/."
+      },
+      "run": {
+        "title": "Run bookmark",
+        "description": "After login, execute the bookmark {{bookmark}} to copy the token."
+      }
+    },
+    "bookmark": "AAAA",
+    "script": "javascript:(function()%7B(() %3D> %7Bvar I %3D document.createElement(\"iframe\")%3Bdocument.body.appendChild(I)%3Bprompt(\"Here is your token. Keep it secret%3A\"%2C I.contentWindow.localStorage.token.replace(%2F\"%2Fg%2C \"\"))%3B%7D)()%7D)();"
+  },
+  "history": {
+    "title": "Redeem history",
+    "empty": "No redemption records yet.",
+    "columns": {
+      "token": "User token",
+      "cdk": "CDK",
+      "time": "Redeemed at"
+    }
+  },
+  "footerStatement": "© 2025 Official Agent stored-value system. All rights reserved. By using this service, you agree to our terms of service and privacy policy."
+}
+```
+
+## 国际化文本
+需要包含以下文本内容的中英文版本：
+- 页面标题
+- 表单步骤标签和占位符
+- 按钮文字
+- 错误和成功消息
+- 教程步骤
+- 历史记录表格
+
+## 代码组织要求
+生成以下文件结构到 src/domains/redeem 目录：
+```
+src/domains/redeem/
+├── api/
+│   └── index.ts          # API接口定义
+├── components/
+│   ├── RedeemForm.tsx    # 兑换表单区域组件
+│   ├── TokenGuide.tsx    # Token获取教程区域组件
+│   ├── HistoryModal.tsx  # 兑换历史记录弹窗组件
+│   └── ConfirmModal.tsx  # Token和CDK验证确认弹窗组件
+├── index.tsx             # 主页面组件
+└── translation.ts        # 手动实现翻译（无第三方依赖）
+```
+
+## 组件实现说明
+1. `RedeemForm` - 右侧主要表单区域，包含步骤化的输入框和按钮
+2. `TokenGuide` - 左侧教程区域，展示获取Token的完整步骤
+3. `HistoryModal` - 兑换历史记录弹窗
+4. `ConfirmModal` - Token和CDK验证确认弹窗，显示详细信息（✅绿色成功，❌红色错误）
+5. 手动实现国际化翻译系统，不使用第三方库
+
+## 注意事项
+- 代码结构清晰，便于维护
+- 错误处理完善，用户体验友好
+- 响应式设计，支持移动端和桌面端
+
+生成代码到 src/domains/redeem 目录中

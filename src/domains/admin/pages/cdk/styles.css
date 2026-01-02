@@ -1,0 +1,36 @@
+/* CDK 页面样式使用共享色板变量 */
+@layer components {
+  .ant-table.dark-table .ant-table-thead > tr > th {
+    background-color: var(--admin-table-dark-header);
+    color: var(--admin-table-dark-text);
+    border-color: var(--admin-table-dark-border);
+  }
+
+  .ant-table.dark-table .ant-table-tbody > tr > td {
+    background-color: var(--admin-table-dark-row);
+    color: var(--admin-table-dark-text);
+    border-color: var(--admin-table-dark-border);
+  }
+
+  .ant-table.dark-table .ant-table-tbody > tr:hover > td {
+    background-color: var(--admin-table-dark-header);
+  }
+
+  .ant-table.dark-table .ant-pagination-item {
+    background-color: var(--admin-table-dark-header);
+    border-color: var(--admin-table-dark-border);
+  }
+
+  .ant-table.dark-table .ant-pagination-item a {
+    color: var(--admin-table-dark-text);
+  }
+
+  .ant-table.dark-table .ant-pagination-item-active {
+    background-color: var(--redeem-accent);
+    border-color: var(--redeem-accent);
+  }
+
+  .ant-table.dark-table .ant-pagination-item-active a {
+    color: #ffffff;
+  }
+}

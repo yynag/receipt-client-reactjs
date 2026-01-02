@@ -1,0 +1,87 @@
+公司(Company) 概念改造影响清单（前端-React 客户端）
+
+说明：现有逻辑里 CDK/Stock 主要按个人(user)维度管理与消耗。引入 Company 后，需要在请求（参数或 Header）、数据结构、筛选项、统计维度、UI 展示与翻译文案中增加 company 维度，并确保“个人挂在公司名下的 CDK 消耗公司 Stock”。以下为需要调整的文件与改动要点。
+
+一、共享/基础设施
+- src/domains/admin/api/shared.ts
+  - 在 request() 里统一附加公司上下文（例如新增 X-Company-ID Header，或在 query 中带 company_id）。
+  - 需提供设置/读取当前选中公司的能力（可由 store 提供）。
+
+- src/domains/admin/store/index.tsx
+  - 扩展 User、Store：增加当前公司(company)与可选公司列表(companies)的状态与持久化；支持切换当前公司。
+  - isAdmin 判断可能区分公司内角色；相应适配。
+
+- src/domains/admin/login.tsx, src/domains/admin/api/user.ts
+  - 登录返回若包含公司列表或默认公司，落地到 store；若多公司，提供登录后公司切换入口。
+
+二、CDK 管理与统计（Admin CDK）
+- src/domains/admin/api/cdk.ts
+  - 所有请求增加 company 维度：getList/getCDKStats/getCDKAppProductStats/getTrendData 等 API 增参 company_id（或 Header）。
+  - CDK、AppProductStatItem、CDKListParams 等 interface 增加 company_id/company_name 等字段（用于筛选与展示）。
+  - getFilterOptions 返回值增加 companies 列表（供 UI 选择）。
+
+- src/domains/admin/pages/dashboard/CDKStatsTab.tsx
+  - 增加“公司”筛选 Select；请求时携带 company_id；统计聚合维度可按 app/product 但受 company 过滤。
+
+- 可能涉及：src/domains/admin/pages/cdk（若存在 CDK 列表页）
+  - 列表列与筛选项增加公司字段；批量操作请求携带 company。
+
+- src/domains/admin/translation.ts
+  - 增加“公司/Company”“选择公司”等相关文案；统计、筛选、列名的中英文补充。
+
+三、Stock 管理与统计（Admin Stock）
+- src/domains/admin/api/stock.ts
+  - 接口 ListStock/Stock/StockListParams/AppProductStockStatItem 等结构增加 company_id/company_name。
+  - getList/getStockStats/getStockAppProductStats 增参 company_id（或 Header）。
+  - getFilterOptions 返回 companies 列表；FilterOptions 增加 company_ids。
+
+- src/domains/admin/pages/stock/index.tsx
+  - 表格列新增“公司”列；搜索筛选新增“公司”；valueEnum 补充；对导出 JSON/ZIP 时包含公司信息。
+  - 调用 stockApi.* 时传入当前/选中 company。
+
+- src/domains/admin/pages/dashboard/StockStatsTab.tsx
+  - 增加“公司”筛选 Select；请求时携带 company_id；统计受 company 过滤。
+
+- src/domains/admin/translation.ts
+  - Stock 区域新增公司相关文案（列名/筛选项/提示语）。
+
+四、兑换流程（Public Redeem）
+- src/domains/redeem/api/index.ts
+  - verifyCdk/redeem 请求增加公司上下文（Header: X-Product-ID 已有，需再加 X-Company-ID 或 body: company_id）。
+  - 后端若按“CDK 挂公司”自动推断，也建议前端透传用户所选公司，避免歧义。
+
+- src/domains/redeem/components/RedeemForm.tsx
+  - UI 增加“选择公司”或“当前公司”展示；触发验证与兑换时附带 company。
+  - 历史记录 HistoryRecord 可增加 company 字段用于回看。
+
+- src/domains/redeem/types.ts
+  - VerifiedCdk/VerifiedUser/HistoryRecord 等类型增加 company 相关字段（如 company_id/company_name），便于 UI 展示与存档。
+
+- src/domains/redeem/index.tsx
+  - 若按产品维度存储历史/语言/主题，考虑同一产品不同公司下的隔离（storage key 可带上 company）。
+
+- src/domains/redeem/translation.ts
+  - 新增与公司选择、提示相关的文案。
+
+五、CDK 批量查询（Public Query）
+- src/domains/query/api/index.ts
+  - checkCdks 增加公司上下文（query/company_id 或 Header）。
+  - 返回 Item 类型可补充 company 字段（如果需展示/导出）。
+
+- src/domains/query/types.ts, src/domains/query/translation.ts
+  - 如需展示公司或导出包含公司，更新类型与文案。
+
+六、其它入口/导航
+- src/main.tsx, src/domains/home/index.tsx
+  - 若需要暴露“公司切换”入口或带公司上下文的路由参数，可在入口/导航处补充（可选）。
+
+七、外部导入/入库
+- src/domains/admin/api/external.ts
+  - 导入入库接口 importFromFM/importFromLiNiuJson 等操作需携带 company 上下文，确保入库归属公司。
+
+八、校验与回归建议
+- 核对所有调用 /cdks、/stocks、/users、/external 相关接口是否需要透传 company；优先通过统一 request() 实现。
+- 列表页/统计页：筛选条件、图表查询、导出/删除操作均需包含 company。
+- 兑换页：验证/兑换均需包含 company；历史记录与提示信息体现在公司维度。
+
+备注：以上为前端侧修改点清单；具体 Header 名称、参数名与返回结构以后端最终接口协议为准（建议统一使用 X-Company-ID 或 company_id）。

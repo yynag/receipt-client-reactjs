@@ -1,0 +1,19 @@
+/* 用户管理页面样式 - 简化版 */
+@layer components {
+  .user-id-cell {
+    font-family: var(--font-family-mono);
+    font-size: 13px;
+  }
+
+  .action-buttons .ant-btn {
+    padding: 0 4px;
+    height: 24px;
+  }
+
+  @media (max-width: 768px) {
+    .ant-table-thead > tr > th,
+    .ant-table-tbody > tr > td {
+      padding: 8px 4px;
+    }
+  }
+}

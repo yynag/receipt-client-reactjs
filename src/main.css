@@ -1,0 +1,42 @@
+@import 'tailwindcss';
+@import './styles/tokens.css';
+
+@layer base {
+  :root {
+    font-family: var(--font-family-base);
+    line-height: 1.5;
+    font-weight: 400;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+  }
+}
+
+@layer components {
+  body {
+    background-color: var(--app-background);
+    color: var(--app-text-color);
+    transition:
+      background-color var(--motion-duration-base) var(--motion-timing-standard),
+      color var(--motion-duration-base) var(--motion-timing-standard);
+  }
+
+  main {
+    min-height: 100%;
+  }
+
+  .full-screen {
+    position: relative;
+    top: 0;
+    left: 0;
+    width: 100%;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+}
