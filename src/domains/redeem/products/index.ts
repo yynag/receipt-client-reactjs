@@ -1,16 +1,17 @@
-import type { ProductDefinition } from './types';
-import type { ProductSlug } from '../types';
 import { chatgptProduct } from './chatgpt';
 import { discordProduct } from './discord';
+import { grokProduct } from './grok';
+import type { ProductDefinition } from './types';
 
-const definitions: Record<ProductSlug, ProductDefinition> = {
+const definitions: Record<string, ProductDefinition> = {
   discord: discordProduct,
   chatgpt: chatgptProduct,
+  grok: grokProduct,
 };
 
-export const supportedProducts = Object.keys(definitions) as ProductSlug[];
+export const supportedProducts = Object.keys(definitions) as string[];
 
-export function getProductDefinition(product: ProductSlug): ProductDefinition {
+export function getProductDefinition(product: string): ProductDefinition {
   return definitions[product];
 }
 
@@ -18,8 +19,5 @@ export function resolveProduct(productParam: string | undefined): ProductDefinit
   if (!productParam) {
     return null;
   }
-  if (supportedProducts.includes(productParam as ProductSlug)) {
-    return definitions[productParam as ProductSlug];
-  }
-  return null;
+  return definitions[productParam];
 }

@@ -3,8 +3,6 @@ import type { ConfirmStatus } from './components/ConfirmModal';
 
 export type ThemePreference = 'light' | 'dark';
 
-export type ProductSlug = 'discord' | 'chatgpt';
-
 export interface ConfirmPayload {
   type: ConfirmStatus;
   title: string;

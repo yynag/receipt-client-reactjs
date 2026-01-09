@@ -1,4 +1,3 @@
-import type { ProductSlug } from '../types';
 import { sleep } from '../utils/sleep';
 
 export { sleep } from '../utils/sleep';
@@ -19,7 +18,7 @@ interface CdkResponse {
   app_product_name: string;
 }
 
-export async function verifyUser(user: string, cdk: string, product: ProductSlug): Promise<UserResponse> {
+export async function verifyUser(user: string, cdk: string, product: string): Promise<UserResponse> {
   user = user.trim();
 
   const headers: HeadersInit = {
@@ -39,20 +38,8 @@ export async function verifyUser(user: string, cdk: string, product: ProductSlug
   return await response.json();
 }
 
-export async function verifyCdk(code: string, product: ProductSlug): Promise<CdkResponse> {
+export async function verifyCdk(code: string, product: string): Promise<CdkResponse> {
   code = code.trim();
-  if (code === 'mock_ok') {
-    return {
-      code: 'mock_ok',
-      used: false,
-      app_name: 'Mock App',
-      app_product_name: 'Mock Product',
-    };
-  }
-  if (code === 'mock_fail') {
-    throw new Error('CDK is invalid');
-  }
-
   const headers: HeadersInit = {
     'X-Product-ID': product,
   };

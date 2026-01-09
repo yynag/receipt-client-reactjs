@@ -87,7 +87,7 @@ const bookmarkScript =
   'javascript:(function(){(() => {var I = document.createElement("iframe");document.body.appendChild(I);prompt("Here is your token. Keep it secret:", I.contentWindow.localStorage.token.replace(/"/g, ""));})();})();';
 
 export const discordProduct: ProductDefinition = {
-  slug: 'discord',
+  slug: 'discord', // 必须小写，与后端对应到
   displayName: 'Discord',
   isMock: false,
   userFormatter: {
@@ -102,8 +102,8 @@ export const discordProduct: ProductDefinition = {
       form: {
         step1: '输入 CDK',
         step2: '输入 Token',
-        tokenPlaceholder: '粘贴浏览器中获取到的 Token',
-        cdkPlaceholder: '输入 CDK 兑换码',
+        tokenPlaceholder: 'MTQ1NDc0NjA4MTYzOTI3...',
+        cdkPlaceholder: 'XXXXXXXXXXXXX',
         securityNote: '所有数据仅在您的浏览器中用于验证，不会被存储在服务器端。',
       },
       guide: [

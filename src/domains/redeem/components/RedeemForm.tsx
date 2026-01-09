@@ -3,7 +3,7 @@ import { Button, Spin } from 'antd';
 import { useMemo } from 'react';
 import { useRedeemFlow, type FieldStatus } from '../hooks/useRedeemFlow';
 import type { Language, TranslationContent } from '../translation';
-import type { ConfirmPayload, ProductSlug } from '../types';
+import type { ConfirmPayload } from '../types';
 
 const statusText: Record<Language, { success: string; error: string }> = {
   zh: { success: '验证成功', error: '验证失败' },
@@ -11,7 +11,7 @@ const statusText: Record<Language, { success: string; error: string }> = {
 };
 
 interface RedeemFormProps {
-  product: ProductSlug;
+  product: string;
   language: Language;
   translation: TranslationContent;
   onNotify: (payload: ConfirmPayload) => void;

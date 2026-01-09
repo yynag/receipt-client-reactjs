@@ -16,7 +16,7 @@
     background: var(--redeem-surface-secondary);
     border: 1px solid var(--redeem-border-color);
     border-radius: var(--radius-lg);
-    backdrop-filter: blur(10px);
+    /* backdrop-filter: blur(10px); */
     box-shadow: var(--shadow-card);
     transition:
       box-shadow var(--motion-duration-base) var(--motion-timing-standard),

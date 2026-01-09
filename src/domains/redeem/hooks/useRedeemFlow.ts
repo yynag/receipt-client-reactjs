@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { createRedeemTask, pollRedeemTask, verifyCdk, verifyUser } from '../api';
 import { getProductDefinition } from '../products';
 import type { Language, TranslationContent } from '../translation';
-import type { ConfirmPayload, ProductSlug, VerifiedCdk, VerifiedUser } from '../types';
+import type { ConfirmPayload, VerifiedCdk, VerifiedUser } from '../types';
 
 export type FieldStatus = {
   type: 'success' | 'error';
@@ -27,7 +27,7 @@ function fallbackBuildDetails(user: VerifiedUser, language: Language): string[] 
 }
 
 export function useRedeemFlow(args: {
-  product: ProductSlug;
+  product: string;
   language: Language;
   translation: TranslationContent;
   onNotify: (payload: ConfirmPayload) => void;

@@ -1,7 +1,7 @@
+import { MoonOutlined, SunOutlined } from '@ant-design/icons';
 import { Card, Flex, Layout, Switch } from 'antd';
-import { useNavigate } from 'react-router';
-import { SunOutlined, MoonOutlined } from '@ant-design/icons';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
 import './styles.css';
 const { Meta } = Card;
 const { Header, Content } = Layout;
@@ -70,6 +70,11 @@ function HomeEntry() {
       name: 'ChatGPT充值入口',
       description: '使用CDK兑换',
       url: '/redeem/chatgpt',
+    },
+    {
+      name: 'Grok充值入口',
+      description: '使用CDK兑换',
+      url: '/redeem/grok',
     },
     {
       name: '后台管理入口',

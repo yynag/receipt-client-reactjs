@@ -1,8 +1,8 @@
 import type { Language, TranslationContent } from '../translation';
-import type { DeepPartial, PartialRecord, ProductSlug, VerifiedUser } from '../types';
+import type { DeepPartial, PartialRecord, VerifiedUser } from '../types';
 
 export interface ProductDefinition {
-  slug: ProductSlug;
+  slug: string;
   displayName: string;
   isMock: boolean;
   translationOverrides: PartialRecord<Language, DeepPartial<TranslationContent>>;

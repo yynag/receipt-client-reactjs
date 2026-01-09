@@ -6,7 +6,7 @@ const loginUrl = 'https://chatgpt.com/';
 const sessionUrl = 'https://chatgpt.com/api/auth/session';
 
 export const chatgptProduct: ProductDefinition = {
-  slug: 'chatgpt',
+  slug: 'chatgpt', // 必须小写，与后端对应到
   displayName: 'ChatGPT',
   isMock: true,
   userFormatter: {
@@ -34,8 +34,8 @@ export const chatgptProduct: ProductDefinition = {
       form: {
         step1: '输入 CDK 卡密',
         step2: '输入账号 AuthSession 信息',
-        tokenPlaceholder: '输入复制的数据',
-        cdkPlaceholder: '输入 CDK 卡密',
+        tokenPlaceholder: '{"user":{"id":"user-kv6u0fhDolDd32fEtd4dKDF:....',
+        cdkPlaceholder: 'XXXXXXXXXXXXX',
         securityNote: '用户信息仅用于本地验证，不会上传到服务器。',
       },
       guide: [
@@ -81,8 +81,8 @@ export const chatgptProduct: ProductDefinition = {
       form: {
         step1: 'Enter your CDK',
         step2: 'Enter AuthSession details',
-        tokenPlaceholder: 'Paste the copied data',
-        cdkPlaceholder: 'Enter your CDK code',
+        tokenPlaceholder: '{"user":{"id":"user-kv6u0fhDolDd32fEtd4dKDF:...',
+        cdkPlaceholder: 'XXXXXXXXXXXXX',
         securityNote: 'User info is only used locally for validation and never uploaded.',
       },
       guide: [
