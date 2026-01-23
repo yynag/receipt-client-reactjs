@@ -4,7 +4,6 @@ import {
   ModalForm,
   type ProColumns,
   ProFormSelect,
-  ProFormSwitch,
   ProFormText,
   ProTable,
 } from '@ant-design/pro-components';
@@ -373,7 +372,6 @@ export const CDKPage = () => {
               app_id: values.appId,
               product_id: values.productId,
               amount: values.quantity,
-              need_instock: values.needInstock,
             });
             copyText(codes); // 复制到剪切板
             messageApi.success(`成功创建 ${values.quantity} 个CDK，并复制到剪切板`);
@@ -405,7 +403,7 @@ export const CDKPage = () => {
           placeholder="请选择应用商品"
           options={products
             .filter((item) => !selectedAppIdCreate || item.app === selectedAppIdCreate)
-            .map((a) => a.product_id)}
+            .map((a) => a.app_product)}
           rules={[{ required: true, message: '请选择应用商品' }]}
           dependencies={[selectedAppIdCreate]}
         />
@@ -431,7 +429,6 @@ export const CDKPage = () => {
             },
           ]}
         />
-        <ProFormSwitch name="needInstock" label="出库是否需要先入库" />
       </ModalForm>
     </div>
   );

@@ -76,7 +76,7 @@ export function useRedeemFlow(args: {
         setCdkStatus({ type: 'error', message });
         onNotify({
           type: 'error',
-          title: translation.form.step2,
+          title: translation.form.step1,
           message,
           okText: translation.buttons.confirm,
         });
@@ -94,7 +94,7 @@ export function useRedeemFlow(args: {
           setCdkStatus({ type: 'error', message });
           onNotify({
             type: 'error',
-            title: translation.form.step2,
+            title: translation.form.step1,
             message,
             okText: translation.buttons.confirm,
           });
@@ -109,7 +109,7 @@ export function useRedeemFlow(args: {
           const cdkMessage = `App: ${cdk.app_name}\nProduct: ${cdk.app_product_name}`;
           onNotify({
             type: 'success',
-            title: translation.form.step2,
+            title: translation.form.step1,
             message: cdkMessage,
             okText: translation.buttons.confirm,
           });
@@ -141,7 +141,6 @@ export function useRedeemFlow(args: {
       translation.errors.cdkUsed,
       translation.errors.network,
       translation.form.step1,
-      translation.form.step2,
     ],
   );
 
@@ -153,7 +152,7 @@ export function useRedeemFlow(args: {
         setTokenStatus({ type: 'error', message });
         onNotify({
           type: 'error',
-          title: translation.form.step1,
+          title: translation.form.step2,
           message,
           okText: translation.buttons.confirm,
         });
@@ -191,7 +190,7 @@ export function useRedeemFlow(args: {
           setTokenStatus({ type: 'error', message });
           onNotify({
             type: 'error',
-            title: translation.form.step1,
+            title: translation.form.step2,
             message,
             okText: translation.buttons.confirm,
           });
@@ -204,7 +203,7 @@ export function useRedeemFlow(args: {
             ? translation.errors[validation.messageKey]
             : (validation.message ?? statusCopy.error);
           setTokenStatus({ type: 'error', message });
-          onNotify({ type: 'error', title: translation.form.step1, message, okText: translation.buttons.confirm });
+          onNotify({ type: 'error', title: translation.form.step2, message, okText: translation.buttons.confirm });
           return false;
         }
 
@@ -217,7 +216,7 @@ export function useRedeemFlow(args: {
           const message = lines.length > 0 ? lines.join('\n') : translation.result.noUserDetail;
           onNotify({
             type: 'success',
-            title: translation.form.step1,
+            title: translation.form.step2,
             message,
             okText: translation.buttons.confirm,
           });
@@ -229,7 +228,7 @@ export function useRedeemFlow(args: {
         setTokenStatus({ type: 'error', message: statusCopy.error });
         onNotify({
           type: 'error',
-          title: translation.form.step1,
+          title: translation.form.step2,
           message,
           okText: translation.buttons.confirm,
         });
@@ -249,7 +248,6 @@ export function useRedeemFlow(args: {
       tokenInput,
       translation.buttons.confirm,
       translation.errors,
-      translation.form.step1,
       translation.form.step2,
       translation.result.noUserDetail,
       validateCdk,

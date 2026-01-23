@@ -24,7 +24,6 @@ export interface CreateCDKRequest {
   app_id: string;
   product_id: string;
   amount: number;
-  need_instock: boolean;
 }
 
 export interface CDKListResponse {

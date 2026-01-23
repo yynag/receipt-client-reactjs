@@ -73,6 +73,12 @@ export const chatgptProduct: ProductDefinition = {
           title: '步骤4：验证成功后，点击充值按钮完成充值',
           description: '充值过程可能漫长，请耐心等待！',
         },
+        {
+          type: 'text',
+          accent: 'yellow',
+          title: '注意：充值延迟问题',
+          description: '尝试多次刷新ChatGPT网页，网页会自己再刷新一次更新订阅状态。',
+        },
       ],
     },
     en: {
@@ -119,6 +125,13 @@ export const chatgptProduct: ProductDefinition = {
           accent: 'green',
           title: 'Step 4: After validation, click Recharge to finish',
           description: 'The recharge can take a while—please wait patiently.',
+        },
+        {
+          type: 'text',
+          accent: 'yellow',
+          title: 'Note: Recharge delay issue',
+          description:
+            'Try refreshing the ChatGPT webpage multiple times, and the webpage will refresh itself again to update the subscription status.',
         },
       ],
     },
