@@ -35,7 +35,7 @@ export const chatgptProduct: ProductDefinition = {
         step1: '输入 CDK 卡密',
         step2: '输入账号 AuthSession 信息',
         tokenPlaceholder: '{"user":{"id":"user-kv6u0fhDolDd32fEtd4dKDF:....',
-        cdkPlaceholder: 'XXXXXXXXXXXXX',
+        cdkPlaceholder: 'XXXXXXXXXXXXX / XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX',
         securityNote: '用户信息仅用于本地验证，不会上传到服务器。',
       },
       guide: [
@@ -88,7 +88,7 @@ export const chatgptProduct: ProductDefinition = {
         step1: 'Enter your CDK',
         step2: 'Enter AuthSession details',
         tokenPlaceholder: '{"user":{"id":"user-kv6u0fhDolDd32fEtd4dKDF:...',
-        cdkPlaceholder: 'XXXXXXXXXXXXX',
+        cdkPlaceholder: 'XXXXXXXXXXXXX / XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX',
         securityNote: 'User info is only used locally for validation and never uploaded.',
       },
       guide: [

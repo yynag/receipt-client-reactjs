@@ -1,7 +1,7 @@
 import type { CdkResult } from '../types';
 
-const BASE_URL = import.meta.env.DEV ? 'http://localhost:3000' : 'https://receipt-api.nitro.xin';
-// const BASE_URL = "http://localhost:3000";
+// const BASE_URL = import.meta.env.DEV ? 'http://localhost:3000' : 'https://receipt-api.nitro.xin';
+const BASE_URL = 'https://receipt-api.nitro.xin';
 
 interface Item {
   app_name: string;
@@ -12,8 +12,9 @@ interface Item {
 }
 
 export async function checkCdks(codes: string[]): Promise<CdkResult[]> {
-  const response = await fetch(`${BASE_URL}/cdks/public/check-usage/${codes.map(encodeURIComponent).join(',')}`, {
-    method: 'GET',
+  const response = await fetch(`${BASE_URL}/cdks/public/check-usage2`, {
+    method: 'POST',
+    body: codes.map(encodeURIComponent).join('\n'),
   });
   if (!response.ok) {
     throw new Error('Failed to check CDKs: ' + (await response.text()));

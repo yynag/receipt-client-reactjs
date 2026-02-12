@@ -2,7 +2,8 @@ import { sleep } from '../utils/sleep';
 
 export { sleep } from '../utils/sleep';
 
-const BASE_URL = import.meta.env.DEV ? 'http://localhost:4000' : 'https://receipt-api.nitro.xin';
+// const BASE_URL = import.meta.env.DEV ? 'http://localhost:4000' : 'https://receipt-api.nitro.xin';
+const BASE_URL = 'https://receipt-api.nitro.xin';
 
 interface UserResponse {
   user: string;
@@ -64,6 +65,9 @@ export async function createRedeemTask(cdk: string, user: string): Promise<strin
 
   const response = await fetch(`${BASE_URL}/stocks/public/outstock`, {
     method: 'POST',
+    headers: {
+      'X-Device-Id': 'web',
+    },
     body: JSON.stringify({ cdk: cdk, user: user }),
   });
 

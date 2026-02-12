@@ -12,7 +12,7 @@ import {
 } from '@ant-design/icons';
 import { Button, ConfigProvider, Dropdown, Flex, Layout, Menu, Switch, theme as antdTheme, type MenuProps } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { userApi, type UserDetail } from './api/user';
 import LoginPage from './login';
 import { CDKPage } from './pages/cdk';
@@ -119,16 +119,8 @@ const AdminPage = () => {
       setUser2(u);
     };
     fetchData();
-    const timer = setInterval(fetchData, 30000);
-    return () => clearInterval(timer);
+    return;
   }, [user]);
-
-  const buildUserText = useMemo(() => {
-    if (user2 == null) {
-      return '';
-    }
-    return `${user2.user_id} (${user2.total_amount}/${user2.consumed_amount})`;
-  }, [user2]);
 
   if (!hasToken() || user == null) {
     return (
@@ -230,7 +222,7 @@ const AdminPage = () => {
             />
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
               <Button type="text" icon={<UserOutlined />}>
-                {buildUserText}
+                {user2 == null ? '' : user2.user_id}
               </Button>
             </Dropdown>
           </Flex>

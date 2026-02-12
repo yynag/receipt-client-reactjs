@@ -32,7 +32,7 @@ export const grokProduct: ProductDefinition = {
         step1: '输入 CDK',
         step2: '输入 Token',
         tokenPlaceholder: 'eyJ0eXAaOiJKV1QkLCJhbGciOiJIUz...',
-        cdkPlaceholder: 'XXXXXXXXXXXXX',
+        cdkPlaceholder: 'XXXXXXXXXXXXX / XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX',
         securityNote: '所有数据仅在您的浏览器中用于验证，不会被存储在服务器端。',
       },
       guide: [
@@ -53,7 +53,7 @@ export const grokProduct: ProductDefinition = {
           title: '方案1: 通过我们提供的Token浏览器插件获取',
           description: '我们自己的工具，将为更多App提供便利的途径。',
           link: {
-            url: `https://47.237.98.89:14494/down/ldwJyQjbHj02.crx`,
+            url: `https://drive.google.com/file/d/1GNj8EvXNPm7Y6kxx1PgRzXdd-vyAsYwV/view?usp=sharing`,
             label: '下载CRX扩展',
           },
           clickable: true,
@@ -84,7 +84,7 @@ export const grokProduct: ProductDefinition = {
         step1: 'Enter CDK',
         step2: 'Enter Token',
         tokenPlaceholder: 'eyJ0eXAaOiJKV1QkLCJhbGciOiJIUz.....',
-        cdkPlaceholder: 'XXXXXXXXXXXXX',
+        cdkPlaceholder: 'XXXXXXXXXXXXX / XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX',
         securityNote: 'Data stays within your browser for verification and is never stored on our servers.',
       },
       guide: [

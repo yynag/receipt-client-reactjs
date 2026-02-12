@@ -103,7 +103,7 @@ export const discordProduct: ProductDefinition = {
         step1: '输入 CDK',
         step2: '输入 Token',
         tokenPlaceholder: 'MTQ1NDc0NjA4MTYzOTI3...',
-        cdkPlaceholder: 'XXXXXXXXXXXXX',
+        cdkPlaceholder: 'XXXXXXXXXXXXX / XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX',
         securityNote: '所有数据仅在您的浏览器中用于验证，不会被存储在服务器端。',
       },
       guide: [
@@ -150,7 +150,7 @@ export const discordProduct: ProductDefinition = {
         step1: 'Enter CDK',
         step2: 'Enter Token',
         tokenPlaceholder: 'Paste the token retrieved from the browser',
-        cdkPlaceholder: 'Enter the CDK code',
+        cdkPlaceholder: 'XXXXXXXXXXXXX / XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX',
         securityNote: 'Data stays within your browser for verification and is never stored on our servers.',
       },
       guide: [

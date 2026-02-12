@@ -1,5 +1,5 @@
-export const baseUrl = import.meta.env.DEV ? 'http://localhost:4000' : 'https://receipt-api.nitro.xin';
-// export const baseUrl = 'https://receipt-api.nitro.xin';
+// export const baseUrl = import.meta.env.DEV ? 'http://localhost:4000' : 'https://receipt-api.nitro.xin';
+export const baseUrl = 'https://receipt-api.nitro.xin';
 
 export const sleep = (ms: number) => {
   return new Promise<void>((resolve) => {

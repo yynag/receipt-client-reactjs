@@ -107,6 +107,12 @@ export function useRedeemFlow(args: {
 
         if (!options.silent) {
           const cdkMessage = `App: ${cdk.app_name}\nProduct: ${cdk.app_product_name}`;
+          // if (['Plus 1Y', 'Pro 1M'].includes(cdk.app_product_name)) {
+          //   const z = '此产品目前处于自动化观察阶段，兑换时间可能延长，请谅解！';
+          //   const e =
+          //     'This product is currently in the automated observation stage, and the redemption time may be extended. Thank you for your understanding! ';
+          //   cdkMessage = `${cdkMessage}\n\n${language === 'zh' ? z : e}`;
+          // }
           onNotify({
             type: 'success',
             title: translation.form.step1,

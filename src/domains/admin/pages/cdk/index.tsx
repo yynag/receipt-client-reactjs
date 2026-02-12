@@ -117,8 +117,8 @@ export const CDKPage = () => {
         title: 'CDK Code',
         dataIndex: 'code',
         key: 'code',
-        width: 120,
-        ellipsis: true,
+        width: 260,
+        ellipsis: false,
         copyable: true,
         search: false,
         render: (_, record) => (
@@ -176,7 +176,7 @@ export const CDKPage = () => {
         title: '应用',
         dataIndex: 'app_id',
         key: 'app_id',
-        width: 50,
+        width: 80,
         valueType: 'select',
         valueEnum: appOptions,
         fieldProps: {
@@ -414,15 +414,15 @@ export const CDKPage = () => {
           fieldProps={{
             type: 'number',
             min: 1,
-            max: 1000,
+            max: 10000,
           }}
           rules={[
             { required: true, message: '请输入添加数量' },
             {
               type: 'number',
               min: 1,
-              max: 1000,
-              message: '数量必须在1-1000之间',
+              max: 10000,
+              message: '数量必须在1-10000之间',
               transform(value) {
                 return Number(value);
               },
