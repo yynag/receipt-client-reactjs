@@ -77,6 +77,11 @@ function HomeEntry() {
       url: '/redeem/grok',
     },
     {
+      name: 'Claude充值入口',
+      description: '使用CDK兑换',
+      url: '/redeem/claude',
+    },
+    {
       name: '后台管理入口',
       description: '凭证系统的后台管理页面',
       url: '/admin-1an3m',
@@ -112,9 +117,24 @@ function HomeEntry() {
           backgroundColor: theme === 'dark' ? '#141414' : '#f0f2f5',
           height: 'calc(100vh - 64px)',
           overflow: 'auto',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
         }}
       >
-        <Flex vertical={false} justify="center" align="center" style={{ height: '100%' }} gap="middle">
+        <Flex
+          vertical={false}
+          wrap="wrap"
+          justify="flex-start"
+          align="flex-start"
+          style={{
+            maxWidth: 1008,
+            width: '100%',
+            boxSizing: 'border-box',
+            padding: '24px 0',
+          }}
+          gap="middle"
+        >
           {apps.map((app) => (
             <Card
               key={app.name}
