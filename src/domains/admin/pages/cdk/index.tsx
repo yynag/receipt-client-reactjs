@@ -1,4 +1,4 @@
-import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { DeleteOutlined, LockOutlined, PlusOutlined } from '@ant-design/icons';
 import {
   type ActionType,
   ModalForm,
@@ -7,7 +7,7 @@ import {
   ProFormText,
   ProTable,
 } from '@ant-design/pro-components';
-import { Button, message, notification, Popconfirm, Tag, Typography } from 'antd';
+import { Button, Input, message, Modal, notification, Popconfirm, Tag, Typography } from 'antd';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { type CDK, cdkApi, type FilterOptions } from '../../api/cdk';
 import { type Product, productApi } from '../../api/product';
@@ -29,7 +29,15 @@ export const CDKPage = () => {
   const [selectedAppId, setSelectedAppId] = useState<string>();
   const actionRef = useRef<ActionType>(null);
   const [createModalVisible, setCreateModalVisible] = useState(false);
+  const [lockModalVisible, setLockModalVisible] = useState(false);
+  const [lockText, setLockText] = useState('');
+  const [lockSubmitting, setLockSubmitting] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
+  const [notificationApi, notificationContextHolder] = notification.useNotification();
+  const lockLineCount = lockText
+    .split('\n')
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0).length;
 
   useEffect(() => {
     const fetchFilterOptions = async () => {
@@ -237,7 +245,7 @@ export const CDKPage = () => {
       await copyText(selectedCDKs.map((cdk) => cdk.code));
 
       // 使用 antd 通知组件
-      notification.success({
+      notificationApi.success({
         message: '复制成功',
         description: `已复制 ${selectedRowKeys.length} 个CDK到剪切板`,
         placement: 'topRight',
@@ -245,7 +253,7 @@ export const CDKPage = () => {
       });
     } catch (error) {
       console.error('复制失败:', error);
-      notification.error({
+      notificationApi.error({
         message: '复制失败',
         description: '请重试',
         placement: 'topRight',
@@ -277,9 +285,46 @@ export const CDKPage = () => {
     }
   };
 
+  const handleLockSubmit = async () => {
+    const codes = lockText
+      .split('\n')
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0);
+
+    if (codes.length === 0) {
+      messageApi.warning('请输入至少一个CDK');
+      return;
+    }
+
+    setLockSubmitting(true);
+    try {
+      const result = await cdkApi.lock(codes.join('\n'));
+      notificationApi.success({
+        message: '锁定完成',
+        description: `共 ${result.total} 行，影响 ${result.affects} 行`,
+        placement: 'topRight',
+        duration: 3,
+      });
+      setLockModalVisible(false);
+      setLockText('');
+      actionRef.current?.reload();
+    } catch (error) {
+      console.error('锁定CDK失败');
+      notificationApi.error({
+        message: '锁定CDK失败',
+        description: error instanceof Error ? error.message : '请重试',
+        placement: 'topRight',
+        duration: 3,
+      });
+    } finally {
+      setLockSubmitting(false);
+    }
+  };
+
   return (
     <div>
       {contextHolder}
+      {notificationContextHolder}
       <ProTable<CDK>
         columns={columns}
         search={{
@@ -335,6 +380,9 @@ export const CDKPage = () => {
         toolBarRender={() => [
           <Button key="add" type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalVisible(true)}>
             新建
+          </Button>,
+          <Button key="lock" type="primary" icon={<LockOutlined />} onClick={() => setLockModalVisible(true)}>
+            锁定CDK
           </Button>,
         ]}
         pagination={{
@@ -430,6 +478,49 @@ export const CDKPage = () => {
           ]}
         />
       </ModalForm>
+
+      <Modal
+        title="锁定CDK"
+        open={lockModalVisible}
+        okText="确认"
+        cancelText="取消"
+        confirmLoading={lockSubmitting}
+        onOk={handleLockSubmit}
+        onCancel={() => {
+          if (lockSubmitting) {
+            return;
+          }
+          setLockModalVisible(false);
+          setLockText('');
+        }}
+      >
+        <div style={{ position: 'relative' }}>
+          <Input.TextArea
+            value={lockText}
+            onChange={(event) => setLockText(event.target.value)}
+            placeholder="每一行一个CDK"
+            rows={12}
+            style={{
+              maxHeight: 360,
+              overflowY: 'auto',
+              fontFamily: 'var(--font-family-mono)',
+              paddingBottom: 28,
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              left: 12,
+              bottom: 8,
+              fontSize: 12,
+              color: 'var(--admin-text-secondary)',
+              pointerEvents: 'none',
+            }}
+          >
+            当前行数：{lockLineCount}
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

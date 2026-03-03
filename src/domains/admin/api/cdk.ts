@@ -26,6 +26,11 @@ export interface CreateCDKRequest {
   amount: number;
 }
 
+export interface LockCDKResponse {
+  total: number;
+  affects: number;
+}
+
 export interface CDKListResponse {
   items: CDK[];
   total: number;
@@ -234,6 +239,20 @@ export const cdkApi = {
       throw new Error(`Failed to create CDK: ${await response.text()}`);
     }
     return await response.json();
+  },
+
+  lock: async (raw: string): Promise<LockCDKResponse> => {
+    const response = await request(`${baseUrl}/cdks/lock`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain',
+      },
+      body: raw,
+    });
+    if (response.ok) {
+      return await response.json();
+    }
+    throw new Error(`锁定CDK失败: ${await response.text()}`);
   },
 
   batchDelete: async (codes: string[]): Promise<void> => {
